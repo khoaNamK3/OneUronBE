@@ -1,0 +1,23 @@
+# Build results
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Backup & Logs
+*.bak
+*.backup
+*.log
+
+# Database
+*.mdf
+*.ldf
+
+# Others
+node_modules/
+.env
