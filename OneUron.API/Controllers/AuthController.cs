@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using OneUron.BLL.DTOs;
+using OneUron.BLL.DTOs.AuthDTOs;
 using OneUron.BLL.Services;
 using System.Threading.Tasks;
 
@@ -20,6 +21,16 @@ public class AuthController : ControllerBase
         var response = await _authService.LoginAsync(request);
         if (!response.Success)
             return Unauthorized(new { message = response.Message });
+
+        return Ok(response);
+    }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
+    {
+        var response = await _authService.RegisterAsync(request);
+        if (!response.Success)
+            return BadRequest(new { message = response.Message });
 
         return Ok(response);
     }
