@@ -37,5 +37,7 @@ namespace OneUron.DAL.Data.Entity
         public virtual ICollection<Schedule> Schedules { get; set; }
 
         public virtual ICollection<MemberShip>? MemberShips { get; set; }
+
+        public virtual ICollection<Quiz> Quizzes { get; set; }
     }
 }
