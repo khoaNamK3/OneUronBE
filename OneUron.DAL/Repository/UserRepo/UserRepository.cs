@@ -1,24 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore;
-using OneUron.DAL.Data.Entity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using OneUron.DAL.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 
 namespace OneUron.DAL.Repository.UserRepo
 {
-    public class UserRepository : IUserRepository
+    public class UserRepository : GenericRepository<User>, IUserRepository
     {
-        private readonly AppDbContext _context;
-        public UserRepository(AppDbContext context)
-        {
-            _context = context;
-        }
+        public UserRepository(AppDbContext context) : base(context) { }
 
         public async Task<User> GetByUserNameAndPasswordAsync(string userName, string password)
         {
-            return await _context.Users
+            return await _dbSet
                 .FirstOrDefaultAsync(u => u.UserName == userName && u.Password == password && !u.IsDeleted);
         }
     }
