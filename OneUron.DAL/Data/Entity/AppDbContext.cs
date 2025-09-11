@@ -260,11 +260,11 @@ namespace OneUron.DAL.Data.Entity
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // one to many MethodRule MethodRuleCondition
-            modelBuilder.Entity<MethodRuleCondition>()
-                .HasOne(mrc => mrc.MethodRule)
-                .WithMany(mr => mr.MethodRuleConditions)
-                .HasForeignKey(mrc => mrc.MethodRuleId)
+            // one to many MethodRuleCondition MethodRule
+            modelBuilder.Entity<MethodRule>()
+                .HasOne(mr => mr.MethodRuleCondition)
+                .WithMany(mrc => mrc.MethodRules)
+                .HasForeignKey(mr => mr.MethodRuleConditionId)
                 .OnDelete(DeleteBehavior.Restrict);
 
 

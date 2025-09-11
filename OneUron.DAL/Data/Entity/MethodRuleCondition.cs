@@ -11,9 +11,6 @@ namespace OneUron.DAL.Data.Entity
 
         public Guid Id { get; set; }
 
-        public Guid MethodRuleId { get; set; }
-        public virtual MethodRule MethodRule { get; set; }
-
         public Guid? EvaluationId { get; set; }
 
         public virtual Evaluation? Evaluation { get; set; }
@@ -24,5 +21,7 @@ namespace OneUron.DAL.Data.Entity
 
         public Guid? ChoiceId { get; set; }
         public virtual Choice? Choice { get; set; }
+
+        public virtual ICollection<MethodRule> MethodRules { get; set; }
     }
 }
