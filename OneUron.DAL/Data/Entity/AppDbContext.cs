@@ -75,6 +75,12 @@ namespace OneUron.DAL.Data.Entity
 
         public DbSet<ProcessTask> ProcessTasks { get; set; }
 
+        public DbSet<MemberShip> MemberShips { get; set; }
+
+        public DbSet<MemberShipPlan> MemberShipPlans { get; set; }
+
+        public DbSet<Features> Features { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -101,6 +107,7 @@ namespace OneUron.DAL.Data.Entity
                 .OnDelete(DeleteBehavior.Restrict);
 
 
+            // one to many Quiz UserQuizAttemps
             modelBuilder.Entity<UserQuizAttempt>()
                 .HasOne(uqa => uqa.Quiz)
                 .WithMany(q => q.UserQuizAttempts)
@@ -181,27 +188,27 @@ namespace OneUron.DAL.Data.Entity
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // one to one Resource Acknowledge
-            modelBuilder.Entity<Resource>()
-                .HasOne(r => r.Acknowledge)
-                .WithOne(a => a.Resource)
-                .HasForeignKey<Acknowledge>(a => a.CourseId)
+            // one to many Resource Acknowledge
+            modelBuilder.Entity<Acknowledge>()
+                .HasOne(al => al.Resource)
+                .WithMany(r => r.Acknowledges)
+                .HasForeignKey(al => al.CourseId)
                 .OnDelete(DeleteBehavior.Restrict);
             
 
-            // one to one Resource Skills
-            modelBuilder.Entity<Resource>()
-                .HasOne(r => r.Skills)
-                .WithOne(s => s.Resource)
-                .HasForeignKey<Skill>(s => s.CourseId)
+            // one to many Resource Skills
+            modelBuilder.Entity<Skill>()
+                .HasOne(s => s.Resource)
+                .WithMany(r => r.Skills)
+                .HasForeignKey(s => s.CourseId)
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // one to one Resource Instructor
-            modelBuilder.Entity<Resource>()
-                .HasOne(r => r.Instructor)
-                .WithOne(i => i.Resource)
-                .HasForeignKey<Instructor>(i => i.CourseId)
+            // one to many Resource Instructor
+            modelBuilder.Entity<Instructor>()
+                .HasOne(i => i.Resource)
+                .WithMany(r => r.Instructors)
+                .HasForeignKey(i => i.CourseId)
                 .OnDelete(DeleteBehavior.Restrict);
 
 
@@ -367,6 +374,19 @@ namespace OneUron.DAL.Data.Entity
                 .HasForeignKey(t => t.ProcessId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // one to many User MemberShip
+            modelBuilder.Entity<MemberShip>()
+                .HasOne(ms => ms.User)
+                .WithMany(u => u.MemberShips)
+                .HasForeignKey(ms => ms.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // one to many MemberShipPlan MemberShip
+            modelBuilder.Entity<MemberShip>()
+                .HasOne(ms => ms.MemberShipPlan)
+                .WithMany(msp => msp.MemberShips)
+                .HasForeignKey(ms => ms.MemberShipPlanId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
