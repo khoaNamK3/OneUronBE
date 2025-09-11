@@ -28,11 +28,11 @@ namespace OneUron.DAL.Data.Entity
     
         public virtual CourseDetail CourseDetail { get; set; }
 
-        public virtual Acknowledge Acknowledge { get; set; }
+        public virtual ICollection<Acknowledge>? Acknowledges { get; set; }
 
-        public virtual Skill Skills { get; set; }
+        public virtual ICollection<Skill> Skills { get; set; }
 
-        public virtual Instructor Instructor { get; set; }
+        public virtual ICollection<Instructor>? Instructors { get; set; }
     }
 
     public enum ResourceType
