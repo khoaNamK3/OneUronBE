@@ -22,7 +22,11 @@ namespace OneUron.DAL.Repository
 
         public async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.ToListAsync();
 
-        public async Task AddAsync(T entity) => await _dbSet.AddAsync(entity);
+        public async Task AddAsync(T entity)
+        {
+            await _dbSet.AddAsync(entity);
+            await _context.SaveChangesAsync(); // Thêm dòng này
+        }
 
         public void Update(T entity) => _dbSet.Update(entity);
 
