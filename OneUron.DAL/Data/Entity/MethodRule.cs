@@ -18,6 +18,8 @@ namespace OneUron.DAL.Data.Entity
 
         public double Effectiveness { get; set; }
 
-        public virtual ICollection<MethodRuleCondition> MethodRuleConditions { get; set; }
+        public Guid MethodRuleConditionId { get; set; }
+
+        public virtual MethodRuleCondition MethodRuleCondition { get; set; }
     }
 }
