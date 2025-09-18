@@ -6,5 +6,6 @@ namespace OneUron.BLL.DTOs
         public string Message { get; set; }
         public Guid? UserId { get; set; }
         public string Token { get; set; } // Optional: JWT token
+        public string RefreshToken { get; set; } // Optional: Refresh token
     }
 }
