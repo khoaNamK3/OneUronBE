@@ -31,7 +31,6 @@ namespace OneUron.DAL.Data.Entity
 
         public virtual ICollection<User> Users { get; set; }
 
-        public virtual Level Level { get; set; }
     }
     public enum QuizType
     {
