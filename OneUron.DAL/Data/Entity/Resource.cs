@@ -16,6 +16,8 @@ namespace OneUron.DAL.Data.Entity
 
         public string Description { get; set; }
 
+        public string Image {  get; set; }
+
         public double Star { get; set; }
 
         public double Reviews { get; set; }

@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using OneUron.BLL.DTOs.Settings;
+using OneUron.BLL.Interface;
 using OneUron.BLL.Services; // Add this using directive for AuthService
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository;
+using OneUron.DAL.Repository.ResourceRepo;
 using OneUron.DAL.Repository.TokenRepo;
 using OneUron.DAL.Repository.UserRepo; // Ensure this using directive is present
 
@@ -38,12 +40,14 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "OneUron API", Version = "v1" });
 });
 
-builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<ITokenRepository, TokenRepository>();
-builder.Services.AddScoped<AuthService>(); // Register AuthService
-builder.Services.AddScoped<JwtService>();
+
+    builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+    builder.Services.AddScoped<IUserRepository, UserRepository>();
+    builder.Services.AddScoped<ITokenRepository, TokenRepository>();
+    builder.Services.AddScoped<IResourcesRepository, ResourcesRepository>();
+    builder.Services.AddScoped<IResourcesService, ResourcesService>();
+    builder.Services.AddScoped<AuthService>();
+    builder.Services.AddScoped<JwtService>();
 
 var app = builder.Build();
 
