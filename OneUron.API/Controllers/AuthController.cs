@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OneUron.BLL.DTOs;
 using OneUron.BLL.DTOs.AuthDTOs;
@@ -69,6 +70,7 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
+    [Authorize]
     [HttpPost("logout")]
     public async Task<IActionResult> Logout()
     {
