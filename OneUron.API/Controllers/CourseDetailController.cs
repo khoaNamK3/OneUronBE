@@ -1,28 +1,28 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using OneUron.BLL.DTOs.ResourceDTOs;
+using OneUron.BLL.DTOs.CourseDetailDTOs;
 using OneUron.BLL.Interface;
-using System.ComponentModel.Design;
 
 namespace OneUron.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ResourceController : Controller
+    public class CourseDetailController : Controller
     {
-        private readonly IResourcesService _resourceService;
+        private readonly ICourseDetailService _courseDetailService;
 
-        public ResourceController(IResourcesService resourceService)
+        public CourseDetailController(ICourseDetailService courseDetailService)
         {
-            _resourceService = resourceService;
+            _courseDetailService = courseDetailService;
         }
+
 
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
         {
-            var response = await _resourceService.GetAllResourceAsync();
+            var response = await _courseDetailService.GetAllCourseDetailAsync();
             if (!response.Success)
             {
-               return NotFound(response);
+                return NotFound(response);
             }
             return Ok(response);
         }
@@ -30,7 +30,7 @@ namespace OneUron.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync(Guid id)
         {
-            var response = await _resourceService.GetResourceByIdAsync(id);
+            var response = await _courseDetailService.GetCourseDetailbyIdAsync(id);
             if (!response.Success)
             {
                 return NotFound(response);
@@ -39,9 +39,10 @@ namespace OneUron.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateNewResourceAsync([FromBody] ResourceRequestDto request)
+        public async Task<IActionResult> CreateNewCourseDetailAsync([FromBody] CourseDetailRequestDto request)
         {
-            var response = await _resourceService.CreateNewResourceAsync(request);
+            var response = await _courseDetailService.CreateNewCourseDetailAsync(request);
+
             if (!response.Success)
             {
                 return BadRequest(response);
@@ -50,9 +51,9 @@ namespace OneUron.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateResourceById(Guid id, [FromBody] ResourceRequestDto request)
+        public async Task<IActionResult> UpdateCourseDetailByIdAsync(Guid id, [FromBody] CourseDetailRequestDto request)
         {
-            var response = await _resourceService.UpdateResourceByIdAsync(id, request);
+            var response = await _courseDetailService.UpdateCourseDetailByIdAsync(id, request);
             if (!response.Success)
             {
                 return BadRequest(response);
@@ -61,15 +62,14 @@ namespace OneUron.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteResourceById(Guid id)
+        public async Task<IActionResult> DeleteCourseDetailByIdAsync(Guid id)
         {
-            var response = await _resourceService.DeletedResourceAsync(id);
+            var response = await _courseDetailService.DeleteCourseDetailByIdAsync(id);
             if (!response.Success)
             {
                 return NotFound(response);
             }
             return Ok(response);
         }
-
     }
 }

@@ -1,28 +1,28 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using OneUron.BLL.DTOs.ResourceDTOs;
+using OneUron.BLL.DTOs.AcknowledgeDTOs;
 using OneUron.BLL.Interface;
-using System.ComponentModel.Design;
 
 namespace OneUron.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ResourceController : Controller
+    public class AcknowledgeController : Controller
     {
-        private readonly IResourcesService _resourceService;
+        private readonly IAcknowledgeService _acknowledgeService;
 
-        public ResourceController(IResourcesService resourceService)
+        public AcknowledgeController(IAcknowledgeService acknowledgeService)
         {
-            _resourceService = resourceService;
+            _acknowledgeService = acknowledgeService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
         {
-            var response = await _resourceService.GetAllResourceAsync();
+            var response = await _acknowledgeService.GetAllAcknowledgeAsync();
+
             if (!response.Success)
             {
-               return NotFound(response);
+                return NotFound(response);
             }
             return Ok(response);
         }
@@ -30,7 +30,8 @@ namespace OneUron.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync(Guid id)
         {
-            var response = await _resourceService.GetResourceByIdAsync(id);
+            var response = await _acknowledgeService.GetAcknowledgeByIdAsync(id);
+
             if (!response.Success)
             {
                 return NotFound(response);
@@ -39,9 +40,9 @@ namespace OneUron.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateNewResourceAsync([FromBody] ResourceRequestDto request)
+        public async Task<IActionResult> CreateNewAcknowLedgeAsync([FromBody] AcknowledgeRequestDto request)
         {
-            var response = await _resourceService.CreateNewResourceAsync(request);
+            var response = await _acknowledgeService.CreateNewAcknowledgeAsync(request);
             if (!response.Success)
             {
                 return BadRequest(response);
@@ -50,9 +51,9 @@ namespace OneUron.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateResourceById(Guid id, [FromBody] ResourceRequestDto request)
+        public async Task<IActionResult> UpdateAcknowLedgeByIdAsync(Guid id, [FromBody] AcknowledgeRequestDto request)
         {
-            var response = await _resourceService.UpdateResourceByIdAsync(id, request);
+            var response = await _acknowledgeService.UpdateAcknowLedgeByIdAsync(id, request);
             if (!response.Success)
             {
                 return BadRequest(response);
@@ -61,15 +62,14 @@ namespace OneUron.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteResourceById(Guid id)
+        public async Task<IActionResult> DeleteAcknowLedgeByIdAsync(Guid id)
         {
-            var response = await _resourceService.DeletedResourceAsync(id);
+            var response = await _acknowledgeService.DeleteAcknowledgeByIdAsync(id);
             if (!response.Success)
             {
                 return NotFound(response);
             }
             return Ok(response);
         }
-
     }
 }

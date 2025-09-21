@@ -14,10 +14,6 @@ namespace OneUron.DAL.Data.Entity
 
         public virtual Method Method { get; set; }
 
-        public double Weight { get; set; }
-
-        public double Effectiveness { get; set; }
-
         public Guid MethodRuleConditionId { get; set; }
 
         public virtual MethodRuleCondition MethodRuleCondition { get; set; }
