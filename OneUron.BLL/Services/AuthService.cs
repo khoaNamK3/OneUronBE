@@ -3,10 +3,12 @@ using OneUron.BLL.DTOs;
 using OneUron.BLL.DTOs.AuthDTOs;
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository.UserRepo;
+using OneUron.DAL.Repository.RoleRepo;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Security.Claims;
+using BCrypt.Net;
 
 namespace OneUron.BLL.Services
 {
@@ -14,17 +16,31 @@ namespace OneUron.BLL.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly JwtService _jwtService;
+        private readonly IRoleRepository _roleRepository;
 
-        public AuthService(IUserRepository userRepository, JwtService jwtService)
+        public AuthService(IUserRepository userRepository, JwtService jwtService, IRoleRepository roleRepository)
         {
             _userRepository = userRepository;
             _jwtService = jwtService;
+            _roleRepository = roleRepository;
         }
 
         public async Task<LoginResponseDto> LoginAsync(LoginRequestDto request)
         {
-            var user = await _userRepository.GetByUserNameAndPasswordAsync(request.UserName, request.Password);
+            // Get user by username with roles included
+            var user = await _userRepository.GetByUserNameWithRolesAsync(request.UserName);
             if (user == null)
+            {
+                return new LoginResponseDto
+                {
+                    Success = false,
+                    Message = "Invalid username or password"
+                };
+            }
+
+            // Verify password hash (assuming you're using BCrypt for hashing)
+            bool passwordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.Password);
+            if (!passwordValid)
             {
                 return new LoginResponseDto
                 {
@@ -42,41 +58,62 @@ namespace OneUron.BLL.Services
                 Message = "Login successful",
                 UserId = user.Id,
                 Token = accessToken,
-                RefreshToken = refreshToken
+                RefreshToken = refreshToken,
+                Roles = user.Roles?.Select(r => r.RoleName).ToList() // Include roles in response
             };
         }
 
         public async Task<RegisterResponseDto> RegisterAsync(RegisterRequestDto request)
         {
-            // Kiểm tra username đã tồn tại chưa
-            var existingUser = await _userRepository.FindAsync(u => u.UserName == request.UserName && !u.IsDeleted);
-            if (existingUser.Any())
+            try
+            {
+                // Check if username already exists
+                var existingUser = await _userRepository.FindAsync(u => u.UserName == request.UserName && !u.IsDeleted);
+                if (existingUser.Any())
+                {
+                    return new RegisterResponseDto
+                    {
+                        Success = false,
+                        Message = "Username already exists"
+                    };
+                }
+
+                // Hash password
+                string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
+                // Create new user
+                var user = new User
+                {
+                    Id = Guid.NewGuid(),
+                    UserName = request.UserName,
+                    Password = passwordHash,
+                    CreatedDate = DateTime.UtcNow,
+                    UpdateDate = DateTime.UtcNow,
+                    IsDeleted = false,
+                    Roles = new List<DAL.Data.Entity.Role>()
+                };
+
+                await _userRepository.AddAsync(user);
+
+                // Assign default role or specified role
+                string roleName = !string.IsNullOrEmpty(request.Role) ? request.Role : "User";
+                await _userRepository.AssignRoleToUserAsync(user.Id, roleName);
+
+                return new RegisterResponseDto
+                {
+                    Success = true,
+                    Message = "Register successful",
+                    UserId = user.Id
+                };
+            }
+            catch (Exception ex)
             {
                 return new RegisterResponseDto
                 {
                     Success = false,
-                    Message = "Username already exists"
+                    Message = $"Registration failed: {ex.Message}"
                 };
             }
-
-            var user = new User
-            {
-                Id = Guid.NewGuid(),
-                UserName = request.UserName,
-                Password = request.Password, // Nên mã hóa password!
-                CreatedDate = DateTime.UtcNow,
-                UpdateDate = DateTime.UtcNow,
-                IsDeleted = false
-            };
-
-            await _userRepository.AddAsync(user);
-
-            return new RegisterResponseDto
-            {
-                Success = true,
-                Message = "Register successful",
-                UserId = user.Id
-            };
         }
 
         public async Task<LogoutResponseDto> LogoutAsync(Guid userId)
