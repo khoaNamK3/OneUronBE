@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,8 +19,6 @@ namespace OneUron.DAL.Data.Entity
         public DbSet<Token> Tokens { get; set; }
 
         public DbSet<Profile> Profiles { get; set; }
-
-        public DbSet<Level> Levels { get; set; }
 
         public DbSet<Role> Roles { get; set; }
 
@@ -85,6 +84,21 @@ namespace OneUron.DAL.Data.Entity
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<Quiz>().Property(q => q.Type)
+                .HasConversion(new EnumToStringConverter<QuizType>());
+
+            modelBuilder.Entity<Resource>().Property(r => r.Type)
+                .HasConversion(new EnumToStringConverter<ResourceType>());
+
+            modelBuilder.Entity<MemberShip>().Property(ms => ms.Status)
+                .HasConversion(new EnumToStringConverter<MemberShipStatus>());
+
+            modelBuilder.Entity<Method>().Property(m => m.Difficulty)
+                .HasConversion(new EnumToStringConverter<MethodType>());
+
+            modelBuilder.Entity<EvaluationQuestion>().Property(eq => eq.Type)
+                .HasConversion(new EnumToStringConverter<EvaluationQuestionType>());
+
             // one to one User and Token
             modelBuilder.Entity<User>()
                 .HasOne(u => u.Token)
@@ -112,15 +126,6 @@ namespace OneUron.DAL.Data.Entity
                 .HasOne(uqa => uqa.Quiz)
                 .WithMany(q => q.UserQuizAttempts)
                 .HasForeignKey(uqa => uqa.QuizId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-
-            // one to one Quiz and Level
-
-            modelBuilder.Entity<Quiz>()
-                .HasOne(q => q.Level)
-                .WithOne(l => l.Quiz)
-                .HasForeignKey<Level>(l => l.QuizId)
                 .OnDelete(DeleteBehavior.Restrict);
 
 
@@ -260,11 +265,11 @@ namespace OneUron.DAL.Data.Entity
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // one to many MethodRule MethodRuleCondition
-            modelBuilder.Entity<MethodRuleCondition>()
-                .HasOne(mrc => mrc.MethodRule)
-                .WithMany(mr => mr.MethodRuleConditions)
-                .HasForeignKey(mrc => mrc.MethodRuleId)
+            // one to many MethodRuleCondition MethodRule
+            modelBuilder.Entity<MethodRule>()
+                .HasOne(mr => mr.MethodRuleCondition)
+                .WithMany(mrc => mrc.MethodRules)
+                .HasForeignKey(mr => mr.MethodRuleConditionId)
                 .OnDelete(DeleteBehavior.Restrict);
 
 

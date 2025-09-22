@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OneUron.DAL.Data.Entity;
@@ -11,9 +12,11 @@ using OneUron.DAL.Data.Entity;
 namespace OneUron.DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250911070945_FixMethodRuleCondition")]
+    partial class FixMethodRuleCondition
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -182,9 +185,8 @@ namespace OneUron.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -244,6 +246,31 @@ namespace OneUron.DAL.Migrations
                     b.ToTable("Instructors");
                 });
 
+            modelBuilder.Entity("OneUron.DAL.Data.Entity.Level", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("QuizId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuizId")
+                        .IsUnique();
+
+                    b.ToTable("Levels");
+                });
+
             modelBuilder.Entity("OneUron.DAL.Data.Entity.MemberShip", b =>
                 {
                     b.Property<Guid>("Id")
@@ -259,9 +286,8 @@ namespace OneUron.DAL.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
@@ -307,9 +333,8 @@ namespace OneUron.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Difficulty")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Difficulty")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -585,9 +610,8 @@ namespace OneUron.DAL.Migrations
                     b.Property<int>("TotalQuestion")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -647,9 +671,8 @@ namespace OneUron.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -915,21 +938,6 @@ namespace OneUron.DAL.Migrations
                     b.ToTable("UserQuizAttempts");
                 });
 
-            modelBuilder.Entity("QuizUser", b =>
-                {
-                    b.Property<Guid>("QuizzesId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("UsersId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("QuizzesId", "UsersId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("QuizUser");
-                });
-
             modelBuilder.Entity("RoleUser", b =>
                 {
                     b.Property<Guid>("RolesId")
@@ -1032,6 +1040,17 @@ namespace OneUron.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("Resource");
+                });
+
+            modelBuilder.Entity("OneUron.DAL.Data.Entity.Level", b =>
+                {
+                    b.HasOne("OneUron.DAL.Data.Entity.Quiz", "Quiz")
+                        .WithOne("Level")
+                        .HasForeignKey("OneUron.DAL.Data.Entity.Level", "QuizId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Quiz");
                 });
 
             modelBuilder.Entity("OneUron.DAL.Data.Entity.MemberShip", b =>
@@ -1327,21 +1346,6 @@ namespace OneUron.DAL.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("QuizUser", b =>
-                {
-                    b.HasOne("OneUron.DAL.Data.Entity.Quiz", null)
-                        .WithMany()
-                        .HasForeignKey("QuizzesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OneUron.DAL.Data.Entity.User", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("RoleUser", b =>
                 {
                     b.HasOne("OneUron.DAL.Data.Entity.Role", null)
@@ -1425,6 +1429,9 @@ namespace OneUron.DAL.Migrations
 
             modelBuilder.Entity("OneUron.DAL.Data.Entity.Quiz", b =>
                 {
+                    b.Navigation("Level")
+                        .IsRequired();
+
                     b.Navigation("Questions");
 
                     b.Navigation("UserQuizAttempts");

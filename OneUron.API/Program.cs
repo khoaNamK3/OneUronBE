@@ -1,15 +1,35 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using OneUron.BLL.DTOs.Settings;
+using OneUron.BLL.Services; // Add this using directive for AuthService
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository;
+using OneUron.DAL.Repository.TokenRepo;
 using OneUron.DAL.Repository.UserRepo; // Ensure this using directive is present
-using OneUron.BLL.Services; // Add this using directive for AuthService
+
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Load configuration
+var configuration = builder.Configuration;
+builder.Services.Configure<JwtSettings>(configuration.GetSection("AppSettings"));
+
+// Register configuration as singleton for DI
+builder.Services.AddSingleton<IConfiguration>(configuration);
+
+// Add CORS services
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigins",
+        policy => policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
+
 // Add services
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
+    options.UseNpgsql(configuration.GetConnectionString("PostgresConnection")));
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -20,19 +40,24 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 builder.Services.AddScoped<AuthService>(); // Register AuthService
+builder.Services.AddScoped<JwtService>();
 
 var app = builder.Build();
 
-// Middleware pipeline
-app.UseAuthorization();
+// Configure CORS
+app.UseCors("AllowSpecificOrigins");
 
+// Middleware pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
