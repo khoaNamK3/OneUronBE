@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,22 +19,23 @@ namespace OneUron.DAL.Repository
             _dbSet = context.Set<T>();
         }
 
-        public async Task<T> GetByIdAsync(Guid id) => await _dbSet.FindAsync(id);
-
-        public async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.ToListAsync();
+        public async Task<T> GetByIdAsync(Guid id)
+        {
+            return await _dbSet.FindAsync(id);
+        }
 
         public async Task AddAsync(T entity)
         {
             await _dbSet.AddAsync(entity);
-            await _context.SaveChangesAsync(); 
+            await _context.SaveChangesAsync();
         }
 
         public async Task UpdateAsync(T entity)
         {
-            _dbSet.Update(entity);
+            _context.Entry(entity).State = EntityState.Modified;
             await _context.SaveChangesAsync();
         }
-
+        
         public async Task DeleteAsync(T entity)
         {
             _dbSet.Remove(entity);
@@ -41,6 +43,14 @@ namespace OneUron.DAL.Repository
         }
 
         public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
-            => await _dbSet.Where(predicate).ToListAsync();
+        {
+            return await _dbSet.Where(predicate).ToListAsync();
+        }
+        
+        // Tri?n khai ph??ng th?c transaction
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            return await _context.Database.BeginTransactionAsync();
+        }
     }
 }
