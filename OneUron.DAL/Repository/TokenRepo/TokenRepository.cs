@@ -12,7 +12,7 @@ namespace OneUron.DAL.Repository.TokenRepo
         public async Task<Token> GetByRefreshTokenAsync(string refreshToken)
         {
             return await _dbSet
-                .FirstOrDefaultAsync(t => t.RefeshToken == refreshToken);
+                .FirstOrDefaultAsync(t => t.RefreshToken == refreshToken);
         }
 
         public async Task<Token> GetByUserIdAsync(Guid userId)

@@ -13,5 +13,8 @@ namespace OneUron.BLL.DTOs.AuthDTOs
         
         // Default to "User" if not specified
         public string Role { get; set; } = "User";
+        public string FullName { get; set; }
+        public string Address { get; set; }
+        public DateTime Dob { get; set; }
     }
 }

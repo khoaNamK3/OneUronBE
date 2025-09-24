@@ -7,6 +7,7 @@ using OneUron.BLL.DTOs.Settings;
 using OneUron.BLL.Services;
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository;
+using OneUron.DAL.Repository.ProfileRepository;
 using OneUron.DAL.Repository.RoleRepo;
 using OneUron.DAL.Repository.TokenRepo;
 using OneUron.DAL.Repository.UserRepo;
@@ -99,6 +100,8 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
 

@@ -65,54 +65,93 @@ namespace OneUron.BLL.Services
 
         public async Task<RegisterResponseDto> RegisterAsync(RegisterRequestDto request)
         {
-            try
+            // Sử dụng transaction để đảm bảo tính nhất quán của dữ liệu
+            using (var transaction = await _userRepository.BeginTransactionAsync())
             {
-                // Check if username already exists
-                var existingUser = await _userRepository.FindAsync(u => u.UserName == request.UserName && !u.IsDeleted);
-                if (existingUser.Any())
+                try
                 {
+                    // Check if username already exists
+                    var existingUser = await _userRepository.FindAsync(u => u.UserName == request.UserName && !u.IsDeleted);
+                    if (existingUser.Any())
+                    {
+                        return new RegisterResponseDto
+                        {
+                            Success = false,
+                            Message = "Username already exists"
+                        };
+                    }
+
+                    // Hash password
+                    string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
+                    // Create new profile
+                    var profile = new Profile
+                    {
+                        Id = Guid.NewGuid(),
+                        FullName = request.FullName,
+                        Address = request.Address,
+                        Avatar = string.Empty,
+                        Dob = request.Dob
+                    };
+
+                    // Create new user with profile
+                    var user = new User
+                    {
+                        Id = Guid.NewGuid(),
+                        UserName = request.UserName,
+                        Password = passwordHash,
+                        CreatedDate = DateTime.UtcNow,
+                        UpdateDate = DateTime.UtcNow,
+                        IsDeleted = false,
+                        Profile = profile,
+                        Roles = new List<Role>()
+                    };
+
+                    // Liên kết ngược từ profile đến user
+                    profile.UserId = user.Id;
+
+                    // Thêm user vào database
+                    await _userRepository.AddAsync(user);
+
+                    // Kiểm tra role tồn tại trước khi thêm
+                    string roleName = !string.IsNullOrEmpty(request.Role) ? request.Role : "User";
+
+                    // Kiểm tra xem role có tồn tại không
+                    var role = await _roleRepository.GetByNameAsync(roleName);
+                    if (role == null)
+                    {
+                        // Nếu role không tồn tại, hủy giao dịch và trả về thông báo lỗi
+                        await transaction.RollbackAsync();
+                        return new RegisterResponseDto
+                        {
+                            Success = false,
+                            Message = $"Role '{roleName}' does not exist"
+                        };
+                    }
+
+                    // Gán role cho user
+                    await _userRepository.AssignRoleToUserAsync(user.Id, roleName);
+
+                    // Hoàn thành giao dịch nếu mọi thứ thành công
+                    await transaction.CommitAsync();
+
+                    return new RegisterResponseDto
+                    {
+                        Success = true,
+                        Message = "Register successful",
+                        UserId = user.Id
+                    };
+                }
+                catch (Exception ex)
+                {
+                    // Nếu có lỗi, hủy giao dịch
+                    await transaction.RollbackAsync();
                     return new RegisterResponseDto
                     {
                         Success = false,
-                        Message = "Username already exists"
+                        Message = $"Registration failed: {ex.Message}"
                     };
                 }
-
-                // Hash password
-                string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-
-                // Create new user
-                var user = new User
-                {
-                    Id = Guid.NewGuid(),
-                    UserName = request.UserName,
-                    Password = passwordHash,
-                    CreatedDate = DateTime.UtcNow,
-                    UpdateDate = DateTime.UtcNow,
-                    IsDeleted = false,
-                    Roles = new List<DAL.Data.Entity.Role>()
-                };
-
-                await _userRepository.AddAsync(user);
-
-                // Assign default role or specified role
-                string roleName = !string.IsNullOrEmpty(request.Role) ? request.Role : "User";
-                await _userRepository.AssignRoleToUserAsync(user.Id, roleName);
-
-                return new RegisterResponseDto
-                {
-                    Success = true,
-                    Message = "Register successful",
-                    UserId = user.Id
-                };
-            }
-            catch (Exception ex)
-            {
-                return new RegisterResponseDto
-                {
-                    Success = false,
-                    Message = $"Registration failed: {ex.Message}"
-                };
             }
         }
 

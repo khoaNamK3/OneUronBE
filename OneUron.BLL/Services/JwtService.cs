@@ -119,8 +119,7 @@ namespace OneUron.BLL.Services
             if (existingToken != null)
             {
                 // Update existing tokens
-                existingToken.AccessToken = accessToken;
-                existingToken.RefeshToken = refreshToken;
+                existingToken.RefreshToken = refreshToken;
                 await _tokenRepository.UpdateAsync(existingToken);
             }
             else
@@ -130,8 +129,7 @@ namespace OneUron.BLL.Services
                 {
                     Id = Guid.NewGuid(),
                     UserId = userId,
-                    AccessToken = accessToken,
-                    RefeshToken = refreshToken
+                    RefreshToken = refreshToken
                 };
                 await _tokenRepository.AddAsync(tokenEntity);
             }
@@ -153,8 +151,7 @@ namespace OneUron.BLL.Services
             var newRefreshToken = GenerateRefreshToken();
 
             // Update tokens in database
-            tokenEntity.AccessToken = newAccessToken;
-            tokenEntity.RefeshToken = newRefreshToken;
+            tokenEntity.RefreshToken = newRefreshToken;
             await _tokenRepository.UpdateAsync(tokenEntity);
 
             return (true, newAccessToken, newRefreshToken);
