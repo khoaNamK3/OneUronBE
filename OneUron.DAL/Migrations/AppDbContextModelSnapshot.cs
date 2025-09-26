@@ -394,11 +394,17 @@ namespace OneUron.DAL.Migrations
                     b.Property<Guid?>("ChoiceId")
                         .HasColumnType("uuid");
 
+                    b.Property<double>("Effectiveness")
+                        .HasColumnType("double precision");
+
                     b.Property<Guid?>("EvaluationId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("EvaluationQuestionId")
                         .HasColumnType("uuid");
+
+                    b.Property<double>("Weight")
+                        .HasColumnType("double precision");
 
                     b.HasKey("Id");
 
@@ -862,20 +868,27 @@ namespace OneUron.DAL.Migrations
 
             modelBuilder.Entity("OneUron.DAL.Data.Entity.UserAnswer", b =>
                 {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("EvaluationQuestionId")
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("ChoiceId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("UserId", "EvaluationQuestionId", "ChoiceId");
+                    b.Property<Guid>("EvaluationQuestionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("ChoiceId");
 
                     b.HasIndex("EvaluationQuestionId");
+
+                    b.HasIndex("UserId", "EvaluationQuestionId")
+                        .IsUnique();
 
                     b.ToTable("UserAnswers");
                 });

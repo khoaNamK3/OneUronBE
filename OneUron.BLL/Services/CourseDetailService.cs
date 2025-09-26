@@ -68,7 +68,7 @@ namespace OneUron.BLL.Services
             {
                 if (request == null)
                 {
-                    return ApiResponse<CourseDetailResponseDto>.FailResponse("Create New CourseDetail Fail", "CourseDetail Are Empty");
+                    return ApiResponse<CourseDetailResponseDto>.FailResponse("Create New CourseDetail Fail", "CourseDetail is Null");
                 }
 
                 var newCourseDetail = MapToEntity(request);
@@ -98,13 +98,13 @@ namespace OneUron.BLL.Services
 
                 if (newCourseDetail == null)
                 {
-                    return ApiResponse<CourseDetailResponseDto>.FailResponse("Update CourseDetail Fail", "New CourseDetail Are Empty");
+                    return ApiResponse<CourseDetailResponseDto>.FailResponse("Update CourseDetail Fail", "New CourseDetail is Null");
                 }
 
                 existCourseDetail.Duration = newCourseDetail.Duration;
                 existCourseDetail.Level = newCourseDetail.Level;
                 existCourseDetail.Students = newCourseDetail.Students;
-                existCourseDetail.Update = newCourseDetail.Update;
+                existCourseDetail.Update = DateTime.UtcNow;
                 existCourseDetail.Reviews = newCourseDetail.Reviews;
                 existCourseDetail.Price = newCourseDetail.Price;
                 existCourseDetail.ResourceId = newCourseDetail.ResourceId;
@@ -150,15 +150,16 @@ namespace OneUron.BLL.Services
                 Duration = courseDetailRequest.Duration,
                 Level = courseDetailRequest.Level,
                 Students = courseDetailRequest.Students,
-                Update = courseDetailRequest.Update,
                 Reviews = courseDetailRequest.Reviews,
                 Price = courseDetailRequest.Price,
                 ResourceId = courseDetailRequest.ResourceId
             };
         }
 
-        protected CourseDetailResponseDto MapToDto(CourseDetail courseDetail)
+        public CourseDetailResponseDto MapToDto(CourseDetail courseDetail)
         {
+            if (courseDetail == null) return null; 
+
             return new CourseDetailResponseDto
             {
                 Id = courseDetail.Id,
@@ -171,5 +172,6 @@ namespace OneUron.BLL.Services
                 ResourceId = courseDetail.ResourceId
             };
         }
+
     }
 }

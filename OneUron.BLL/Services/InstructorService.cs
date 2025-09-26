@@ -65,7 +65,7 @@ namespace OneUron.BLL.Services
             {
                 if (request == null)
                 {
-                    return ApiResponse<InstructorResponseDto>.FailResponse("Create New Instructor Fail", "New Intructor Are Empty");
+                    return ApiResponse<InstructorResponseDto>.FailResponse("Create New Instructor Fail", "New Intructor is Null");
                 }
 
                 var newInstructor = MapToEntity(request);
@@ -94,7 +94,7 @@ namespace OneUron.BLL.Services
                 }
                 if (newInstructor == null)
                 {
-                    return ApiResponse<InstructorResponseDto>.FailResponse("Update Instructor By Id Fail", "Instructor Are Empty");
+                    return ApiResponse<InstructorResponseDto>.FailResponse("Update Instructor By Id Fail", "Instructor is Null");
                 }
                 existInstructor.Name = newInstructor.Name;
                 existInstructor.Description = newInstructor.Description;
@@ -150,7 +150,7 @@ namespace OneUron.BLL.Services
             };
         }
 
-        protected InstructorResponseDto MapToDTO(Instructor instructor)
+        public InstructorResponseDto MapToDTO(Instructor instructor)
         {
             return new InstructorResponseDto
             {

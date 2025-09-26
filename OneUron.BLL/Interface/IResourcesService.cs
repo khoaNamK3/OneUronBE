@@ -20,5 +20,7 @@ namespace OneUron.BLL.Interface
         public  Task<ApiResponse<ResourceResponseDto>> UpdateResourceByIdAsync(Guid id, ResourceRequestDto request);
 
         public  Task<ApiResponse<ResourceResponseDto>> DeletedResourceAsync(Guid id);
+
+        public ResourceResponseDto MapToDto(Resource r);
     }
 }

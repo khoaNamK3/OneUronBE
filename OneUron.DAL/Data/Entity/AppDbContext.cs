@@ -315,30 +315,34 @@ namespace OneUron.DAL.Data.Entity
 
 
             modelBuilder.Entity<UserAnswer>()
-            .HasKey(ua => new { ua.UserId, ua.EvaluationQuestionId, ua.ChoiceId });
+     .HasKey(ua => ua.Id);
 
-            // one to many EvaluationQuestion UserAnswer
+             
+            modelBuilder.Entity<UserAnswer>()
+                .HasIndex(ua => new { ua.UserId, ua.EvaluationQuestionId })
+                .IsUnique();
+
+            // EvaluationQuestion  UserAnswer
             modelBuilder.Entity<UserAnswer>()
                 .HasOne(ua => ua.EvaluationQuestion)
                 .WithMany(eq => eq.UserAnswers)
                 .HasForeignKey(ua => ua.EvaluationQuestionId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-
-            // one to many Choice UserAnswer
+            //  Choice  UserAnswer
             modelBuilder.Entity<UserAnswer>()
                 .HasOne(ua => ua.Choice)
                 .WithMany(c => c.UserAnswers)
                 .HasForeignKey(ua => ua.ChoiceId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-
-            // one to many User UserAnswer
+            //  User  UserAnswer
             modelBuilder.Entity<UserAnswer>()
                 .HasOne(ua => ua.User)
                 .WithMany(u => u.UserAnswers)
                 .HasForeignKey(ua => ua.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
+
 
 
             // one to many User Schedule

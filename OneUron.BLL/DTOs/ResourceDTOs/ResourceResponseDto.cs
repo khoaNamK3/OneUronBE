@@ -1,4 +1,8 @@
-﻿using OneUron.DAL.Data.Entity;
+﻿using OneUron.BLL.DTOs.AcknowledgeDTOs;
+using OneUron.BLL.DTOs.CourseDetailDTOs;
+using OneUron.BLL.DTOs.InstructorDTOs;
+using OneUron.BLL.DTOs.SkillDTOs;
+using OneUron.DAL.Data.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +20,7 @@ namespace OneUron.BLL.DTOs.ResourceDTOs
 
         public string Description { get; set; }
 
-        public string Image {  get; set; }
+        public string Image { get; set; }
 
         public double Star { get; set; }
 
@@ -25,6 +29,14 @@ namespace OneUron.BLL.DTOs.ResourceDTOs
         public double Price { get; set; }
 
         public ResourceType Type { get; set; }
+
+        public CourseDetailResponseDto courseDetail{ get; set; }
+
+        public List<AcknowledgeResponseDto>? Acknowledges { get; set; }
+
+        public List<SkillResponseDto> Skills { get; set; }
+
+        public List<InstructorResponseDto>? Instructors { get; set; }
 
     }
 }

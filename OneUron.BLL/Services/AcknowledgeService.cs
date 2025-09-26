@@ -67,7 +67,7 @@ namespace OneUron.BLL.Services
             {
                 if (request == null)
                 {
-                    return ApiResponse<AcknowledgeResponseDto>.FailResponse("Create New Acknowledge Fail", "AcknowLedge Are Empty");
+                    return ApiResponse<AcknowledgeResponseDto>.FailResponse("Create New Acknowledge Fail", "AcknowLedge is Null");
                 }
 
                 var newAcknowLedge = MapToEnitity(request);
@@ -94,7 +94,7 @@ namespace OneUron.BLL.Services
 
                 if (newAcknowLedge == null)
                 {
-                    return ApiResponse<AcknowledgeResponseDto>.FailResponse("Update Acknowledge By Id Fail", "Acknowledge Are Emptty");
+                    return ApiResponse<AcknowledgeResponseDto>.FailResponse("Update Acknowledge By Id Fail", "Acknowledge is Null");
                 }
 
                 existAcknowledge.Text = newAcknowLedge.Text;
@@ -143,7 +143,7 @@ namespace OneUron.BLL.Services
             };
         }
 
-        protected AcknowledgeResponseDto MapToDTO(Acknowledge acknowledge)
+        public AcknowledgeResponseDto MapToDTO(Acknowledge acknowledge)
         {
             return new AcknowledgeResponseDto
             {

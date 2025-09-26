@@ -21,5 +21,7 @@ namespace OneUron.BLL.Interface
 
         public  Task<ApiResponse<CourseDetailResponseDto>> DeleteCourseDetailByIdAsync(Guid id);
 
+        public CourseDetailResponseDto MapToDto(CourseDetail courseDetail);
+
     }
 }

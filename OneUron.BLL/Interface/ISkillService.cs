@@ -20,5 +20,7 @@ namespace OneUron.BLL.Interface
         public  Task<ApiResponse<SkillResponseDto>> UpdateSkillByIdAsync(Guid id, SkillRequestDto newSkill);
 
         public  Task<ApiResponse<SkillResponseDto>> DeleteSkillByIdAsync(Guid id);
+
+        public SkillResponseDto MapToDTO(Skill skill);
     }
 }

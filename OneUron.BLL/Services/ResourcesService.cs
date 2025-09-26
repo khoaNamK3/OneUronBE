@@ -1,4 +1,7 @@
-﻿using OneUron.BLL.DTOs.ResourceDTOs;
+﻿using OneUron.BLL.DTOs.AcknowledgeDTOs;
+using OneUron.BLL.DTOs.InstructorDTOs;
+using OneUron.BLL.DTOs.ResourceDTOs;
+using OneUron.BLL.DTOs.SkillDTOs;
 using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
@@ -16,10 +19,17 @@ namespace OneUron.BLL.Services
     public class ResourcesService : IResourcesService
     {
         private readonly IResourcesRepository _resourcesRepository;
-
-        public ResourcesService(IResourcesRepository resourcesRepository)
+        private readonly IAcknowledgeService _acknowledgeService;
+        private readonly ISkillService _skillService;
+        private readonly ICourseDetailService _courseDetailService;
+        private readonly IInstructorService _instructorService;
+        public ResourcesService(IResourcesRepository resourcesRepository, IAcknowledgeService acknowledgeService, ISkillService skillService, ICourseDetailService courseDetailService, IInstructorService instructorService)
         {
             _resourcesRepository = resourcesRepository;
+            _acknowledgeService = acknowledgeService;
+            _skillService = skillService;
+            _courseDetailService = courseDetailService;
+            _instructorService = instructorService;
         }
 
         public async Task<ApiResponse<List<ResourceResponseDto>>> GetAllResourceAsync()
@@ -71,7 +81,7 @@ namespace OneUron.BLL.Services
             {
                 if (request == null)
                 {
-                    return ApiResponse<ResourceResponseDto>.FailResponse("Create fail", "resource Are Null");
+                    return ApiResponse<ResourceResponseDto>.FailResponse("Create fail", "resource is Null");
                 }
 
                 var newResource = MapToEntity(request);
@@ -101,7 +111,7 @@ namespace OneUron.BLL.Services
 
                 if (request == null)
                 {
-                    return ApiResponse<ResourceResponseDto>.FailResponse("Update fail", "Request Are null");
+                    return ApiResponse<ResourceResponseDto>.FailResponse("Update fail", "Request is Null");
                 }
 
                
@@ -146,7 +156,7 @@ namespace OneUron.BLL.Services
             }
         }
 
-        protected ResourceResponseDto MapToDto(Resource r)
+        public ResourceResponseDto MapToDto(Resource r)
         {
             return new ResourceResponseDto
             {
@@ -158,7 +168,18 @@ namespace OneUron.BLL.Services
                 Reviews = r.Reviews,
                 Image = r.Image,
                 Price = r.Price,
-                Type = r.Type
+                Type = r.Type,
+
+                courseDetail = _courseDetailService.MapToDto(r.CourseDetail),
+
+                Acknowledges = r.Acknowledges?.Select(a => _acknowledgeService.MapToDTO(a)).ToList()
+                                ?? new List<AcknowledgeResponseDto>(),
+
+                Instructors = r.Instructors?.Select(i => _instructorService.MapToDTO(i)).ToList()
+                                ?? new List<InstructorResponseDto>(),
+
+                Skills = r.Skills?.Select(s => _skillService.MapToDTO(s)).ToList()
+                                ?? new List<SkillResponseDto>()
             };
         }
 
@@ -166,6 +187,7 @@ namespace OneUron.BLL.Services
         {
             return new Resource
             {
+                Id = Guid.NewGuid(),
                 Title = request.Title,
                 Organization = request.Organization,
                 Description = request.Description,
@@ -173,7 +195,11 @@ namespace OneUron.BLL.Services
                 Image = request.Image,
                 Reviews = request.Reviews,
                 Price = request.Price,
-                Type = request.Type
+                Type = request.Type,
+
+                Acknowledges = new List<Acknowledge>(),
+                Instructors = new List<Instructor>(),
+                Skills = new List<Skill>()
             };
         }
     }

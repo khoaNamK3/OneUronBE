@@ -14,8 +14,6 @@ namespace OneUron.BLL.DTOs.CourseDetailDTOs
 
         public string Students { get; set; }
 
-        public DateTime Update { get; set; }
-
         public double Reviews { get; set; }
 
         public double Price { get; set; }

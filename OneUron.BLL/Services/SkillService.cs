@@ -65,7 +65,7 @@ namespace OneUron.BLL.Services
             {
                 if (request == null)
                 {
-                    return ApiResponse<SkillResponseDto>.FailResponse("Create New Skill Fail", "New Skill Are Empty");
+                    return ApiResponse<SkillResponseDto>.FailResponse("Create New Skill Fail", "New Skill is Null");
                 }
                 var newSkill = MapToEnitity(request);
 
@@ -93,7 +93,7 @@ namespace OneUron.BLL.Services
 
                 if (newSkill == null)
                 {
-                    return ApiResponse<SkillResponseDto>.FailResponse("Create New Skill Fail", "New Skill Are Empty");
+                    return ApiResponse<SkillResponseDto>.FailResponse("Create New Skill Fail", "New Skill is Null");
                 }
                 existSkill.Text = newSkill.Text;
                 existSkill.CourseId = newSkill.CourseId;
@@ -140,7 +140,7 @@ namespace OneUron.BLL.Services
             };
         }
 
-        protected SkillResponseDto MapToDTO(Skill skill)
+        public SkillResponseDto MapToDTO(Skill skill)
         {
             return new SkillResponseDto
             {

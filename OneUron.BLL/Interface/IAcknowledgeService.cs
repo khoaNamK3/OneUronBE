@@ -20,5 +20,6 @@ namespace OneUron.BLL.Interface
         public  Task<ApiResponse<AcknowledgeResponseDto>> UpdateAcknowLedgeByIdAsync(Guid id, AcknowledgeRequestDto newAcknowLedge);
 
         public  Task<ApiResponse<AcknowledgeResponseDto>> DeleteAcknowledgeByIdAsync(Guid id);
+        public AcknowledgeResponseDto MapToDTO(Acknowledge acknowledge);
     }
 }

@@ -16,12 +16,12 @@ namespace OneUron.DAL.Repository.ResourceRepo
 
         public async Task<List<Resource>> GetAllResourceAsync()
         {
-            return await _dbSet.ToListAsync();
+            return await _dbSet.Include(r => r.CourseDetail).Include(r => r.Acknowledges).Include(r => r.Skills).Include(r => r.Instructors).ToListAsync();
         }
 
         public async Task<Resource> GetResourceByIdAsync(Guid id)
         {
-            return await _dbSet.Include(r => r.CourseDetail ).Include(r => r.Acknowledges).Include(r => r.Skills).Include(r => r.Instructors).FirstOrDefaultAsync(r => r.Id == id);
+            return await _dbSet.Include(r => r.CourseDetail).Include(r => r.Acknowledges).Include(r => r.Skills).Include(r => r.Instructors).FirstOrDefaultAsync(r => r.Id == id);
         }
 
 
