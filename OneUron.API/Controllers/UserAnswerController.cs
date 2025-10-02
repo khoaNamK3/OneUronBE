@@ -16,7 +16,7 @@ namespace OneUron.API.Controllers
             _userAnswerService = userAnswerService;
         }
 
-        [HttpGet("all")]
+        [HttpGet("get-all")]
         public async Task<IActionResult> GetAllAsync()
         {
             var response = await _userAnswerService.GetAllAsync();
@@ -28,7 +28,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpGet("by-user")]
+        [HttpGet("get-by-user")]
         public async Task<IActionResult> GetUserAnswerByUserIdAsync([FromQuery] Guid userId, [FromQuery] Guid evaluatioQuestionId)
         {
             var response = await _userAnswerService.GetByListUserAnswerAsync(userId, evaluatioQuestionId);
@@ -39,7 +39,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost]
+        [HttpPost("create-new")]
         public async Task<IActionResult> CreateNewUserAnswerAsync([FromBody] UserAnswerRequestDto request)
         {
             var response = await _userAnswerService.CreateNewUserAnswerAsync(request);
@@ -50,7 +50,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpPut]
+        [HttpPut("update-by")]
         public async Task<IActionResult> UpdateUserAnswerByUserIdAsync([FromQuery] Guid id, [FromBody] UserAnswerUpdateRequestDto request)
         {
             var response = await _userAnswerService.UpdateUserAnswerByUserIdAsync(id, request);
@@ -61,7 +61,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpDelete]
+        [HttpDelete("delete-by")]
         public async Task<IActionResult> DeleteUserAnswerByUserIdAsync([FromQuery] Guid id)
         {
             var response = await _userAnswerService.DeleteUserAnswerByAsync(id);

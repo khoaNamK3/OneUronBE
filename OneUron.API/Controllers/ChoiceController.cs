@@ -15,7 +15,7 @@ namespace OneUron.API.Controllers
             _choiceService = choiceService;
         }
 
-        [HttpGet]
+        [HttpGet("get-all")]
         public async Task<IActionResult> GetAllAsync()
         {
             var response = await _choiceService.GetAllAsync();
@@ -27,7 +27,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("get-by/{id}")]
         public async Task<IActionResult> GetChoiceByIdAsync(Guid id)
         {
             var response = await _choiceService.GetByIdAsync(id);
@@ -39,7 +39,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost]
+        [HttpPost("create-new")]
         public async Task<IActionResult> CreateNewChoiceAsync([FromBody] ChoiceRequestDto request)
         {
             var response = await _choiceService.CreateNewChoiceAsync(request);
@@ -50,7 +50,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("update-by/{id}")]
         public async Task<IActionResult> UpdateChoiceByIdAsync(Guid id, [FromBody] ChoiceRequestDto request)
         {
             var response = await _choiceService.UpdateChoiceByIdAsync(id, request);
@@ -62,7 +62,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("delete-by/{id}")]
         public async Task<IActionResult> DeleteChoiceByIdAsync(Guid id)
         {
             var response = await _choiceService.DeleteChoiceByIdAsync(id);

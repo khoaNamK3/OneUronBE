@@ -15,7 +15,7 @@ namespace OneUron.API.Controllers
             _techniqueService = techniqueService;
         }
 
-        [HttpGet]
+        [HttpGet("get-all")]
         public async Task<IActionResult> GetAllAsync()
         {
             var response = await _techniqueService.GetAllAsync();
@@ -26,7 +26,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("get-by/{id}")]
         public async Task<IActionResult> GetTechniqueByIdAsync(Guid id)
         {
             var response = await _techniqueService.GetByIdAsync(id);
@@ -38,7 +38,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost]
+        [HttpPost("create-new")]
         public async Task<IActionResult> CreateNewTechniqueAsync([FromBody] TechniqueRequestDto request)
         {
             var response = await _techniqueService.CreateNewTechiqueAsync(request);
@@ -50,7 +50,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("update-by/{id}")]
         public async Task<IActionResult> UpdateTechniqueByIdAsync(Guid id, [FromBody] TechniqueRequestDto request)
         {
             var response = await _techniqueService.UpdateTechniqueByIdAsync(id, request);
@@ -62,7 +62,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("delete-by/{id}")]
         public async Task<IActionResult> DeleteTechniquebyIdAsync(Guid id)
         {
             var response = await _techniqueService.DeleteTechniqueByidAsync(id);

@@ -15,7 +15,7 @@ namespace OneUron.API.Controllers
             _methodRuleConditionService = methodRuleConditionService;
         }
 
-        [HttpGet]
+        [HttpGet("get-all")]
         public async Task<IActionResult> GetAllAsync()
         {
             var response = await _methodRuleConditionService.GetAllAsync();
@@ -27,7 +27,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("get-by/{id}")]
         public async Task<IActionResult> GetMethodRuleConditionByIdAsync(Guid id)
         {
             var response = await _methodRuleConditionService.GetByIdAsync(id);
@@ -39,7 +39,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost]
+        [HttpPost("create-new")]
         public async Task<IActionResult> CreateNewMethodRuleCondtionAsync([FromBody] MethodRuleConditionRequestDto request)
         {
             var response = await _methodRuleConditionService.CreateNewMethodRuleConditionAsync(request);
@@ -50,7 +50,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("update-by/{id}")]
         public async Task<IActionResult> UpdateMethodRuleConditionByIdAsync(Guid id, [FromBody] MethodRuleConditionRequestDto request)
         {
             var respone = await _methodRuleConditionService.UpdateMethodRuleConditionByIdAsync(id, request);
@@ -62,7 +62,7 @@ namespace OneUron.API.Controllers
             return Ok(respone);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("delete-by/{id}")]
         public async Task<IActionResult> DeleteMethodRuleConditionByIdAsync(Guid id)
         {
             var response = await _methodRuleConditionService.DeleteMethodRuleConditionByIdAsync(id);

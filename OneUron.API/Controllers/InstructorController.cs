@@ -16,7 +16,7 @@ namespace OneUron.API.Controllers
             _instructorService = instructorService;
         }
 
-        [HttpGet]
+        [HttpGet("get-all")]
         public async Task<IActionResult> GetAllAsync()
         {
             var response = await _instructorService.GetAllAsync();
@@ -27,7 +27,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("get-by/{id}")]
         public async Task<IActionResult> GetInstructorByIdAsync(Guid id)
         {
             var response = await _instructorService.GetInstructorByIdAsync(id);
@@ -38,7 +38,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost]
+        [HttpPost("create-new")]
         public async Task<IActionResult> CreateNewInstructorAsync([FromBody] InstructorRequestDto request)
         {
             var response = await _instructorService.CreateNewInstructorAsync(request);
@@ -50,7 +50,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("update-by/{id}")]
         public async Task<IActionResult> UpdateInstructorByIdAsync(Guid id, [FromBody] InstructorRequestDto request)
         {
             var response = await _instructorService.UpdateInstructorByIdAsync(id, request);
@@ -62,7 +62,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("delete-by/{id}")]
         public async Task<IActionResult> DeleteInstructorByIdAsync(Guid id)
         {
             var response = await _instructorService.DeleteInstructorByIdAsync(id);

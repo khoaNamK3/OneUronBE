@@ -9,7 +9,7 @@ namespace OneUron.DAL.Repository.MethodProRepo
 {
     public interface IMethodProRepository : IGenericRepository<MethodPro>
     {
-        public  Task<List<MethodPro>> GetALlAsync();
+        public  Task<List<MethodPro>> GetAllAsync();
 
         public  Task<MethodPro> GetByIdAsync(Guid id);
 

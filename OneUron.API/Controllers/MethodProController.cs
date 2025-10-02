@@ -15,10 +15,10 @@ namespace OneUron.API.Controllers
             _methodProService = methodProSerivce;
         }
 
-        [HttpGet]
+        [HttpGet("get-all")]
         public async Task<IActionResult> GetAllAsync()
         {
-            var response = await _methodProService.GetALlAsync();
+            var response = await _methodProService.GetAllAsync();
 
             if (!response.Success)
             {
@@ -28,7 +28,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("get-by/{id}")]
         public async Task<IActionResult> GetMethodProByIdAsync(Guid id)
         {
             var response = await _methodProService.GetByIdAsync(id);
@@ -39,7 +39,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost]
+        [HttpPost("create-new")]
         public async Task<IActionResult> CreateNewMethodProAsync([FromBody] MethodProRequestDto request)
         {
             var response = await _methodProService.CreateNewMethoProAsync(request);
@@ -51,7 +51,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("update-by/{id}")]
         public async Task<IActionResult> UpdateMethodProByIdAsync(Guid id, [FromBody] MethodProRequestDto request)
         {
             var response = await _methodProService.UpdateMethodProByIdAsync(id, request);
@@ -63,7 +63,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("delete-by/{id}")]
         public async Task<IActionResult> DeleteMethodProByIdAsync(Guid id)
         {
             var response = await _methodProService.DeleteMethodProByIdAsync(id);

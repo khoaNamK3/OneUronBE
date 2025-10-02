@@ -11,7 +11,7 @@ namespace OneUron.BLL.Interface
 {
     public interface IMethodProSerivce
     {
-        public Task<ApiResponse<List<MethodProResponseDto>>> GetALlAsync();
+        public Task<ApiResponse<List<MethodProResponseDto>>> GetAllAsync();
 
         public Task<ApiResponse<MethodProResponseDto>> GetByIdAsync(Guid id);
 

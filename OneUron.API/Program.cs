@@ -161,7 +161,7 @@ builder.Services.AddScoped<JwtService>();
 
 // Add database initialization service
 builder.Services.AddSingleton<DbInitializer>();
-builder.Services.AddSingleton<IDbInitializer>(sp => sp.GetRequiredService<DbInitializer>());
+builder.Services.AddSingleton<OneUron.BLL.Services.IDbInitializer>(sp => sp.GetRequiredService<DbInitializer>());
 builder.Services.AddHostedService(sp => sp.GetRequiredService<DbInitializer>());
 
 var app = builder.Build();

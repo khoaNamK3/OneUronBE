@@ -14,7 +14,7 @@ namespace OneUron.DAL.Repository.MethodProRepo
         {
         }
 
-        public async Task<List<MethodPro>> GetALlAsync()
+        public async Task<List<MethodPro>> GetAllAsync()
         {
             return await _dbSet.ToListAsync();
         }

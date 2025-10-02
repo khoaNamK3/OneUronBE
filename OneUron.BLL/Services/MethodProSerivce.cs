@@ -20,7 +20,7 @@ namespace OneUron.BLL.Services
             _methodProRepository = methodProRepository;
         }
 
-        public async Task<ApiResponse<List<MethodProResponseDto>>> GetALlAsync()
+        public async Task<ApiResponse<List<MethodProResponseDto>>> GetAllAsync()
         {
             try
             {

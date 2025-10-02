@@ -15,7 +15,7 @@ namespace OneUron.API.Controllers
             _evaluationService = evaluationService;
         }
 
-        [HttpGet]
+        [HttpGet("get-all")]
         public async Task<IActionResult> GetAllAsync()
         {
             var response = await _evaluationService.GetAllAsync();
@@ -27,7 +27,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("get-by/{id}")]
         public async Task<IActionResult> GetEvaluationByIdAsync(Guid id)
         {
             var respone = await _evaluationService.GetbyIdAsync(id);
@@ -39,7 +39,7 @@ namespace OneUron.API.Controllers
             return Ok(respone);
         }
 
-        [HttpPost]
+        [HttpPost("create-new")]
         public async Task<IActionResult> CreateNewEvaluationAsync([FromBody] EvaluationRequestDto requestDto)
         {
             var response = await _evaluationService.CreateNewEvaluationAsync(requestDto);
@@ -51,7 +51,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("update-by/{id}")]
         public async Task<IActionResult> UpdateEvaluationByIdAsync(Guid id, [FromBody] EvaluationRequestDto request)
         {
             var respone = await _evaluationService.UpdateEvaluationbyIdAsync(id, request);
@@ -62,7 +62,7 @@ namespace OneUron.API.Controllers
             return Ok(respone);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("delete-by/{id}")]
         public async Task<IActionResult> DeleteEvaluationByIdAsync(Guid id)
         {
             var respone = await _evaluationService.DeleteEvaluationByIdAsync(id);

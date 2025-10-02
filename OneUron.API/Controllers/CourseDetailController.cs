@@ -16,7 +16,7 @@ namespace OneUron.API.Controllers
         }
 
 
-        [HttpGet]
+        [HttpGet("get-all")]
         public async Task<IActionResult> GetAllAsync()
         {
             var response = await _courseDetailService.GetAllCourseDetailAsync();
@@ -27,7 +27,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("get-by/{id}")]
         public async Task<IActionResult> GetByIdAsync(Guid id)
         {
             var response = await _courseDetailService.GetCourseDetailbyIdAsync(id);
@@ -38,7 +38,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost]
+        [HttpPost("create-new")]
         public async Task<IActionResult> CreateNewCourseDetailAsync([FromBody] CourseDetailRequestDto request)
         {
             var response = await _courseDetailService.CreateNewCourseDetailAsync(request);
@@ -50,7 +50,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("update-by/{id}")]
         public async Task<IActionResult> UpdateCourseDetailByIdAsync(Guid id, [FromBody] CourseDetailRequestDto request)
         {
             var response = await _courseDetailService.UpdateCourseDetailByIdAsync(id, request);
@@ -61,7 +61,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("delete-by/{id}")]
         public async Task<IActionResult> DeleteCourseDetailByIdAsync(Guid id)
         {
             var response = await _courseDetailService.DeleteCourseDetailByIdAsync(id);

@@ -15,7 +15,7 @@ namespace OneUron.API.Controllers
             _acknowledgeService = acknowledgeService;
         }
 
-        [HttpGet]
+        [HttpGet("get-all")]
         public async Task<IActionResult> GetAllAsync()
         {
             var response = await _acknowledgeService.GetAllAcknowledgeAsync();
@@ -27,7 +27,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("get-by/{id}")]
         public async Task<IActionResult> GetByIdAsync(Guid id)
         {
             var response = await _acknowledgeService.GetAcknowledgeByIdAsync(id);
@@ -39,7 +39,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost]
+        [HttpPost("create-new")]
         public async Task<IActionResult> CreateNewAcknowLedgeAsync([FromBody] AcknowledgeRequestDto request)
         {
             var response = await _acknowledgeService.CreateNewAcknowledgeAsync(request);
@@ -50,7 +50,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("update-by/{id}")]
         public async Task<IActionResult> UpdateAcknowLedgeByIdAsync(Guid id, [FromBody] AcknowledgeRequestDto request)
         {
             var response = await _acknowledgeService.UpdateAcknowLedgeByIdAsync(id, request);
@@ -61,7 +61,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("delete-by/{id}")]
         public async Task<IActionResult> DeleteAcknowLedgeByIdAsync(Guid id)
         {
             var response = await _acknowledgeService.DeleteAcknowledgeByIdAsync(id);

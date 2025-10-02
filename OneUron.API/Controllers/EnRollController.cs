@@ -16,7 +16,7 @@ namespace OneUron.API.Controllers
             _enrollService = enRollService;
         }
 
-        [HttpGet]
+        [HttpGet("get-all")]
         public async Task<IActionResult> GetAllAsync()
         {
             var response = await _enrollService.GetAllEnRollAsync();
@@ -28,7 +28,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("get-by/{id}")]
         public async Task<IActionResult> GetByIdAsync(Guid id)
         {
             var response = await _enrollService.GetEnRollByIdAsync(id);
@@ -40,7 +40,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost]
+        [HttpPost("create-new")]
         public async Task<IActionResult> CreateNewEnRollAsync([FromBody] EnRollRequestDto request)
         {
             var response = await _enrollService.CreateNewEnRollAsync(request);
@@ -52,7 +52,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("update-by/{id}")]
         public async Task<IActionResult> UpdateEnRollByIdAsync(Guid id, [FromBody] EnRollRequestDto request)
         {
             var response = await _enrollService.UpdateEnRollByIdAsync(id, request);
@@ -64,7 +64,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("delete-by/{id}")]
         public async Task<IActionResult> DeleteEnRollByIdAsync(Guid id)
         {
             var response = await _enrollService.DeleteEnRollByIdAsync(id);
