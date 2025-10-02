@@ -9,8 +9,11 @@ namespace OneUron.DAL.Repository.UserAnswerRepo
 {
     public interface IUserAnswerRepository : IGenericRepository<UserAnswer>
     {
-        public  Task<List<UserAnswer>> GetAllAsync();
+        public Task<List<UserAnswer>> GetAllAsync();
         public Task<List<UserAnswer>> GetByListUserAnswerAsync(Guid userId, Guid eluationQuestionId);
-        public  Task<UserAnswer> GetByIdAsync(Guid id);
+        public Task<UserAnswer> GetByIdAsync(Guid id);
+        public Task<List<UserAnswer>> GetUserAnswerByEvaluationIdAsync(Guid userId, Guid evaluationId);
+        public  Task DeleteRangeAsync(List<UserAnswer> userAnswers);
+        public  Task<List<UserAnswer>> GetAllUserAnswerByUserIdAsync(Guid userId);
     }
 }

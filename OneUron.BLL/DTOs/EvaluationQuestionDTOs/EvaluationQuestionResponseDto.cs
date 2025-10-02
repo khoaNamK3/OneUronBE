@@ -23,7 +23,8 @@ namespace OneUron.BLL.DTOs.EvaluationQuestionDTOs
         public Guid EvaluationId { get; set; }
 
         public List<ChoiceResponseDto> Choices { get; set; } = new();
-        public List<UserAnswerResponseDto> userAnswers { get; set; } = new();
-        public List<MethodRuleConditionResponseDto> MethodRuleConditions { get; set; } = new();
+
+        //public List<UserAnswerResponseDto> userAnswers { get; set; } = new();
+        //public List<MethodRuleConditionResponseDto> MethodRuleConditions { get; set; } = new();
     }
 }

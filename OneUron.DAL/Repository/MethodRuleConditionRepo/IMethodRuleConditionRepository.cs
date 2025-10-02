@@ -13,5 +13,7 @@ namespace OneUron.DAL.Repository.MethodRuleConditionRepo
 
         public  Task<MethodRuleCondition> GetByIdAsync(Guid id);
 
+        public  Task<MethodRuleCondition> GetMethodRuleConditionByChoiceId(Guid choiceId);
+
     }
 }

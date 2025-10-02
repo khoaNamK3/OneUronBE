@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace OneUron.DAL.Repository.EvaluationRepo
 {
-    public class EvaluationRepository : GenericRepository<Evaluation> , IEvaluationRepository
+    public class EvaluationRepository : GenericRepository<Evaluation>, IEvaluationRepository
     {
         public EvaluationRepository(AppDbContext context) : base(context)
         {
@@ -17,28 +17,18 @@ namespace OneUron.DAL.Repository.EvaluationRepo
         public async Task<List<Evaluation>> GetAllAsync()
         {
             return await _dbSet
-                .Include(e => e.EvaluationQuestions)
+                    .Include(e => e.EvaluationQuestions)
                     .ThenInclude(eq => eq.Choices)
-                .Include(e => e.EvaluationQuestions)
-                    .ThenInclude(eq => eq.UserAnswers)
-                .Include(e => e.EvaluationQuestions)
-                    .ThenInclude(eq => eq.MethodRuleConditions)  
-                .Include(e => e.MethodRuleConditions)
-                .Where(e => !e.IsDeleted)
-                .ToListAsync();
+                    .Where(e => !e.IsDeleted)
+                    .ToListAsync();
         }
 
         public async Task<Evaluation> GetbyIdAsync(Guid id)
         {
             return await _dbSet
-                .Include(e => e.EvaluationQuestions)
+                    .Include(e => e.EvaluationQuestions)
                     .ThenInclude(eq => eq.Choices)
-                .Include(e => e.EvaluationQuestions)
-                    .ThenInclude(eq => eq.UserAnswers)
-                .Include(e => e.EvaluationQuestions)
-                    .ThenInclude(eq => eq.MethodRuleConditions) 
-                .Include(e => e.MethodRuleConditions)
-                .FirstOrDefaultAsync(e => e.Id == id && !e.IsDeleted);
+                    .FirstOrDefaultAsync(e => e.Id == id && !e.IsDeleted);
         }
 
     }

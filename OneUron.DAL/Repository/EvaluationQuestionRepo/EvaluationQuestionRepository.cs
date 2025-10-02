@@ -16,12 +16,12 @@ namespace OneUron.DAL.Repository.EvaluationQuestionRepo
 
         public async Task<List<EvaluationQuestion>> GetAllAsync()
         {
-            return await _dbSet.Include(eq => eq.MethodRuleConditions).Include(eq => eq.Choices).Include(eq => eq.UserAnswers).ToListAsync();
+            return await _dbSet.Include(eq => eq.Choices).ToListAsync();
         }
 
         public async Task<EvaluationQuestion> GetEvaluationQuestionByIdAsync(Guid id)
         {
-            return await _dbSet.Include(eq => eq.MethodRuleConditions).Include(eq => eq.Choices).Include(eq => eq.UserAnswers).FirstOrDefaultAsync(eq => eq.Id == id);
+            return await _dbSet.Include(eq => eq.Choices).FirstOrDefaultAsync(eq => eq.Id == id);
         }
     }
 }

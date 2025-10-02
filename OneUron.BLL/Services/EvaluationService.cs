@@ -175,9 +175,9 @@ namespace OneUron.BLL.Services
                     .Select(eq => _evaluationQuestionService.MapToDTO(eq))
                     .ToList() ?? new List<EvaluationQuestionResponseDto>(),
 
-                MethodRuleConditions = evaluation.MethodRuleConditions?
-                    .Select(mrc => _methodRuleConditionService.MapToDTO(mrc))
-                    .ToList() ?? new List<MethodRuleConditionResponseDto>()
+                //MethodRuleConditions = evaluation.MethodRuleConditions?
+                //    .Select(mrc => _methodRuleConditionService.MapToDTO(mrc))
+                //    .ToList() ?? new List<MethodRuleConditionResponseDto>()
             };
         }
 

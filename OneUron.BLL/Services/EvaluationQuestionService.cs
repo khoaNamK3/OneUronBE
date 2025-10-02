@@ -181,13 +181,13 @@ namespace OneUron.BLL.Services
                     .Select(c => _choiceService.MapToDTO(c))
                     .ToList() ?? new List<ChoiceResponseDto>(),
 
-                userAnswers = evaluationQuestion.UserAnswers?
-                    .Select(u => _userAnswerService.MaptoDTO(u))
-                    .ToList() ?? new List<UserAnswerResponseDto>(),
+                //userAnswers = evaluationQuestion.UserAnswers?
+                //    .Select(u => _userAnswerService.MaptoDTO(u))
+                //    .ToList() ?? new List<UserAnswerResponseDto>(),
 
-                MethodRuleConditions = evaluationQuestion.MethodRuleConditions?
-                    .Select(mrc => _methodRuleConditionService.MapToDTO(mrc))
-                    .ToList() ?? new List<MethodRuleConditionResponseDto>()
+                //MethodRuleConditions = evaluationQuestion.MethodRuleConditions?
+                //    .Select(mrc => _methodRuleConditionService.MapToDTO(mrc))
+                //    .ToList() ?? new List<MethodRuleConditionResponseDto>()
             };
         }
 

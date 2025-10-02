@@ -23,5 +23,7 @@ namespace OneUron.BLL.Interface
 
         public MethodRuleConditionResponseDto MapToDTO(MethodRuleCondition methodRuleCondition);
 
+        public Task<MethodRuleConditionResponseDto> GetMethodRuleConditionByChoiceId(Guid choiceId);
+
     }
 }

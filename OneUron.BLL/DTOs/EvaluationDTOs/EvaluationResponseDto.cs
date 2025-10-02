@@ -19,7 +19,7 @@ namespace OneUron.BLL.DTOs.EvaluationDTOs
 
         public bool IsDeleted { get; set; }
 
-        public List<MethodRuleConditionResponseDto> MethodRuleConditions { get; set; }
+        //public List<MethodRuleConditionResponseDto> MethodRuleConditions { get; set; }
 
         public List<EvaluationQuestionResponseDto>? EvaluationQuestions { get; set; }
     }

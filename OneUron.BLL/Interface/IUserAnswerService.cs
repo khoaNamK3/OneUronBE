@@ -1,4 +1,5 @@
-﻿using OneUron.BLL.DTOs.UserAnswerDTOs;
+﻿using OneUron.BLL.DTOs.EvaluationDTOs;
+using OneUron.BLL.DTOs.UserAnswerDTOs;
 using OneUron.BLL.ExceptionHandle;
 using OneUron.DAL.Data.Entity;
 using System;
@@ -16,10 +17,14 @@ namespace OneUron.BLL.Interface
 
         public Task<ApiResponse<UserAnswerResponseDto>> CreateNewUserAnswerAsync(UserAnswerRequestDto resquest);
 
-        public  Task<ApiResponse<UserAnswerResponseDto>> UpdateUserAnswerByUserIdAsync(Guid id, UserAnswerUpdateRequestDto request);
+        public Task<ApiResponse<UserAnswerResponseDto>> UpdateUserAnswerByUserIdAsync(Guid id, UserAnswerUpdateRequestDto request);
 
-        public  Task<ApiResponse<UserAnswerResponseDto>> DeleteUserAnswerByAsync(Guid id);
+        public Task<ApiResponse<UserAnswerResponseDto>> DeleteUserAnswerByAsync(Guid id);
 
         public UserAnswerResponseDto MaptoDTO(UserAnswer userAnswer);
+
+        public  Task<ApiResponse<List<UserAnswerResponseDto>>> SubmitAnswersAsync(List<EvaluationSubmitRequest> evaluations);
+
+        public Task<ApiResponse<List<UserAnswerResponseDto>>> GetAllUserAnswerByUserIdAsync(Guid userId);
     }
 }

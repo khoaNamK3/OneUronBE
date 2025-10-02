@@ -144,6 +144,26 @@ namespace OneUron.BLL.Services
             }
         }
 
+        public async Task<MethodRuleConditionResponseDto> GetMethodRuleConditionByChoiceId(Guid choiceId)
+        {
+            try
+            {
+                var methodRuleCondtion = await _methodRuleConditionRepository.GetMethodRuleConditionByChoiceId(choiceId);
+
+                if (methodRuleCondtion == null)
+                {
+                    return null;
+                }
+                var result = MapToDTO(methodRuleCondtion);
+
+                return result;      
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
         protected MethodRuleCondition MapToEntity(MethodRuleConditionRequestDto request)
         {
             return new MethodRuleCondition

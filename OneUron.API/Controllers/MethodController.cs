@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OneUron.BLL.DTOs.MethodDTOs;
+using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
 
 namespace OneUron.API.Controllers
@@ -27,7 +28,7 @@ namespace OneUron.API.Controllers
             return Ok(response);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetMethodByIdAsync(Guid id)
         {
             var response = await _methodSerivce.GetByIdAsync(id);
@@ -71,6 +72,17 @@ namespace OneUron.API.Controllers
             if (!response.Success)
             {
                 return NotFound(response);
+            }
+            return Ok(response);
+        }
+
+        [HttpGet("top3/{userId:guid}")]
+        public async Task<IActionResult> GetTop3MetodForUserAsync(Guid userId)
+        {
+            var response = await _methodSerivce.GetTop3MetodForUserAsync(userId);
+            if (!response.Success)
+            {
+                return BadRequest(response);
             }
             return Ok(response);
         }

@@ -19,8 +19,8 @@ namespace OneUron.BLL.DTOs.ChoiceDTOs
 
         public Guid EvaluationQuestionId { get; set; }
 
-        public List<MethodRuleConditionResponseDto> MethodRuleConditions { get; set; }
+        //public List<MethodRuleConditionResponseDto> MethodRuleConditions { get; set; }
 
-        public List<UserAnswerResponseDto> UserAnswers { get; set; }
+        //public List<UserAnswerResponseDto> UserAnswers { get; set; }
     }
 }

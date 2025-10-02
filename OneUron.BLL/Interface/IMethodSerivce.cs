@@ -20,5 +20,7 @@ namespace OneUron.BLL.Interface
         public  Task<ApiResponse<MethodResponseDto>> UpdateMethodByIdAsync(Guid id, MethodRequestDto newMethod);
 
         public  Task<ApiResponse<MethodResponseDto>> DeleteMethodByIdAsync(Guid id);
+
+        public  Task<ApiResponse<List<MethodSuggestionRespone>>> GetTop3MetodForUserAsync(Guid userId);
     }
 }

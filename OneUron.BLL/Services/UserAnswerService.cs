@@ -1,4 +1,5 @@
-﻿using OneUron.BLL.DTOs.UserAnswerDTOs;
+﻿using OneUron.BLL.DTOs.EvaluationDTOs;
+using OneUron.BLL.DTOs.UserAnswerDTOs;
 using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
@@ -140,6 +141,75 @@ namespace OneUron.BLL.Services
             }
         }
 
+
+        public async Task<ApiResponse<List<UserAnswerResponseDto>>> SubmitAnswersAsync(List<EvaluationSubmitRequest> evaluations)
+        {
+            try
+            {
+                var results = new List<UserAnswerResponseDto>();
+
+                foreach (var eval in evaluations)
+                {
+                    if (eval.Questions == null || !eval.Questions.Any())
+                        continue; // bo qua vong lap va tien qua phan tu tiep theo
+
+                    var oldAnswers = await _userAnswerRepository.GetUserAnswerByEvaluationIdAsync(eval.UserId, eval.EvaluationId);
+
+                    if (oldAnswers != null && oldAnswers.Any())
+                    {
+                        await _userAnswerRepository.DeleteRangeAsync(oldAnswers);
+                    }
+
+
+                    foreach (var question in eval.Questions)
+                    {
+
+                        if (eval.UserId == Guid.Empty || question.EvaluationQuestionId == Guid.Empty || question.ChoiceId == Guid.Empty)
+                            continue;
+
+                        var entity = new UserAnswer
+                        {
+                            Id = Guid.NewGuid(),
+                            UserId = eval.UserId,
+                            EvaluationQuestionId = question.EvaluationQuestionId,
+                            ChoiceId = question.ChoiceId
+                        };
+
+                        await _userAnswerRepository.AddAsync(entity);
+                        results.Add(MaptoDTO(entity));
+
+                    }
+                }
+
+                return ApiResponse<List<UserAnswerResponseDto>>.SuccessResponse(results, "Answers saved successfully");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<List<UserAnswerResponseDto>>.FailResponse("Answers save failed", ex.Message);
+            }
+        }
+
+        public async Task<ApiResponse<List<UserAnswerResponseDto>>> GetAllUserAnswerByUserIdAsync(Guid userId)
+        {
+            try
+            {
+                var userAnswers = await _userAnswerRepository.GetAllUserAnswerByUserIdAsync(userId);
+
+                if (!userAnswers.Any())
+                {
+                    return ApiResponse<List<UserAnswerResponseDto>>.FailResponse("Get All UserAnswer By UserId Fail", "UserAnswer are Empty");
+                }
+
+                var results = userAnswers.Select(MaptoDTO).ToList();
+
+                return ApiResponse<List<UserAnswerResponseDto>>.SuccessResponse(results, "Get All UserAnswer By UserId Successfully");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<List<UserAnswerResponseDto>>.FailResponse("Get All UserAnswer By UserId Fail", ex.Message);
+            }
+        }
+
         protected UserAnswer MapToEntity(UserAnswerRequestDto resquest)
         {
             return new UserAnswer
@@ -160,5 +230,6 @@ namespace OneUron.BLL.Services
                 ChoiceId = userAnswer.ChoiceId,
             };
         }
+
     }
 }
