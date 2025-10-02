@@ -1,15 +1,16 @@
 ﻿using OneUron.DAL.Data.Entity;
-using OneUron.DAL.Repository;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace OneUron.DAL.Repository.UserRepo
 {
     public interface IUserRepository : IGenericRepository<User>
     {
         Task<User> GetByUserNameAndPasswordAsync(string userName, string password);
-        // Không cần khai báo lại FindAsync vì đã có từ IGenericRepository<User>
+        Task<User> GetByIdWithRolesAsync(Guid userId);
+        Task<User> GetByUserNameWithRolesAsync(string userName);
+        Task AssignRoleToUserAsync(Guid userId, string roleName);
     }
 }
