@@ -11,6 +11,10 @@ namespace OneUron.DAL.Data.Entity
 
         public Guid Id { get; set; }
 
+        public double Weight { get; set; }
+
+        public double Effectiveness { get; set; }
+
         public Guid? EvaluationId { get; set; }
 
         public virtual Evaluation? Evaluation { get; set; }
