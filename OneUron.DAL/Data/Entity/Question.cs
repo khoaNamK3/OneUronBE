@@ -22,6 +22,6 @@ namespace OneUron.DAL.Data.Entity
 
         public virtual ICollection<QuestionChoice> QuestionChoices { get; set; }
 
-        public virtual ICollection<QuizHistory> QuizHistories { get; set; }
+        public virtual ICollection<Answer> Answers { get; set; }
     }
 }

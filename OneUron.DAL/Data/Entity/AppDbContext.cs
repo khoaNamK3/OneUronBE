@@ -31,8 +31,6 @@ namespace OneUron.DAL.Data.Entity
 
         public DbSet<QuestionChoice> QuestionChoices { get; set; }
 
-        public DbSet<QuizHistory> QuizHistories { get; set; }
-
         public DbSet<Resource> Resources { get; set; }
 
         public DbSet<EnRoll> Enrollments { get; set; }
@@ -81,6 +79,8 @@ namespace OneUron.DAL.Data.Entity
 
         public DbSet<Features> Features { get; set; }
 
+        public DbSet<Answer> Answers { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -100,6 +100,9 @@ namespace OneUron.DAL.Data.Entity
             modelBuilder.Entity<EvaluationQuestion>().Property(eq => eq.Type)
                 .HasConversion(new EnumToStringConverter<EvaluationQuestionType>());
 
+            modelBuilder.Entity<Payment>().Property(p => p.Status)
+                .HasConversion(new EnumToStringConverter<PaymentStatus>());
+
             // one to one User and Token
             modelBuilder.Entity<User>()
                 .HasOne(u => u.Token)
@@ -114,13 +117,26 @@ namespace OneUron.DAL.Data.Entity
                 .HasForeignKey<Profile>(t => t.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // many to many with User and Quiz
-            modelBuilder.Entity<UserQuizAttempt>()
-                .HasOne(uqa => uqa.User)
-                .WithMany(u => u.UserQuizAttempts)
-                .HasForeignKey(uqa => uqa.UserId)
+            // One to many with User and Quiz
+            modelBuilder.Entity<Quiz>()
+                .HasOne(q => q.User)
+                .WithMany(u => u.Quizzes)
+                .HasForeignKey(q => q.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // One to Many User and Payment
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.User)
+                .WithMany(u => u.Payments)
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // One to One Payment and MembershipPlan
+            modelBuilder.Entity<MemberShipPlan>()
+                .HasOne(mp => mp.Payment)
+                .WithOne(p => p.MemberShipPlan)
+                .HasForeignKey<Payment>(p => p.MemberShipPlanId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // one to many Quiz UserQuizAttemps
             modelBuilder.Entity<UserQuizAttempt>()
@@ -137,6 +153,19 @@ namespace OneUron.DAL.Data.Entity
                 .HasForeignKey(qt => qt.QuizId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // one to many userQuizAttemps and Answer
+            modelBuilder.Entity<Answer>()
+                .HasOne(a => a.UserQuizAttempt)
+                .WithMany(uqa  => uqa.Answers)
+                .HasForeignKey(aqa => aqa.UserQuizAttemptId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // one to many Question and Answer
+            modelBuilder.Entity<Answer>()
+                .HasOne(a => a.Question)
+                .WithMany(q => q.Answers)
+                .HasForeignKey(a => a.QuestionId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // one to many Question and QuestionChoice
             modelBuilder.Entity<QuestionChoice>()
@@ -145,30 +174,12 @@ namespace OneUron.DAL.Data.Entity
                 .HasForeignKey(qc => qc.QuestionId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-
-            // one to many  UserQuizAttempts QuizHistory
-            modelBuilder.Entity<QuizHistory>()
-                .HasOne(uqa => uqa.UserQuizAttempts)
-                .WithMany(qh => qh.QuizHistories)
-                .HasForeignKey(qh => qh.UserQuizAttemptId)
+            // one to many QuestionChoice and Answer
+            modelBuilder.Entity<Answer>()
+                .HasOne(a => a.QuestionChoice)
+                .WithMany(qc => qc.Answers)
+                .HasForeignKey(a => a.QuestionChoiceId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-
-            // one to many Question QuizHistory
-            modelBuilder.Entity<QuizHistory>()
-                .HasOne(q => q.Question)
-                .WithMany(qh => qh.QuizHistories)
-                .HasForeignKey(qh => qh.QuestionId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-
-            // one to many choice QuizHistory
-            modelBuilder.Entity<QuizHistory>()
-               .HasOne(qc => qc.Choice)
-               .WithMany(qh => qh.QuizHistories)
-               .HasForeignKey(qh => qh.ChoiceId)
-                .OnDelete(DeleteBehavior.Restrict);
-
 
             // one to many User Enroll
             modelBuilder.Entity<EnRoll>()
