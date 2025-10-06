@@ -17,7 +17,6 @@ namespace OneUron.DAL.Data.Entity
         public Guid QuestionId { get; set; }
         public virtual Question Question { get; set; }
 
-        public virtual ICollection<QuizHistory> QuizHistories { get; set; }
-
+        public virtual ICollection<Answer> Answers { get; set; }
     }
 }

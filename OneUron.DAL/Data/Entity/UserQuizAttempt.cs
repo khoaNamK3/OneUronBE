@@ -9,10 +9,6 @@ namespace OneUron.DAL.Data.Entity
     public class UserQuizAttempt
     {
         public Guid Id { get; set; }
-
-        public Guid UserId { get; set; }
-
-        public virtual User User { get; set; }
         
         public Guid QuizId { get; set; }
 
@@ -25,7 +21,7 @@ namespace OneUron.DAL.Data.Entity
         public double Point {  get; set; }
 
         public double Accuracy { get; set; }
-
-        public virtual ICollection<QuizHistory> QuizHistories { get; set; }
+    
+        public virtual ICollection<Answer> Answers { get; set; }
     }
 }
