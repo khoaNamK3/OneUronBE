@@ -2,13 +2,17 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using OneUron.BLL.DTOs.Settings;
 using OneUron.BLL.Interface;
 using OneUron.BLL.Services; // Add this using directive for AuthService
+using OneUron.BLL.Services.Ai;
+using OneUron.BLL.Until;
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository;
 using OneUron.DAL.Repository.AcknowledgeRepo;
+using OneUron.DAL.Repository.AnswerRepo;
 using OneUron.DAL.Repository.ChoiceRepo;
 using OneUron.DAL.Repository.CourseDetailRepo;
 using OneUron.DAL.Repository.EnRollRepo;
@@ -20,15 +24,19 @@ using OneUron.DAL.Repository.MethodProRepo;
 using OneUron.DAL.Repository.MethodRepo;
 using OneUron.DAL.Repository.MethodRuleConditionRepo;
 using OneUron.DAL.Repository.MethodRulesRepo;
+using OneUron.DAL.Repository.ProfileRepository;
+using OneUron.DAL.Repository.QuestionChoiceRepo;
+using OneUron.DAL.Repository.QuestionRepo;
+using OneUron.DAL.Repository.QuizRepo;
 using OneUron.DAL.Repository.ResourceRepo;
+using OneUron.DAL.Repository.RoleRepo;
 using OneUron.DAL.Repository.SkillRepo;
 using OneUron.DAL.Repository.StudyMethodRepo;
 using OneUron.DAL.Repository.TechniqueRepo;
 using OneUron.DAL.Repository.TokenRepo;
 using OneUron.DAL.Repository.UserAnswerRepo;
+using OneUron.DAL.Repository.UserQuizAttemptRepo;
 using OneUron.DAL.Repository.UserRepo; // Ensure this using directive is present
-using OneUron.DAL.Repository.ProfileRepository;
-using OneUron.DAL.Repository.RoleRepo;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -82,13 +90,25 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("RequireUserRole", policy => policy.RequireRole("User"));
 });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new TimeOnlyJsonConverter());
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "OneUron API", Version = "v1" });
+
+  
+    c.MapType<TimeOnly>(() => new OpenApiSchema
+    {
+        Type = "string",
+        Format = "time",
+        Example = new OpenApiString("08:30:00")
+    });
+
     
-    // Configure Swagger to use JWT
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
@@ -152,6 +172,17 @@ builder.Services.AddScoped<IMethodRuleConditionRepository, MethodRuleConditionRe
 builder.Services.AddScoped<IMethodRuleConditionService, MethodRuleConditionService>();
 builder.Services.AddScoped<IMethodRuleRepository, MethodRuleRepository>();
 builder.Services.AddScoped<IMethodRuleService, MethodRuleService>();
+builder.Services.AddScoped<IQuizRepository, QuizRepository>();
+builder.Services.AddScoped<IQuizService, QuizService>();
+builder.Services.AddScoped<IUserQuizAttemptReposiotry, UserQuizAttemptReposiotry>();
+builder.Services.AddScoped<IUserQuizAttemptService, UserQuizAttemptService>();
+builder.Services.AddScoped<IAnswerRepository, AnswerRepository>();
+builder.Services.AddScoped<IAnswerService, AnswerService>();
+builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
+builder.Services.AddScoped<IQuestionService, QuestionService>();
+builder.Services.AddScoped<IQuestionChoiceRepository, QuestionChoiceRepository>();
+builder.Services.AddScoped<IQuestionChoiceService, QuestionChoiceService>();
+builder.Services.AddScoped<IGeminiService, GeminiService>();
 // Register repositories and services
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IProfileRepository, ProfileRepository>();

@@ -81,6 +81,8 @@ namespace OneUron.DAL.Data.Entity
 
         public DbSet<Answer> Answers { get; set; }
 
+        public DbSet<Payment> Payments { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
