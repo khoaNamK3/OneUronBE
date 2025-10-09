@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OneUron.BLL.DTOs.QuizDTOs;
+using OneUron.BLL.DTOs.ScheduleDTOs;
 using OneUron.BLL.Interface;
 
 namespace OneUron.API.Controllers
@@ -24,6 +25,17 @@ namespace OneUron.API.Controllers
             if (!response.Success)
             {
                 return BadRequest(response);
+            }
+            return Ok(response);
+        }
+
+        [HttpPost("study-method/{studyMethodId}/schedules/tasks")]
+        public async Task<IActionResult> CreateTaskForScheduleFollowStudyMethodIdAsync(Guid studyMethodId, [FromBody] ScheduleRequestDto newSchedule)
+        {
+            var response = await _geminiService.CreateTaskForScheduleFollowStudyMethodIdAsync(studyMethodId, newSchedule);
+
+            if (!response.Success) { 
+            return BadRequest(response);
             }
             return Ok(response);
         }
