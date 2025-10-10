@@ -105,6 +105,11 @@ namespace OneUron.DAL.Data.Entity
             modelBuilder.Entity<Payment>().Property(p => p.Status)
                 .HasConversion(new EnumToStringConverter<PaymentStatus>());
 
+            modelBuilder.Entity<Subject>().Property(s => s.Priority)
+                .HasConversion(new EnumToStringConverter<SubjectType>());
+
+
+
             // one to one User and Token
             modelBuilder.Entity<User>()
                 .HasOne(u => u.Token)

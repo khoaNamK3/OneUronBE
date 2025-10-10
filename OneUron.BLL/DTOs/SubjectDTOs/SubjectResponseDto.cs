@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OneUron.DAL.Data.Entity;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,10 +13,12 @@ namespace OneUron.BLL.DTOs.SubjectDTOs
 
         public string Name { get; set; }
 
-        public double Priority { get; set; }
+        public SubjectType Priority { get; set; }
 
         public Guid ScheduleId { get; set; }
 
         public Guid ProcessId { get; set; }
     }
+
+
 }
