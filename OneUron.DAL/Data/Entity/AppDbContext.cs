@@ -14,6 +14,7 @@ namespace OneUron.DAL.Data.Entity
         {
         }
 
+
         public DbSet<User> Users { get; set; }
 
         public DbSet<Token> Tokens { get; set; }
@@ -29,8 +30,6 @@ namespace OneUron.DAL.Data.Entity
         public DbSet<UserQuizAttempt> UserQuizAttempts { get; set; }
 
         public DbSet<QuestionChoice> QuestionChoices { get; set; }
-
-        public DbSet<QuizHistory> QuizHistories { get; set; }
 
         public DbSet<Resource> Resources { get; set; }
 
@@ -80,6 +79,10 @@ namespace OneUron.DAL.Data.Entity
 
         public DbSet<Features> Features { get; set; }
 
+        public DbSet<Answer> Answers { get; set; }
+
+        public DbSet<Payment> Payments { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -99,28 +102,60 @@ namespace OneUron.DAL.Data.Entity
             modelBuilder.Entity<EvaluationQuestion>().Property(eq => eq.Type)
                 .HasConversion(new EnumToStringConverter<EvaluationQuestionType>());
 
+            modelBuilder.Entity<Payment>().Property(p => p.Status)
+                .HasConversion(new EnumToStringConverter<PaymentStatus>());
+
+            modelBuilder.Entity<Subject>().Property(s => s.Priority)
+                .HasConversion(new EnumToStringConverter<SubjectType>());
+
+
+
             // one to one User and Token
             modelBuilder.Entity<User>()
-                .HasOne(u => u.Token)
-                .WithOne(t => t.User)
-                .HasForeignKey<Token>(t => t.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                 .HasOne(u => u.Token)
+                 .WithOne(t => t.User)
+                 .HasForeignKey<Token>(t => t.UserId)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Token>()
+                .HasIndex(t => t.UserId)
+                .IsUnique();
 
             // one to one User and Profile
             modelBuilder.Entity<User>()
                 .HasOne(u => u.Profile)
-                .WithOne(t => t.User)
-                .HasForeignKey<Profile>(t => t.UserId)
+                .WithOne(p => p.User)
+                .HasForeignKey<Profile>(p => p.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // many to many with User and Quiz
-            modelBuilder.Entity<UserQuizAttempt>()
-                .HasOne(uqa => uqa.User)
-                .WithMany(u => u.UserQuizAttempts)
-                .HasForeignKey(uqa => uqa.UserId)
+            modelBuilder.Entity<Profile>()
+                .HasIndex(p => p.UserId)
+                .IsUnique();
+
+            // One to many with User and Quiz
+            modelBuilder.Entity<Quiz>()
+                .HasOne(q => q.User)
+                .WithMany(u => u.Quizzes)
+                .HasForeignKey(q => q.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // One to Many User and Payment
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.User)
+                .WithMany(u => u.Payments)
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
+            // One to One Payment and MembershipPlan
+            modelBuilder.Entity<MemberShipPlan>()
+             .HasOne(mp => mp.Payment)
+             .WithOne(p => p.MemberShipPlan)
+             .HasForeignKey<Payment>(p => p.MemberShipPlanId)
+             .OnDelete(DeleteBehavior.Restrict);
+
+              modelBuilder.Entity<Payment>()
+              .HasIndex(p => p.MemberShipPlanId)
+              .IsUnique();
             // one to many Quiz UserQuizAttemps
             modelBuilder.Entity<UserQuizAttempt>()
                 .HasOne(uqa => uqa.Quiz)
@@ -136,6 +171,19 @@ namespace OneUron.DAL.Data.Entity
                 .HasForeignKey(qt => qt.QuizId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // one to many userQuizAttemps and Answer
+            modelBuilder.Entity<Answer>()
+                .HasOne(a => a.UserQuizAttempt)
+                .WithMany(uqa  => uqa.Answers)
+                .HasForeignKey(aqa => aqa.UserQuizAttemptId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // one to many Question and Answer
+            modelBuilder.Entity<Answer>()
+                .HasOne(a => a.Question)
+                .WithMany(q => q.Answers)
+                .HasForeignKey(a => a.QuestionId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // one to many Question and QuestionChoice
             modelBuilder.Entity<QuestionChoice>()
@@ -144,30 +192,12 @@ namespace OneUron.DAL.Data.Entity
                 .HasForeignKey(qc => qc.QuestionId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-
-            // one to many  UserQuizAttempts QuizHistory
-            modelBuilder.Entity<QuizHistory>()
-                .HasOne(uqa => uqa.UserQuizAttempts)
-                .WithMany(qh => qh.QuizHistories)
-                .HasForeignKey(qh => qh.UserQuizAttemptId)
+            // one to many QuestionChoice and Answer
+            modelBuilder.Entity<Answer>()
+                .HasOne(a => a.QuestionChoice)
+                .WithMany(qc => qc.Answers)
+                .HasForeignKey(a => a.QuestionChoiceId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-
-            // one to many Question QuizHistory
-            modelBuilder.Entity<QuizHistory>()
-                .HasOne(q => q.Question)
-                .WithMany(qh => qh.QuizHistories)
-                .HasForeignKey(qh => qh.QuestionId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-
-            // one to many choice QuizHistory
-            modelBuilder.Entity<QuizHistory>()
-               .HasOne(qc => qc.Choice)
-               .WithMany(qh => qh.QuizHistories)
-               .HasForeignKey(qh => qh.ChoiceId)
-                .OnDelete(DeleteBehavior.Restrict);
-
 
             // one to many User Enroll
             modelBuilder.Entity<EnRoll>()
@@ -187,10 +217,14 @@ namespace OneUron.DAL.Data.Entity
 
             // one to one Resource CourseDetail 
             modelBuilder.Entity<Resource>()
-                .HasOne(r => r.CourseDetail)
-                .WithOne(cd => cd.Resource)
-                .HasForeignKey<CourseDetail>(cd => cd.ResourceId)
-                .OnDelete(DeleteBehavior.Restrict);
+               .HasOne(r => r.CourseDetail)
+               .WithOne(cd => cd.Resource)
+               .HasForeignKey<CourseDetail>(cd => cd.ResourceId)
+               .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CourseDetail>()
+                .HasIndex(cd => cd.ResourceId)
+                .IsUnique();
 
 
             // one to many Resource Acknowledge
@@ -217,20 +251,28 @@ namespace OneUron.DAL.Data.Entity
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // One to many User StudyMethod
+            // One to One User StudyMethod
+            modelBuilder.Entity<User>()
+            .HasOne(u => u.StudyMethod)
+            .WithOne(sm => sm.User)
+            .HasForeignKey<StudyMethod>(sm => sm.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<StudyMethod>()
-                .HasOne(sm => sm.User)
-                .WithMany(u => u.StudyMethods)
-                .HasForeignKey(sm => sm.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .HasIndex(sm => sm.UserId)
+                .IsUnique();
 
 
             // one to one Method StudyMethod
             modelBuilder.Entity<Method>()
-                .HasOne(m => m.StudyMethod)
-                .WithOne(sm => sm.Method)
-                .HasForeignKey<StudyMethod>(sm => sm.MethodId)
-                .OnDelete(DeleteBehavior.Restrict);
+                 .HasOne(m => m.StudyMethod)
+                 .WithOne(sm => sm.Method)
+                 .HasForeignKey<StudyMethod>(sm => sm.MethodId)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<StudyMethod>()
+                .HasIndex(sm => sm.MethodId)
+                .IsUnique();
 
 
             // one to Many Method MethodPro
@@ -314,30 +356,34 @@ namespace OneUron.DAL.Data.Entity
 
 
             modelBuilder.Entity<UserAnswer>()
-            .HasKey(ua => new { ua.UserId, ua.EvaluationQuestionId, ua.ChoiceId });
+              .HasKey(ua => ua.Id);
 
-            // one to many EvaluationQuestion UserAnswer
+             
+            modelBuilder.Entity<UserAnswer>()
+                .HasIndex(ua => new { ua.UserId, ua.EvaluationQuestionId })
+                .IsUnique();
+
+            // EvaluationQuestion  UserAnswer
             modelBuilder.Entity<UserAnswer>()
                 .HasOne(ua => ua.EvaluationQuestion)
                 .WithMany(eq => eq.UserAnswers)
                 .HasForeignKey(ua => ua.EvaluationQuestionId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-
-            // one to many Choice UserAnswer
+            //  Choice  UserAnswer
             modelBuilder.Entity<UserAnswer>()
                 .HasOne(ua => ua.Choice)
                 .WithMany(c => c.UserAnswers)
                 .HasForeignKey(ua => ua.ChoiceId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-
-            // one to many User UserAnswer
+            //  User  UserAnswer
             modelBuilder.Entity<UserAnswer>()
                 .HasOne(ua => ua.User)
                 .WithMany(u => u.UserAnswers)
                 .HasForeignKey(ua => ua.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
+
 
 
             // one to many User Schedule

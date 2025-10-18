@@ -57,6 +57,32 @@ namespace OneUron.DAL.Migrations
                     b.ToTable("Acknowledges");
                 });
 
+            modelBuilder.Entity("OneUron.DAL.Data.Entity.Answer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("QuestionChoiceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("QuestionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserQuizAttemptId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionChoiceId");
+
+                    b.HasIndex("QuestionId");
+
+                    b.HasIndex("UserQuizAttemptId");
+
+                    b.ToTable("Answers");
+                });
+
             modelBuilder.Entity("OneUron.DAL.Data.Entity.Choice", b =>
                 {
                     b.Property<Guid>("Id")
@@ -370,17 +396,11 @@ namespace OneUron.DAL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<double>("Effectiveness")
-                        .HasColumnType("double precision");
-
                     b.Property<Guid>("MethodId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("MethodRuleConditionId")
                         .HasColumnType("uuid");
-
-                    b.Property<double>("Weight")
-                        .HasColumnType("double precision");
 
                     b.HasKey("Id");
 
@@ -400,11 +420,17 @@ namespace OneUron.DAL.Migrations
                     b.Property<Guid?>("ChoiceId")
                         .HasColumnType("uuid");
 
+                    b.Property<double>("Effectiveness")
+                        .HasColumnType("double precision");
+
                     b.Property<Guid?>("EvaluationId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("EvaluationQuestionId")
                         .HasColumnType("uuid");
+
+                    b.Property<double>("Weight")
+                        .HasColumnType("double precision");
 
                     b.HasKey("Id");
 
@@ -415,6 +441,41 @@ namespace OneUron.DAL.Migrations
                     b.HasIndex("EvaluationQuestionId");
 
                     b.ToTable("MethodRuleConditions");
+                });
+
+            modelBuilder.Entity("OneUron.DAL.Data.Entity.Payment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<double>("Amount")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("CreateAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("MemberShipPlanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("OrderCode")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MemberShipPlanId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("OneUron.DAL.Data.Entity.Process", b =>
@@ -430,7 +491,7 @@ namespace OneUron.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("ScheduleId")
+                    b.Property<Guid?>("ScheduleId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
@@ -589,35 +650,14 @@ namespace OneUron.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Quizzes");
-                });
-
-            modelBuilder.Entity("OneUron.DAL.Data.Entity.QuizHistory", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("ChoiceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("QuestionId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("UserQuizAttemptId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ChoiceId");
-
-                    b.HasIndex("QuestionId");
-
-                    b.HasIndex("UserQuizAttemptId");
-
-                    b.ToTable("QuizHistories");
                 });
 
             modelBuilder.Entity("OneUron.DAL.Data.Entity.Resource", b =>
@@ -627,6 +667,10 @@ namespace OneUron.DAL.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Image")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -756,7 +800,8 @@ namespace OneUron.DAL.Migrations
                     b.HasIndex("MethodId")
                         .IsUnique();
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("StudyMethods");
                 });
@@ -771,10 +816,11 @@ namespace OneUron.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<double>("Priority")
-                        .HasColumnType("double precision");
+                    b.Property<string>("Priority")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<Guid>("ProcessId")
+                    b.Property<Guid?>("ProcessId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("ScheduleId")
@@ -815,11 +861,7 @@ namespace OneUron.DAL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("AccessToken")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("RefeshToken")
+                    b.Property<string>("RefreshToken")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -864,20 +906,27 @@ namespace OneUron.DAL.Migrations
 
             modelBuilder.Entity("OneUron.DAL.Data.Entity.UserAnswer", b =>
                 {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("EvaluationQuestionId")
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("ChoiceId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("UserId", "EvaluationQuestionId", "ChoiceId");
+                    b.Property<Guid>("EvaluationQuestionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("ChoiceId");
 
                     b.HasIndex("EvaluationQuestionId");
+
+                    b.HasIndex("UserId", "EvaluationQuestionId")
+                        .IsUnique();
 
                     b.ToTable("UserAnswers");
                 });
@@ -903,31 +952,11 @@ namespace OneUron.DAL.Migrations
                     b.Property<DateTime>("StartAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
 
                     b.HasIndex("QuizId");
 
-                    b.HasIndex("UserId");
-
                     b.ToTable("UserQuizAttempts");
-                });
-
-            modelBuilder.Entity("QuizUser", b =>
-                {
-                    b.Property<Guid>("QuizzesId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("UsersId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("QuizzesId", "UsersId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("QuizUser");
                 });
 
             modelBuilder.Entity("RoleUser", b =>
@@ -969,6 +998,33 @@ namespace OneUron.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("Resource");
+                });
+
+            modelBuilder.Entity("OneUron.DAL.Data.Entity.Answer", b =>
+                {
+                    b.HasOne("OneUron.DAL.Data.Entity.QuestionChoice", "QuestionChoice")
+                        .WithMany("Answers")
+                        .HasForeignKey("QuestionChoiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OneUron.DAL.Data.Entity.Question", "Question")
+                        .WithMany("Answers")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OneUron.DAL.Data.Entity.UserQuizAttempt", "UserQuizAttempt")
+                        .WithMany("Answers")
+                        .HasForeignKey("UserQuizAttemptId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Question");
+
+                    b.Navigation("QuestionChoice");
+
+                    b.Navigation("UserQuizAttempt");
                 });
 
             modelBuilder.Entity("OneUron.DAL.Data.Entity.Choice", b =>
@@ -1118,13 +1174,31 @@ namespace OneUron.DAL.Migrations
                     b.Navigation("EvaluationQuestion");
                 });
 
+            modelBuilder.Entity("OneUron.DAL.Data.Entity.Payment", b =>
+                {
+                    b.HasOne("OneUron.DAL.Data.Entity.MemberShipPlan", "MemberShipPlan")
+                        .WithOne("Payment")
+                        .HasForeignKey("OneUron.DAL.Data.Entity.Payment", "MemberShipPlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("OneUron.DAL.Data.Entity.User", "User")
+                        .WithMany("Payments")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("MemberShipPlan");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("OneUron.DAL.Data.Entity.Process", b =>
                 {
                     b.HasOne("OneUron.DAL.Data.Entity.Schedule", "Schedule")
                         .WithMany("Processes")
                         .HasForeignKey("ScheduleId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Schedule");
                 });
@@ -1172,31 +1246,15 @@ namespace OneUron.DAL.Migrations
                     b.Navigation("Question");
                 });
 
-            modelBuilder.Entity("OneUron.DAL.Data.Entity.QuizHistory", b =>
+            modelBuilder.Entity("OneUron.DAL.Data.Entity.Quiz", b =>
                 {
-                    b.HasOne("OneUron.DAL.Data.Entity.QuestionChoice", "Choice")
-                        .WithMany("QuizHistories")
-                        .HasForeignKey("ChoiceId")
+                    b.HasOne("OneUron.DAL.Data.Entity.User", "User")
+                        .WithMany("Quizzes")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("OneUron.DAL.Data.Entity.Question", "Question")
-                        .WithMany("QuizHistories")
-                        .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OneUron.DAL.Data.Entity.UserQuizAttempt", "UserQuizAttempts")
-                        .WithMany("QuizHistories")
-                        .HasForeignKey("UserQuizAttemptId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Choice");
-
-                    b.Navigation("Question");
-
-                    b.Navigation("UserQuizAttempts");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("OneUron.DAL.Data.Entity.Schedule", b =>
@@ -1230,8 +1288,8 @@ namespace OneUron.DAL.Migrations
                         .IsRequired();
 
                     b.HasOne("OneUron.DAL.Data.Entity.User", "User")
-                        .WithMany("StudyMethods")
-                        .HasForeignKey("UserId")
+                        .WithOne("StudyMethod")
+                        .HasForeignKey("OneUron.DAL.Data.Entity.StudyMethod", "UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1245,8 +1303,7 @@ namespace OneUron.DAL.Migrations
                     b.HasOne("OneUron.DAL.Data.Entity.Process", "Process")
                         .WithMany("Subjects")
                         .HasForeignKey("ProcessId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("OneUron.DAL.Data.Entity.Schedule", "Schedule")
                         .WithMany("Subjects")
@@ -1316,30 +1373,7 @@ namespace OneUron.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("OneUron.DAL.Data.Entity.User", "User")
-                        .WithMany("UserQuizAttempts")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Quiz");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("QuizUser", b =>
-                {
-                    b.HasOne("OneUron.DAL.Data.Entity.Quiz", null)
-                        .WithMany()
-                        .HasForeignKey("QuizzesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OneUron.DAL.Data.Entity.User", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("RoleUser", b =>
@@ -1383,6 +1417,9 @@ namespace OneUron.DAL.Migrations
             modelBuilder.Entity("OneUron.DAL.Data.Entity.MemberShipPlan", b =>
                 {
                     b.Navigation("MemberShips");
+
+                    b.Navigation("Payment")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("OneUron.DAL.Data.Entity.Method", b =>
@@ -1413,14 +1450,14 @@ namespace OneUron.DAL.Migrations
 
             modelBuilder.Entity("OneUron.DAL.Data.Entity.Question", b =>
                 {
-                    b.Navigation("QuestionChoices");
+                    b.Navigation("Answers");
 
-                    b.Navigation("QuizHistories");
+                    b.Navigation("QuestionChoices");
                 });
 
             modelBuilder.Entity("OneUron.DAL.Data.Entity.QuestionChoice", b =>
                 {
-                    b.Navigation("QuizHistories");
+                    b.Navigation("Answers");
                 });
 
             modelBuilder.Entity("OneUron.DAL.Data.Entity.Quiz", b =>
@@ -1457,24 +1494,27 @@ namespace OneUron.DAL.Migrations
 
                     b.Navigation("MemberShips");
 
+                    b.Navigation("Payments");
+
                     b.Navigation("Profile")
                         .IsRequired();
 
+                    b.Navigation("Quizzes");
+
                     b.Navigation("Schedules");
 
-                    b.Navigation("StudyMethods");
+                    b.Navigation("StudyMethod")
+                        .IsRequired();
 
                     b.Navigation("Token")
                         .IsRequired();
 
                     b.Navigation("UserAnswers");
-
-                    b.Navigation("UserQuizAttempts");
                 });
 
             modelBuilder.Entity("OneUron.DAL.Data.Entity.UserQuizAttempt", b =>
                 {
-                    b.Navigation("QuizHistories");
+                    b.Navigation("Answers");
                 });
 #pragma warning restore 612, 618
         }

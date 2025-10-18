@@ -24,12 +24,13 @@ namespace OneUron.DAL.Data.Entity
 
         public double PassScore { get; set; }
 
+        public Guid UserId { get; set; } // one to Many
 
-        public virtual ICollection<UserQuizAttempt>? UserQuizAttempts { get; set; }
+        public virtual User User { get; set; }
+
+        public virtual ICollection<UserQuizAttempt> UserQuizAttempts { get; set; }
 
         public virtual ICollection<Question> Questions { get; set; }
-
-        public virtual ICollection<User> Users { get; set; }
 
     }
     public enum QuizType

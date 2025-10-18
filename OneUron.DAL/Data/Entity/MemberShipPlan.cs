@@ -20,5 +20,6 @@ namespace OneUron.DAL.Data.Entity
 
         public virtual ICollection<Features> Features { get; set; }
 
+        public virtual Payment Payment { get; set; }
     }
 }
