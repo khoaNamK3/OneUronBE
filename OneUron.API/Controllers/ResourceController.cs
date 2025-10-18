@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OneUron.BLL.DTOs.ResourceDTOs;
+using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
 using System.ComponentModel.Design;
 
@@ -7,69 +8,48 @@ namespace OneUron.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ResourceController : Controller
+    public class ResourcesController : ControllerBase
     {
-        private readonly IResourcesService _resourceService;
+        private readonly IResourcesService _resourcesService;
 
-        public ResourceController(IResourcesService resourceService)
+        public ResourcesController(IResourcesService resourcesService)
         {
-            _resourceService = resourceService;
+            _resourcesService = resourcesService;
         }
 
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAll()
         {
-            var response = await _resourceService.GetAllResourceAsync();
-            if (!response.Success)
-            {
-               return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _resourcesService.GetAllResourceAsync();
+            return Ok(ApiResponse<List<ResourceResponseDto>>.SuccessResponse(result, "Get all resources successfully"));
         }
 
         [HttpGet("get-by/{id}")]
-        public async Task<IActionResult> GetByIdAsync(Guid id)
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var response = await _resourceService.GetResourceByIdAsync(id);
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _resourcesService.GetResourceByIdAsync(id);
+            return Ok(ApiResponse<ResourceResponseDto>.SuccessResponse(result, "Get resource successfully"));
         }
 
-        [HttpPost("create-new")]
-        public async Task<IActionResult> CreateNewResourceAsync([FromBody] ResourceRequestDto request)
+        [HttpPost("create")]
+        public async Task<IActionResult> Create(ResourceRequestDto request)
         {
-            var response = await _resourceService.CreateNewResourceAsync(request);
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _resourcesService.CreateNewResourceAsync(request);
+            return Ok(ApiResponse<ResourceResponseDto>.SuccessResponse(result, "Create resource successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> UpdateResourceById(Guid id, [FromBody] ResourceRequestDto request)
+        public async Task<IActionResult> Update(Guid id, ResourceRequestDto request)
         {
-            var response = await _resourceService.UpdateResourceByIdAsync(id, request);
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _resourcesService.UpdateResourceByIdAsync(id, request);
+            return Ok(ApiResponse<ResourceResponseDto>.SuccessResponse(result, "Update resource successfully"));
         }
 
         [HttpDelete("delete-by/{id}")]
-        public async Task<IActionResult> DeleteResourceById(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var response = await _resourceService.DeletedResourceAsync(id);
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _resourcesService.DeleteResourceByIdAsync(id);
+            return Ok(ApiResponse<ResourceResponseDto>.SuccessResponse(result, "Delete resource successfully"));
         }
-
     }
 }

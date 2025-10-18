@@ -2,89 +2,61 @@
 using OneUron.BLL.DTOs.MethodDTOs;
 using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
+using OneUron.BLL.Services;
 
 namespace OneUron.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class MethodController : Controller
+    public class MethodController : ControllerBase
     {
-        private readonly IMethodSerivce _methodSerivce;
+        private readonly IMethodSerivce _methodService;
 
-        public MethodController(IMethodSerivce methodSerivce)
+        public MethodController(IMethodSerivce methodService)
         {
-            _methodSerivce = methodSerivce;
+            _methodService = methodService;
         }
 
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAll()
         {
-            var response = await _methodSerivce.GetAllAsync();
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _methodService.GetAllAsync();
+            return Ok(ApiResponse<List<MethodResponseDto>>.SuccessResponse(result, "Get all methods successfully"));
         }
 
-        [HttpGet("get-by/{id:guid}")]
-        public async Task<IActionResult> GetMethodByIdAsync(Guid id)
+        [HttpGet("get-by/{id}")]
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var response = await _methodSerivce.GetByIdAsync(id);
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _methodService.GetByIdAsync(id);
+            return Ok(ApiResponse<MethodResponseDto>.SuccessResponse(result, "Get method by ID successfully"));
         }
 
-        [HttpPost("create-new")]
-        public async Task<IActionResult> CreateNewMethodAsync([FromBody] MethodRequestDto request)
+        [HttpPost("create")]
+        public async Task<IActionResult> Create(MethodRequestDto request)
         {
-            var response = await _methodSerivce.CreateNewMethodAsync(request);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _methodService.CreateNewMethodAsync(request);
+            return Ok(ApiResponse<MethodResponseDto>.SuccessResponse(result, "Create method successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> UpdateMethodByIdAsync(Guid id, MethodRequestDto request)
+        public async Task<IActionResult> Update(Guid id, MethodRequestDto request)
         {
-            var response = await _methodSerivce.UpdateMethodByIdAsync(id, request);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _methodService.UpdateMethodByIdAsync(id, request);
+            return Ok(ApiResponse<MethodResponseDto>.SuccessResponse(result, "Update method successfully"));
         }
-
 
         [HttpDelete("delete-by/{id}")]
-        public async Task<IActionResult> DeleteMethodByIdAsync(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var response = await _methodSerivce.DeleteMethodByIdAsync(id);
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _methodService.DeleteMethodByIdAsync(id);
+            return Ok(ApiResponse<MethodResponseDto>.SuccessResponse(result, "Delete method successfully"));
         }
 
-        [HttpGet("get-top3/{userId:guid}")]
-        public async Task<IActionResult> GetTop3MetodForUserAsync(Guid userId)
+        [HttpGet("top3/{userId}")]
+        public async Task<IActionResult> GetTop3(Guid userId)
         {
-            var response = await _methodSerivce.GetTop3MetodForUserAsync(userId);
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _methodService.GetTop3MethodForUserAsync(userId);
+            return Ok(ApiResponse<List<MethodSuggestionRespone>>.SuccessResponse(result, "Get top 3 methods for user successfully"));
         }
     }
 }

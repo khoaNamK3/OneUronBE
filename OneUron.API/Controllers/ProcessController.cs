@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OneUron.BLL.DTOs.ProcessDTOs;
+using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
 
 namespace OneUron.API.Controllers
@@ -7,7 +8,7 @@ namespace OneUron.API.Controllers
 
     [ApiController]
     [Route("api/[controller]")]
-    public class ProcessController : Controller
+    public class ProcessController : ControllerBase
     {
         private readonly IProcessService _processService;
 
@@ -17,63 +18,46 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAll()
         {
-            var response = await _processService.GetAllAsync();
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _processService.GetAllAsync();
+            return Ok(ApiResponse<List<ProcessResponseDto>>.SuccessResponse(result, "Get all processes successfully"));
         }
 
         [HttpGet("get-by/{id}")]
-        public async Task<IActionResult> GetByIdAsync(Guid id)
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var respone = await _processService.GetByIdAsync(id);
+            var result = await _processService.GetByIdAsync(id);
+            return Ok(ApiResponse<ProcessResponseDto>.SuccessResponse(result, "Get process by ID successfully"));
+        }
 
-            if (!respone.Success)
-            {
-                return NotFound(respone);
-            }
-            return Ok(respone);
+        [HttpGet("get-process-by/{scheduleId}")]
+        public async Task<IActionResult> GetAllProcessesByScheduleIdAsync(Guid scheduleId) { 
+        var result = await _processService.GetProcessesByScheduleId(scheduleId);
+            return Ok(ApiResponse<List<ProcessResponseDto>>.SuccessResponse(result, "Get all processes successfully"));
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateNewProcessAsync([FromBody] ProcessRequestDto request)
+        public async Task<IActionResult> Create(ProcessRequestDto request)
         {
-            var response = await _processService.CreateProcessAsync(request);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _processService.CreateProcessAsync(request);
+            return Ok(ApiResponse<ProcessResponseDto>.SuccessResponse(result, "Create process successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> UpdateProcessByIdAsync(Guid id, [FromBody] ProcessRequestDto request)
+        public async Task<IActionResult> Update(Guid id, ProcessRequestDto request)
         {
-            var response = await _processService.UpdateProcessByIdAsync(id, request);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _processService.UpdateProcessByIdAsync(id, request);
+            return Ok(ApiResponse<ProcessResponseDto>.SuccessResponse(result, "Update process successfully"));
         }
 
         [HttpDelete("delete-by/{id}")]
-        public async Task<IActionResult> DeleteProcessByIdAsync(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var response = await _processService.DeleteProcessByIdAsync(id);
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _processService.DeleteProcessByIdAsync(id);
+            return Ok(ApiResponse<ProcessResponseDto>.SuccessResponse(result, "Delete process successfully"));
         }
+
+        
     }
 }

@@ -1,5 +1,8 @@
-﻿using OneUron.BLL.DTOs.ProcessTaskTDOs;
+﻿using FluentValidation;
+using OneUron.BLL.DTOs.ProcessDTOs;
+using OneUron.BLL.DTOs.ProcessTaskTDOs;
 using OneUron.BLL.ExceptionHandle;
+using OneUron.BLL.FluentValidation;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository.ProcessTaskRepo;
@@ -14,139 +17,113 @@ namespace OneUron.BLL.Services
     public class ProcessTaskService : IProcessTaskService
     {
         private readonly IProcessTaskRepository _processTaskRepository;
+        private readonly IValidator<ProcessTaskRequestDto> _processTaskRequestValidator;
 
-        public ProcessTaskService(IProcessTaskRepository processTaskRepository)
+        public ProcessTaskService(
+            IProcessTaskRepository processTaskRepository,
+            IValidator<ProcessTaskRequestDto> processTaskRequestValidator)
         {
             _processTaskRepository = processTaskRepository;
+            _processTaskRequestValidator = processTaskRequestValidator;
         }
 
-        public async Task<ApiResponse<List<ProcessTaskResponseDto>>> GetAllAsync()
+
+        public async Task<List<ProcessTaskResponseDto>> GetAllAsync()
         {
-            try
-            {
-                var processTasks = await _processTaskRepository.GetAllAsync();
+            var processTasks = await _processTaskRepository.GetAllAsync();
 
-                if (!processTasks.Any())
-                {
-                    return ApiResponse<List<ProcessTaskResponseDto>>.FailResponse("Get All ProcessTask Fail", "ProcessTask are empty");
-                }
+            if (processTasks == null || !processTasks.Any())
+                throw new ApiException.NotFoundException("No process tasks found.");
 
-                var result = processTasks.Select(MapToDTO).ToList();
-
-                return ApiResponse<List<ProcessTaskResponseDto>>.SuccessResponse(result, "Get All ProcessTask Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<ProcessTaskResponseDto>>.FailResponse("Get All ProcessTask Fail", ex.Message);
-            }
+            return processTasks.Select(MapToDTO).ToList();
         }
 
-        public async Task<ApiResponse<ProcessTaskResponseDto>> GetByIdAsync(Guid id)
+
+        public async Task<ProcessTaskResponseDto> GetByIdAsync(Guid id)
         {
-            try
-            {
-                var processTask = await _processTaskRepository.GetByIdAsync(id);
+            var processTask = await _processTaskRepository.GetByIdAsync(id);
 
-                if (processTask == null)
-                {
-                    return ApiResponse<ProcessTaskResponseDto>.FailResponse("Get ProcessTask By Id Fail", "ProcessTask are not exist");
-                }
+            if (processTask == null)
+                throw new ApiException.NotFoundException($"ProcessTask with ID {id} not found.");
 
-                var result = MapToDTO(processTask);
-
-                return ApiResponse<ProcessTaskResponseDto>.SuccessResponse(result, "Get ProcessTask By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ProcessTaskResponseDto>.FailResponse("Get ProcessTask By Id Fail", ex.Message);
-            }
+            return MapToDTO(processTask);
         }
 
-        public async Task<ApiResponse<ProcessTaskResponseDto>> CreateProcessTaskAsync(ProcessTaskRequestDto request)
+
+        public async Task<ProcessTaskResponseDto> CreateProcessTaskAsync(ProcessTaskRequestDto request)
         {
-            try
-            {
-                if (request == null)
-                {
-                    return ApiResponse<ProcessTaskResponseDto>.FailResponse("Create new ProcessTask Fail", "ProcessTask is null");
-                }
+            if (request == null)
+                throw new ApiException.BadRequestException("ProcessTask request cannot be null.");
 
-                var newProcessTask = MapToEntity(request);
+            var validationResult = await _processTaskRequestValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                await _processTaskRepository.AddAsync(newProcessTask);
+            var newProcessTask = MapToEntity(request);
+            await _processTaskRepository.AddAsync(newProcessTask);
 
-                var result = MapToDTO(newProcessTask);
-
-                return ApiResponse<ProcessTaskResponseDto>.SuccessResponse(result, "Create new ProcessTask Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ProcessTaskResponseDto>.FailResponse("Create new ProcessTask Fail", ex.Message);
-            }
+            return MapToDTO(newProcessTask);
         }
 
-        public async Task<ApiResponse<ProcessTaskResponseDto>> UpdateProcessTaskByIdAsync(Guid id, ProcessTaskRequestDto newProcessTask)
+
+        public async Task<ProcessTaskResponseDto> UpdateProcessTaskByIdAsync(Guid id, ProcessTaskRequestDto request)
         {
-            try
-            {
-                var existProcessTask = await _processTaskRepository.GetByIdAsync(id);
+            var existProcessTask = await _processTaskRepository.GetByIdAsync(id);
+            if (existProcessTask == null)
+                throw new ApiException.NotFoundException($"ProcessTask with ID {id} not found.");
 
-                if (existProcessTask == null)
-                {
-                    return ApiResponse<ProcessTaskResponseDto>.FailResponse("Update ProcessTask By Id Fail", "ProcessTask are not exist");
-                }
+            if (request == null)
+                throw new ApiException.BadRequestException("New ProcessTask data cannot be null.");
 
-                if (newProcessTask == null)
-                {
-                    return ApiResponse<ProcessTaskResponseDto>.FailResponse("Update ProcessTask By Id Fail", "New ProcessTask is null");
-                }
+            var validationResult = await _processTaskRequestValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                existProcessTask.Title = newProcessTask.Title;
-                existProcessTask.Description = newProcessTask.Description;
-                existProcessTask.Note = newProcessTask.Note;
-                existProcessTask.StartTime = newProcessTask.StartTime;
-                existProcessTask.EndTime = newProcessTask.EndTime;
-                existProcessTask.IsCompleted = newProcessTask.IsCompleted;
-                existProcessTask.ProcessId = newProcessTask.ProcessId;
+            existProcessTask.Title = request.Title;
+            existProcessTask.Description = request.Description;
+            existProcessTask.Note = request.Note;
+            existProcessTask.StartTime = request.StartTime;
+            existProcessTask.EndTime = request.EndTime;
+            existProcessTask.IsCompleted = request.IsCompleted;
+            existProcessTask.ProcessId = request.ProcessId;
 
-                await _processTaskRepository.UpdateAsync(existProcessTask);
+            await _processTaskRepository.UpdateAsync(existProcessTask);
 
-                var result = MapToDTO(existProcessTask);
-
-                return ApiResponse<ProcessTaskResponseDto>.SuccessResponse(result, "Update ProcessTask by Id Successfully");
-
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ProcessTaskResponseDto>.FailResponse("Update ProcessTask By Id Fail", ex.Message);
-            }
+            return MapToDTO(existProcessTask);
         }
 
-        public async Task<ApiResponse<ProcessTaskResponseDto>> DeleteProcessTaskByIdAsync(Guid id)
+        public async Task<ProcessTaskResponseDto> CompleteProcessTaskAsync(Guid processTaskId)
         {
-            try
-            {
-                var existProcessTask = await _processTaskRepository.GetByIdAsync(id);
+            var existProcessTask = await _processTaskRepository.GetByIdAsync(processTaskId);
 
-                if (existProcessTask == null)
-                {
-                    return ApiResponse<ProcessTaskResponseDto>.FailResponse("Delete ProcessTask By Id Fail", "ProcessTask are not exist");
-                }
+            if (existProcessTask == null)
+                throw new ApiException.NotFoundException($"ProcessTask with ID {processTaskId} not found.");
 
-                var result = MapToDTO(existProcessTask);
+            if (existProcessTask.IsCompleted == true)
+                throw new ApiException.BadRequestException("this ProcessTask Has already been complete");
 
-                await _processTaskRepository.DeleteAsync(existProcessTask);
+            existProcessTask.IsCompleted = true;
+            existProcessTask.EndTime = DateTime.UtcNow;
+            await _processTaskRepository.UpdateAsync(existProcessTask);
 
-                return ApiResponse<ProcessTaskResponseDto>.SuccessResponse(result, "Delete ProcessTask By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ProcessTaskResponseDto>.FailResponse("Delete ProcessTask By Id Fail",ex.Message);
-            }
+            return MapToDTO(existProcessTask);
         }
+        public async Task<ProcessTaskResponseDto> DeleteProcessTaskByIdAsync(Guid id)
+        {
+            var existProcessTask = await _processTaskRepository.GetByIdAsync(id);
+            if (existProcessTask == null)
+                throw new ApiException.NotFoundException($"ProcessTask with ID {id} not found.");
+
+            await _processTaskRepository.DeleteAsync(existProcessTask);
+
+            return MapToDTO(existProcessTask);
+        }
+
 
         public ProcessTaskResponseDto MapToDTO(ProcessTask processTask)
         {
+            if (processTask == null) return null;
+
             return new ProcessTaskResponseDto
             {
                 Id = processTask.Id,
@@ -156,11 +133,11 @@ namespace OneUron.BLL.Services
                 StartTime = processTask.StartTime,
                 EndTime = processTask.EndTime,
                 IsCompleted = processTask.IsCompleted,
-                ProcessId = processTask.ProcessId,
+                ProcessId = processTask.ProcessId
             };
         }
 
-        public ProcessTask MapToEntity(ProcessTaskRequestDto request)
+        protected ProcessTask MapToEntity(ProcessTaskRequestDto request)
         {
             return new ProcessTask
             {
@@ -170,7 +147,7 @@ namespace OneUron.BLL.Services
                 StartTime = request.StartTime,
                 EndTime = request.EndTime,
                 IsCompleted = request.IsCompleted,
-                ProcessId = request.ProcessId,
+                ProcessId = request.ProcessId
             };
         }
     }

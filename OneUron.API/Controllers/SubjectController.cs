@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OneUron.BLL.DTOs.SubjectDTOs;
+using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
 
 namespace OneUron.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class SubjectController : Controller
+    public class SubjectController : ControllerBase
     {
         private readonly ISubjectService _subjectService;
 
@@ -16,64 +17,45 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAll()
         {
-            var response = await _subjectService.GetAllAsync();
+            var result = await _subjectService.GetAllAsync();
+            return Ok(ApiResponse<List<SubjectResponseDto>>.SuccessResponse(result, "Get all subjects successfully"));
+        }
 
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+        [HttpGet("schedule/{scheduleId:guid}/subjects")]
+        public async Task<IActionResult> GetAllSubjectByScheduleIdAsync(Guid scheduleId)
+        {
+            var result = await _subjectService.GetAllSubjectbyScheduleIdAsync(scheduleId);
+            return Ok(ApiResponse<List<SubjectResponseDto>>.SuccessResponse(result, "Get all subjects successfully"));
         }
 
         [HttpGet("get-by/{id}")]
-        public async Task<IActionResult> GetByIdAsync(Guid id)
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var response = await _subjectService.GetByIdAsync(id);
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _subjectService.GetByIdAsync(id);
+            return Ok(ApiResponse<SubjectResponseDto>.SuccessResponse(result, "Get subject successfully"));
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateSubjectAsync([FromBody] SubjectRequestDto request)
+        public async Task<IActionResult> Create(SubjectRequestDto request)
         {
-            var response = await _subjectService.CreateNewSubjectAsync(request);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _subjectService.CreateAsync(request);
+            return Ok(ApiResponse<SubjectResponseDto>.SuccessResponse(result, "Create subject successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> UpdateSubjectByIdAsync(Guid id, [FromBody] SubjectRequestDto request)
+        public async Task<IActionResult> Update(Guid id, SubjectRequestDto request)
         {
-            var response = await _subjectService.UpdateSubjectByIdAsync(id, request);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _subjectService.UpdateByIdAsync(id, request);
+            return Ok(ApiResponse<SubjectResponseDto>.SuccessResponse(result, "Update subject successfully"));
         }
 
-
         [HttpDelete("delete-by/{id}")]
-        public async Task<IActionResult> DeleteSubjectByIdAsync(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var response = await _subjectService.DeleteSubjectByIdAsync(id);
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _subjectService.DeleteByIdAsync(id);
+            return Ok(ApiResponse<SubjectResponseDto>.SuccessResponse(result, "Delete subject successfully"));
         }
     }
 }

@@ -57,5 +57,10 @@ namespace OneUron.DAL.Repository.UserRepo
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task<User> GetUserByUserIdAsync(Guid userId)
+        {
+            return await _dbSet.FirstOrDefaultAsync(u => u.Id == userId);
+        }
     }
 }

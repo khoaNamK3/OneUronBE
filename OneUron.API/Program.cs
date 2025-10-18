@@ -1,13 +1,48 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
+using Net.payOS;
+using OneUron.BLL.DTOs.AcknowledgeDTOs;
+using OneUron.BLL.DTOs.AnswerDTOs;
+using OneUron.BLL.DTOs.ChoiceDTOs;
+using OneUron.BLL.DTOs.CourseDetailDTOs;
+using OneUron.BLL.DTOs.EnRollDTOs;
+using OneUron.BLL.DTOs.EvaluationDTOs;
+using OneUron.BLL.DTOs.EvaluationQuestionDTOs;
+using OneUron.BLL.DTOs.FeatureDTOs;
+using OneUron.BLL.DTOs.InstructorDTOs;
+using OneUron.BLL.DTOs.MemberShipDTOs;
+using OneUron.BLL.DTOs.MemberShipPlanDTOs;
+using OneUron.BLL.DTOs.MethodConDTOs;
+using OneUron.BLL.DTOs.MethodDTOs;
+using OneUron.BLL.DTOs.MethodProDTOs;
+using OneUron.BLL.DTOs.MethodRuleConditionDTOs;
+using OneUron.BLL.DTOs.MethodRuleDTOs;
+using OneUron.BLL.DTOs.PaymentDTOs;
+using OneUron.BLL.DTOs.ProcessDTOs;
+using OneUron.BLL.DTOs.ProcessTaskTDOs;
+using OneUron.BLL.DTOs.QuestionChoiceDTOs;
+using OneUron.BLL.DTOs.QuestionDTOs;
+using OneUron.BLL.DTOs.QuizDTOs;
+using OneUron.BLL.DTOs.ResourceDTOs;
+using OneUron.BLL.DTOs.ScheduleDTOs;
 using OneUron.BLL.DTOs.Settings;
+using OneUron.BLL.DTOs.SkillDTOs;
+using OneUron.BLL.DTOs.StudyMethodDTOs;
+using OneUron.BLL.DTOs.SubjectDTOs;
+using OneUron.BLL.DTOs.TechniqueDTOs;
+using OneUron.BLL.DTOs.UserAnswerDTOs;
+using OneUron.BLL.DTOs.UserQuizAttemptDTOs;
+using OneUron.BLL.ExceptionHandle;
+using OneUron.BLL.FluentValidation;
 using OneUron.BLL.Interface;
-using OneUron.BLL.Services; // Add this using directive for AuthService
+using OneUron.BLL.Services; 
 using OneUron.BLL.Services.Ai;
+using OneUron.BLL.Services.UserServices;
 using OneUron.BLL.Until;
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository;
@@ -18,12 +53,16 @@ using OneUron.DAL.Repository.CourseDetailRepo;
 using OneUron.DAL.Repository.EnRollRepo;
 using OneUron.DAL.Repository.EvaluationQuestionRepo;
 using OneUron.DAL.Repository.EvaluationRepo;
+using OneUron.DAL.Repository.featureRepo;
 using OneUron.DAL.Repository.IntructorRepo;
+using OneUron.DAL.Repository.MemberShipPlanRepo;
+using OneUron.DAL.Repository.MemberShipRepo;
 using OneUron.DAL.Repository.MethodConRepo;
 using OneUron.DAL.Repository.MethodProRepo;
 using OneUron.DAL.Repository.MethodRepo;
 using OneUron.DAL.Repository.MethodRuleConditionRepo;
 using OneUron.DAL.Repository.MethodRulesRepo;
+using OneUron.DAL.Repository.PaymentRepo;
 using OneUron.DAL.Repository.ProcessRepo;
 using OneUron.DAL.Repository.ProcessTaskRepo;
 using OneUron.DAL.Repository.ProfileRepository;
@@ -40,15 +79,15 @@ using OneUron.DAL.Repository.TechniqueRepo;
 using OneUron.DAL.Repository.TokenRepo;
 using OneUron.DAL.Repository.UserAnswerRepo;
 using OneUron.DAL.Repository.UserQuizAttemptRepo;
-using OneUron.DAL.Repository.UserRepo; // Ensure this using directive is present
+using OneUron.DAL.Repository.UserRepo; 
 using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load configuration
+
 var configuration = builder.Configuration;
 builder.Services.Configure<JwtSettings>(configuration.GetSection("AppSettings"));
-
 
 // Register configuration as singleton for DI
 builder.Services.AddSingleton<IConfiguration>(configuration);
@@ -67,6 +106,18 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(configuration.GetConnectionString("PostgresConnection")));
 
+builder.Services.Configure<PayOsSettings>(
+    builder.Configuration.GetSection("PayOs"));
+
+builder.Services.AddSingleton(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    var clientId = config["PayOs:ClientId"];
+    var apiKey = config["PayOs:ApiKey"];
+    var checksum = config["PayOs:CheckSum"];
+    return new PayOS(clientId, apiKey, checksum);
+});
+
 // Add Authentication with JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -83,6 +134,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 Encoding.UTF8.GetBytes(configuration["Jwt:SecretKey"])),
             ClockSkew = TimeSpan.Zero
         };
+    });
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
 // Add Authorization with policies for different roles
@@ -155,11 +212,11 @@ builder.Services.AddScoped<ISkillService, SkillService>();
 builder.Services.AddScoped<IInstructorRepository, InstructorRepository>();
 builder.Services.AddScoped<IInstructorService, InstructorService>();
 builder.Services.AddScoped<IMethodRepository, MethodRepository>();
-builder.Services.AddScoped<IMethodSerivce, MethodSerivce>();
+builder.Services.AddScoped<IMethodSerivce, MethodService>();
 builder.Services.AddScoped<IStudyMethodRepository, StudyMethodRepository>();
 builder.Services.AddScoped<IStudyMethodService, StudyMethodService>();
 builder.Services.AddScoped<IMethodProRepository, MethodProRepository>();
-builder.Services.AddScoped<IMethodProSerivce, MethodProSerivce>();
+builder.Services.AddScoped<IMethodProSerivce, MethodProService>();
 builder.Services.AddScoped<IMethodConRepository, MethodConRepository>();
 builder.Services.AddScoped<IMethodConService, MethodConService>();
 builder.Services.AddScoped<ITechniqueRepository, TechniqueRepository>();
@@ -195,12 +252,59 @@ builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
 builder.Services.AddScoped<ISubjectService, SubjectService>();
 builder.Services.AddScoped<IProcessTaskRepository, ProcessTaskRepository>();
 builder.Services.AddScoped<IProcessTaskService, ProcessTaskService>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IMemberShipPlanRepository, MemberShipPlanRepository>();
+builder.Services.AddScoped<IMemberShipPlanService, MemberShipPlanService>();
+builder.Services.AddScoped<IMemberShipRepository, MemberShipRepository>();
+builder.Services.AddScoped<IMemberShipService, MemberShipService>();
+builder.Services.AddScoped<IFeatureRepository, FeatureRepository>();
+builder.Services.AddScoped<IfeatureService, featureService>();
+builder.Services.AddScoped<PayOsService>();
 // Register repositories and services
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
+
+//Add validation for request 
+builder.Services.AddScoped<IValidator<AcknowledgeRequestDto>, AcknowledgeRequestValidator>();
+builder.Services.AddScoped<IValidator<AnswerRequestDto>, AnswerRequestValidator>();
+builder.Services.AddScoped<IValidator<ChoiceRequestDto>, ChoiceRequestValidator>();
+builder.Services.AddScoped<IValidator<CourseDetailRequestDto>, CourseDetailRequestValidator>();
+builder.Services.AddScoped<IValidator<EnRollRequestDto>, EnRollRequestValidator>();
+builder.Services.AddScoped<IValidator<EvaluationRequestDto>, EvaluationRequestValidator>();
+builder.Services.AddScoped<IValidator<EvaluationQuestionRequestDto>, EvaluationQuestionRequestValidator>();
+builder.Services.AddScoped<IValidator<InstructorRequestDto>, InstructorRequestValidator>();
+builder.Services.AddScoped<IValidator<MethodConRequestDto>, MethodConRequestValidator>();
+builder.Services.AddScoped<IValidator<MethodRequestDto>, MethodRequestValidator>();
+builder.Services.AddScoped<IValidator<MethodProRequestDto>, MethodProRequestValidator>();
+builder.Services.AddScoped<IValidator<MethodRuleConditionRequestDto>, MethodRuleConditionRequestValidator>();
+builder.Services.AddScoped<IValidator<MethodRuleRequestDto>, MethodRuleRequestValidator>();
+builder.Services.AddScoped<IValidator<ProcessRequestDto>, ProcessRequestValidator>();
+builder.Services.AddScoped<IValidator<ProcessTaskRequestDto>, ProcessTaskRequestValidator>();
+builder.Services.AddScoped<IValidator<QuestionChoiceRequestDto>, QuestionChoiceRequestValidator>();
+builder.Services.AddScoped<IValidator<QuestionRequestDto>, QuestionRequestValidator>();
+builder.Services.AddScoped<IValidator<QuizRequestDto>, QuizRequestValidator>();
+builder.Services.AddScoped<IValidator<ResourceRequestDto>, ResourceRequestValidator>();
+builder.Services.AddScoped<IValidator<ScheduleRequestDto>, ScheduleRequestValidator>();
+builder.Services.AddScoped<IValidator<SkillRequestDto>, SkillRequestValidator>();
+builder.Services.AddScoped<IValidator<StudyMethodRequestDto>, StudyMethodRequestValidator>();
+builder.Services.AddScoped<IValidator<SubjectRequestDto>, SubjectRequestValidator>();
+builder.Services.AddScoped<IValidator<TechniqueRequestDto>, TechniqueRequestValidator>();
+builder.Services.AddScoped<IValidator<UserAnswerRequestDto>, UserAnswerRequestValidator>();
+builder.Services.AddScoped<IValidator<UserQuizAttemptRequestDto>, UserQuizAttemptRequestValidator>();
+builder.Services.AddScoped<IValidator<ScheduleSubjectRequestDto>, ScheduleSubjectRequestValidator>();
+builder.Services.AddScoped<IValidator<SubjectListRequest>, SubjectListRequestValidator>();
+builder.Services.AddScoped<IValidator<ProcessTaskGenerateRequest>, ProcessTaskGenerateRequestValidator>();
+builder.Services.AddScoped<IValidator<ListAnswerRequest>, ListAnswerRequestValidator>();
+builder.Services.AddScoped<IValidator<SubmitAnswerRequest>, SubmitAnswerRequestValidator>();
+builder.Services.AddScoped<IValidator<PaymentRequestDto>, PaymentRequestDtoValidator>();
+builder.Services.AddScoped<IValidator<MemberShipPlanRequestDto>, MemberShipPlanRequestValidator>();
+builder.Services.AddScoped<IValidator<MemberShipRequestDto>, MemberShipRequestValidator>();
+builder.Services.AddScoped<IValidator<FeatureRequestDto>, FeatureRequestValidator>();
+
 
 // Add database initialization service
 builder.Services.AddSingleton<DbInitializer>();
@@ -218,6 +322,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 // Authentication must come before Authorization
 app.UseAuthentication();

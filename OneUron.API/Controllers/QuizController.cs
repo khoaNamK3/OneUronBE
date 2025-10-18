@@ -1,12 +1,16 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OneUron.BLL.DTOs.QuizDTOs;
+using OneUron.BLL.DTOs.ScheduleDTOs;
+using OneUron.BLL.DTOs.UserQuizAttemptDTOs;
+using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
+using OneUron.DAL.Repository;
 
 namespace OneUron.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class QuizController : Controller
+    public class QuizController : ControllerBase
     {
         private readonly IQuizService _quizService;
 
@@ -16,65 +20,60 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAll()
         {
-            var response = await _quizService.GetAllQuizAsync();
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _quizService.GetAllQuizAsync();
+            return Ok(ApiResponse<List<QuizResponseDto>>.SuccessResponse(result, "Get all quizzes successfully"));
         }
 
         [HttpGet("get-by/{id}")]
-        public async Task<IActionResult> GetByIdAsync(Guid id)
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var response = await _quizService.GetQuizByIdAsync(id);
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _quizService.GetQuizByIdAsync(id);
+            return Ok(ApiResponse<QuizResponseDto>.SuccessResponse(result, "Get quiz by ID successfully"));
         }
 
-        [HttpPost("Create")]
-        public async Task<IActionResult> CreateNewQuizAsync([FromBody] QuizRequestDto request)
+        [HttpPost("create")]
+        public async Task<IActionResult> Create(QuizRequestDto request)
         {
-            var response = await _quizService.CreateNewQuizAsync(request);
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _quizService.CreateNewQuizAsync(request);
+            return Ok(ApiResponse<QuizResponseDto>.SuccessResponse(result, "Create quiz successfully"));
         }
-
-        // fromRoute : id will see on the URL 
-        // formQuery : id will see on the next "?"
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> UpdateQuizByIdAsync([FromRoute] Guid id, [FromBody] QuizRequestDto request)
+        public async Task<IActionResult> Update(Guid id, QuizRequestDto request)
         {
-            var response = await _quizService.UpdateQuizByIdAsync(id, request);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _quizService.UpdateQuizByIdAsync(id, request);
+            return Ok(ApiResponse<QuizResponseDto>.SuccessResponse(result, "Update quiz successfully"));
         }
 
         [HttpDelete("delete-by/{id}")]
-        public async Task<IActionResult> DeleteQuizByIdAsync(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var response = await _quizService.DeleteQuizByIdAsync(id);
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _quizService.DeleteQuizByIdAsync(id);
+            return Ok(ApiResponse<QuizResponseDto>.SuccessResponse(result, "Delete quiz successfully"));
         }
+
+        [HttpGet("user/{userId:guid}/schedule/{scheduleId:guid}")]
+        public async Task<IActionResult> GetUserScheduleInformationAsync(Guid userId, Guid scheduleId)
+        {
+            var result = await _quizService.GetUserScheduleInformationAsync(userId, scheduleId);
+            return Ok(ApiResponse<UserScheduleInformationResponse>.SuccessResponse(result, "Get Information Successfully"));
+        }
+
+        [HttpGet("paging")]
+        public async Task<IActionResult> GetPagedQuizzesAsync([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string? name = null)
+        {
+            var result = await _quizService.GetPagedQuizzesAsync(pageNumber, pageSize, name);
+            return Ok(ApiResponse<PagedResult<QuizResponseDto>>.SuccessResponse(result, "Paged quizzes retrieved successfully."));
+        }
+
+        [HttpGet("user/{userId:guid}/info")]
+        public async Task<IActionResult> GetUserQuizInformationAsync(Guid userId)
+        {
+            var result = await _quizService.GetUserQuizInformation(userId);
+            return Ok(ApiResponse<UserQuizInformationResponse>.SuccessResponse(result,"User quiz information retrieved successfully."));
+        }
+
     }
 }

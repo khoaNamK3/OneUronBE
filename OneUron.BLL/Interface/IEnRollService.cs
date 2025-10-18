@@ -11,14 +11,12 @@ namespace OneUron.BLL.Interface
 {
     public interface IEnRollService
     {
-        public Task<ApiResponse<List<EnRollResponseDto>>> GetAllEnRollAsync();
+        Task<List<EnRollResponseDto>> GetAllEnRollAsync();
+        Task<EnRollResponseDto> GetEnRollByIdAsync(Guid id);
+        Task<EnRollResponseDto> CreateNewEnRollAsync(EnRollRequestDto request);
+        Task<EnRollResponseDto> UpdateEnRollByIdAsync(Guid id, EnRollRequestDto enRollRequestDto);
+        Task<EnRollResponseDto> DeleteEnRollByIdAsync(Guid id);
 
-        public Task<ApiResponse<EnRollResponseDto>> GetEnRollByIdAsync(Guid id);
-
-        public Task<ApiResponse<EnRollResponseDto>> CreateNewEnRollAsync(EnRollRequestDto request);
-
-        public Task<ApiResponse<EnRollResponseDto>> UpdateEnRollByIdAsync(Guid id, EnRollRequestDto enRollRequestDto);
-    
-        public Task<ApiResponse<EnRollResponseDto>> DeleteEnRollByIdAsync(Guid id);
+        public EnRollResponseDto MapToDto(EnRoll enRoll);
     }
 }

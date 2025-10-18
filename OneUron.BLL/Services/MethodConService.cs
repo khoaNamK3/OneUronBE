@@ -1,5 +1,8 @@
-﻿using OneUron.BLL.DTOs.MethodConDTOs;
+﻿using FluentValidation;
+using OneUron.BLL.DTOs.EvaluationDTOs;
+using OneUron.BLL.DTOs.MethodConDTOs;
 using OneUron.BLL.ExceptionHandle;
+using OneUron.BLL.FluentValidation;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository.MethodConRepo;
@@ -14,142 +17,100 @@ namespace OneUron.BLL.Services
     public class MethodConService : IMethodConService
     {
         private readonly IMethodConRepository _methodConRepository;
+        private readonly IValidator<MethodConRequestDto> _methodConValidator;
 
-        public MethodConService(IMethodConRepository methodConRepository)
+        public MethodConService(IMethodConRepository methodConRepository, IValidator<MethodConRequestDto> methodConValidator)
         {
             _methodConRepository = methodConRepository;
+            _methodConValidator = methodConValidator;
         }
 
-        public async Task<ApiResponse<List<MethodConResponseDto>>> GetAllAsync()
+        
+        public async Task<List<MethodConResponseDto>> GetAllAsync()
         {
-            try
-            {
-                var methodCons = await _methodConRepository.GetAllAsync();
+            var methodCons = await _methodConRepository.GetAllAsync();
 
-                if (!methodCons.Any())
-                {
-                    return ApiResponse<List<MethodConResponseDto>>.FailResponse("Get All Method Con Fail", "Method Con Are Empty");
-                }
+            if (methodCons == null || !methodCons.Any())
+                throw new ApiException.NotFoundException("No MethodCon records found.");
 
-                var results = methodCons.Select(MapToDTO).ToList();
-
-                return ApiResponse<List<MethodConResponseDto>>.SuccessResponse(results, "Get All Method Con Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<MethodConResponseDto>>.FailResponse("Get All Method Con Fail", ex.Message);
-            }
+            return methodCons.Select(MapToDTO).ToList();
         }
 
-        public async Task<ApiResponse<MethodConResponseDto>> GetByIdAsync(Guid id)
+        
+        public async Task<MethodConResponseDto> GetByIdAsync(Guid id)
         {
-            try
-            {
-                var existMethodCon = await _methodConRepository.GetByIdAsync(id);
+            var existMethodCon = await _methodConRepository.GetByIdAsync(id);
+            if (existMethodCon == null)
+                throw new ApiException.NotFoundException($"MethodCon with ID {id} not found.");
 
-                if (existMethodCon == null)
-                {
-                    return ApiResponse<MethodConResponseDto>.FailResponse("Get Method Con By Id Fail", "Method Con Are Not Exist");
-                }
-
-                var result = MapToDTO(existMethodCon);
-
-                return ApiResponse<MethodConResponseDto>.SuccessResponse(result, "Get Method Con By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<MethodConResponseDto>.FailResponse("Get Method Con By Id Fail", ex.Message);
-            }
+            return MapToDTO(existMethodCon);
         }
 
-        public async Task<ApiResponse<MethodConResponseDto>> CreateNewMethodConAsync(MethodConRequestDto request)
+       
+        public async Task<MethodConResponseDto> CreateNewMethodConAsync(MethodConRequestDto request)
         {
-            try
-            {
-                if (request == null)
-                {
-                    return ApiResponse<MethodConResponseDto>.FailResponse("Create New Method Con Fail", "Method Con is Null");
-                }
+            if (request == null)
+                throw new ApiException.BadRequestException("MethodCon request cannot be null.");
 
-                var newMethodCon = MapToEntity(request);
+            var validationResult = await _methodConValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                await _methodConRepository.AddAsync(newMethodCon);
+            var newMethodCon = MapToEntity(request);
 
-                var result = MapToDTO(newMethodCon);
+            await _methodConRepository.AddAsync(newMethodCon);
 
-                return ApiResponse<MethodConResponseDto>.SuccessResponse(result, "Create New Method Con Successfully");
-
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<MethodConResponseDto>.FailResponse("Create New Method Con Fail", ex.Message);
-            }
+            return MapToDTO(newMethodCon);
         }
 
-        public async Task<ApiResponse<MethodConResponseDto>> UpdateMethodConByIdAsync(Guid id, MethodConRequestDto newMethodCon)
+        
+        public async Task<MethodConResponseDto> UpdateMethodConByIdAsync(Guid id, MethodConRequestDto newMethodCon)
         {
-            try
-            {
-                var existMethodCon = await _methodConRepository.GetByIdAsync(id);
+            var existMethodCon = await _methodConRepository.GetByIdAsync(id);
+            if (existMethodCon == null)
+                throw new ApiException.NotFoundException($"MethodCon with ID {id} not found.");
 
-                if (existMethodCon == null)
-                {
-                    return ApiResponse<MethodConResponseDto>.FailResponse("Update Method Con By Id Fail", "Method Con Are Not Exist");
-                }
-                if (newMethodCon == null)
-                {
-                    return ApiResponse<MethodConResponseDto>.FailResponse("Update Method Con By Id Fail", "New Method Con Is Empty");
-                }
-                existMethodCon.Con = newMethodCon.Con;
-                existMethodCon.MethodId = newMethodCon.MethodId;
+            if (newMethodCon == null)
+                throw new ApiException.BadRequestException("New MethodCon data cannot be null.");
 
-                await _methodConRepository.UpdateAsync(existMethodCon);
+            var validationResult = await _methodConValidator.ValidateAsync(newMethodCon);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                var result = MapToDTO(existMethodCon);
+            existMethodCon.Con = newMethodCon.Con;
+            existMethodCon.MethodId = newMethodCon.MethodId;
 
-                return ApiResponse<MethodConResponseDto>.SuccessResponse(result, "Update Method Con By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<MethodConResponseDto>.FailResponse("Update Method Con By Id Fail", ex.Message);
-            }
+            await _methodConRepository.UpdateAsync(existMethodCon);
+
+            return MapToDTO(existMethodCon);
         }
 
-        public async Task<ApiResponse<MethodConResponseDto>> DeleteMethodConByIdAsync(Guid id)
+        
+        public async Task<MethodConResponseDto> DeleteMethodConByIdAsync(Guid id)
         {
-            try
-            {
-                var existMethodCon = await _methodConRepository.GetByIdAsync(id);
+            var existMethodCon = await _methodConRepository.GetByIdAsync(id);
+            if (existMethodCon == null)
+                throw new ApiException.NotFoundException($"MethodCon with ID {id} not found.");
 
-                if (existMethodCon == null)
-                {
-                    return ApiResponse<MethodConResponseDto>.FailResponse("Delete Method Con By Id Fail", "Method Con Are Not Exist");
-                }
+            await _methodConRepository.DeleteAsync(existMethodCon);
 
-                var result = MapToDTO(existMethodCon);
-
-                await _methodConRepository.DeleteAsync(existMethodCon);
-
-                return ApiResponse<MethodConResponseDto>.SuccessResponse(result, "Delete Method Con By Id Successfully");
-
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<MethodConResponseDto>.FailResponse("Delete Method Con By Id Fail", ex.Message);
-            }
+            return MapToDTO(existMethodCon);
         }
 
+        
         protected MethodCon MapToEntity(MethodConRequestDto request)
         {
             return new MethodCon
             {
                 Con = request.Con,
-                MethodId = request.MethodId,
+                MethodId = request.MethodId
             };
         }
 
         public MethodConResponseDto MapToDTO(MethodCon method)
         {
+            if (method == null) return null;
+
             return new MethodConResponseDto
             {
                 Id = method.Id,

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OneUron.BLL.DTOs.ScheduleDTOs;
+using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
 
 namespace OneUron.API.Controllers
@@ -17,63 +18,46 @@ namespace OneUron.API.Controllers
 
 
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAll()
         {
-            var response = await _scheduleService.GetAllAsync();
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _scheduleService.GetAllAsync();
+            return Ok(ApiResponse<List<ScheduleResponeDto>>.SuccessResponse(result, "Get all schedules successfully"));
         }
 
         [HttpGet("get-by/{id}")]
-        public async Task<IActionResult> GetbyIdAsync(Guid id)
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var respone = await _scheduleService.GetByIdAsync(id);
-
-            if (!respone.Success)
-            {
-                return NotFound(respone);
-            }
-            return Ok(respone);
+            var result = await _scheduleService.GetByIdAsync(id);
+            return Ok(ApiResponse<ScheduleResponeDto>.SuccessResponse(result, "Get schedule by ID successfully"));
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateScheduleAsync([FromBody] ScheduleRequestDto request)
+        public async Task<IActionResult> Create(ScheduleRequestDto request)
         {
-            var response = await _scheduleService.CreateScheduleAsync(request);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _scheduleService.CreateScheduleAsync(request);
+            return Ok(ApiResponse<ScheduleResponeDto>.SuccessResponse(result, "Create schedule successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> UpdateScheduleByIdAsync(Guid id, [FromBody] ScheduleRequestDto request)
+        public async Task<IActionResult> Update(Guid id, ScheduleRequestDto request)
         {
-            var response = await _scheduleService.UpdateScheduleByIdAsync(id, request);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _scheduleService.UpdateScheduleByIdAsync(id, request);
+            return Ok(ApiResponse<ScheduleResponeDto>.SuccessResponse(result, "Update schedule successfully"));
         }
 
         [HttpDelete("delete-by/{id}")]
-        public async Task<IActionResult> DeleteScheduleByIdAsync(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var response = await _scheduleService.DeleteScheduleByIdAsync(id);
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _scheduleService.DeleteScheduleByIdAsync(id);
+            return Ok(ApiResponse<ScheduleResponeDto>.SuccessResponse(result, "Delete schedule successfully"));
         }
+
+        [HttpGet("schedule-week/{id:guid}")]
+        public async Task<IActionResult> GetScheduleWeekInFormationAsync(Guid id)
+        {
+            var result = await _scheduleService.GetScheduleWeekInFormationAsync(id);
+            return Ok(ApiResponse<ScheduleWeekRespone>.SuccessResponse(result, "Schedule week information retrieved successfully."));
+        }
+
     }
 }

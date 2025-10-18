@@ -24,11 +24,10 @@ namespace OneUron.DAL.Data.Entity
 
         public virtual Profile Profile { get; set; }
 
+        public virtual StudyMethod StudyMethod { get; set; } // one to one
+
         public virtual ICollection<Role> Roles { get; set; } // many to many 
         public virtual ICollection<EnRoll> EnRolls { get; set; }
-
-        public virtual ICollection<StudyMethod> StudyMethods { get; set; }
-
         public virtual ICollection<UserAnswer> UserAnswers { get; set; }
 
         public virtual ICollection<Schedule> Schedules { get; set; }

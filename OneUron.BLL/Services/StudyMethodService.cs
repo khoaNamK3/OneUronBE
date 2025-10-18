@@ -1,5 +1,8 @@
-﻿using OneUron.BLL.DTOs.StudyMethodDTOs;
+﻿using FluentValidation;
+using OneUron.BLL.DTOs.SkillDTOs;
+using OneUron.BLL.DTOs.StudyMethodDTOs;
 using OneUron.BLL.ExceptionHandle;
+using OneUron.BLL.FluentValidation;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository.StudyMethodRepo;
@@ -14,155 +17,130 @@ namespace OneUron.BLL.Services
     public class StudyMethodService : IStudyMethodService
     {
         private readonly IStudyMethodRepository _studyMethodRepository;
+        private readonly IValidator<StudyMethodRequestDto> _studyMethodRequestValidator;
 
-        public StudyMethodService(IStudyMethodRepository studyMethodRepository)
+        public StudyMethodService(
+            IStudyMethodRepository studyMethodRepository,
+            IValidator<StudyMethodRequestDto> studyMethodRequestValidator)
         {
             _studyMethodRepository = studyMethodRepository;
+            _studyMethodRequestValidator = studyMethodRequestValidator;
         }
 
-        public async Task<ApiResponse<List<StudyMethodResponseDto>>> GetALlAsync()
+
+        public async Task<List<StudyMethodResponseDto>> GetAllAsync()
         {
-            try
-            {
-                var studyMethods = await _studyMethodRepository.GetALlAsync();
+            var studyMethods = await _studyMethodRepository.GetALlAsync();
 
-                if (!studyMethods.Any())
-                {
-                    return ApiResponse<List<StudyMethodResponseDto>>.FailResponse("Get All Study Method Fail", "Study Method Are Empty");
-                }
+            if (studyMethods == null || !studyMethods.Any())
+                throw new ApiException.NotFoundException("No study methods found.");
 
-                var result = studyMethods.Select(MapToDTO).ToList();
-
-                return ApiResponse<List<StudyMethodResponseDto>>.SuccessResponse(result, "Get All Study Method Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<StudyMethodResponseDto>>.FailResponse("Get All Study Method Fail", ex.Message);
-            }
+            return studyMethods.Select(MapToDTO).ToList();
         }
 
-        public async Task<ApiResponse<StudyMethodResponseDto>> GetByIdAsyc(Guid id)
+
+        public async Task<StudyMethodResponseDto> GetByIdAsync(Guid id)
         {
-            try
-            {
-                var existStudyMethod = await _studyMethodRepository.GetByIdAsync(id);
+            var studyMethod = await _studyMethodRepository.GetByIdAsync(id);
 
-                if (existStudyMethod == null)
-                {
-                    return ApiResponse<StudyMethodResponseDto>.FailResponse("Get Study Method By Id Fail", "Study Method Are Note Exist");
-                }
+            if (studyMethod == null)
+                throw new ApiException.NotFoundException($"Study method with ID {id} not found.");
 
-                var result = MapToDTO(existStudyMethod);
-
-                return ApiResponse<StudyMethodResponseDto>.SuccessResponse(result, "Get Study Method By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<StudyMethodResponseDto>.FailResponse("Get Study Method By Id Fail", ex.Message);
-            }
+            return MapToDTO(studyMethod);
         }
 
-        public async Task<ApiResponse<StudyMethodResponseDto>> CreateNewStudyMethodAsync(StudyMethodRequestDto request)
+        public async Task<StudyMethodResponseDto> GetStudyMethodByUserIdAsync(Guid userId)
         {
-            try
-            {
-                if (request == null)
-                {
-                    return ApiResponse<StudyMethodResponseDto>.FailResponse("Create New Study Method Fail", "New Study Method is Null");
-                }
+            var existStudyMethod = await _studyMethodRepository.GetStudyMethodByUserIdAsync(userId);
 
-                var newStudyMethod = MapToEntity(request);
+            if (existStudyMethod == null)
+                throw new ApiException.NotFoundException($"Study method with ID {userId} not found.");
 
-                await _studyMethodRepository.AddAsync(newStudyMethod);
-
-                var result = MapToDTO(newStudyMethod);
-
-                return ApiResponse<StudyMethodResponseDto>.SuccessResponse(result, "Create New Study Method Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<StudyMethodResponseDto>.FailResponse("Create New Study Method Fail", ex.Message);
-            }
+            return MapToDTO(existStudyMethod);
         }
 
-        public async Task<ApiResponse<StudyMethodResponseDto>> UpdateStudyMethodbyIdAsync(Guid id, StudyMethodRequestDto newStudyMethod)
+        public async Task<StudyMethodResponseDto> CreateAsync(StudyMethodRequestDto request)
         {
-            try
-            {
-                var existStudyMethod = await _studyMethodRepository.GetByIdAsync(id);
+            if (request == null)
+                throw new ApiException.BadRequestException("Study method request cannot be null.");
 
-                if (existStudyMethod == null)
-                {
-                    return ApiResponse<StudyMethodResponseDto>.FailResponse("Update Study Method By Id Fail", "Study Method Are Not Exist");
-                }
+            var validationResult = await _studyMethodRequestValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                if (newStudyMethod == null)
-                {
-                    return ApiResponse<StudyMethodResponseDto>.FailResponse("Update Study Method By Id Fail", "Study Method is Null");
-                }
+            var newStudyMethod = MapToEntity(request);
+            newStudyMethod.UpdateDate = DateTime.UtcNow;
 
-                existStudyMethod.UpdateDate = DateTime.UtcNow;
-                existStudyMethod.IsDeleted = newStudyMethod.IsDeleted;
-                existStudyMethod.MethodId = newStudyMethod.MethodId;
-                existStudyMethod.UserId = newStudyMethod.UserId;
+            await _studyMethodRepository.AddAsync(newStudyMethod);
 
-                await _studyMethodRepository.UpdateAsync(existStudyMethod);
-
-                var result = MapToDTO(existStudyMethod);
-
-                return ApiResponse<StudyMethodResponseDto>.SuccessResponse(result, "Update Study Method Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<StudyMethodResponseDto>.FailResponse("Update Study Method By Id Fail", ex.Message);
-            }
+            return MapToDTO(newStudyMethod);
         }
 
-        public async Task<ApiResponse<StudyMethodResponseDto>> DeleteStudyMethodbyIdAsync(Guid id)
+
+        public async Task<StudyMethodResponseDto> UpdateByIdAsync(Guid id, StudyMethodRequestDto request)
         {
-            try
-            {
-                var existStudyMethod = await _studyMethodRepository.GetByIdAsync(id);
+            var existingStudyMethod = await _studyMethodRepository.GetByIdAsync(id);
+            if (existingStudyMethod == null)
+                throw new ApiException.NotFoundException($"Study method with ID {id} not found.");
 
-                if (existStudyMethod == null)
-                {
-                    return ApiResponse<StudyMethodResponseDto>.FailResponse("Update Study Method By Id Fail", "Study Method Are Not Exist");
-                }
+            if (request == null)
+                throw new ApiException.BadRequestException("Request data cannot be null.");
 
-                existStudyMethod.IsDeleted = true;
+            var validationResult = await _studyMethodRequestValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                var result = MapToDTO(existStudyMethod);
+            existingStudyMethod.UpdateDate = DateTime.UtcNow;
+            existingStudyMethod.IsDeleted = request.IsDeleted;
+            existingStudyMethod.MethodId = request.MethodId;
+            existingStudyMethod.UserId = request.UserId;
 
-                await _studyMethodRepository.UpdateAsync(existStudyMethod);
+            await _studyMethodRepository.UpdateAsync(existingStudyMethod);
 
-                return ApiResponse<StudyMethodResponseDto>.SuccessResponse(result, "Study Method Delete Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<StudyMethodResponseDto>.FailResponse("Update Study Method By Id Fail", ex.Message);
-            }
+            return MapToDTO(existingStudyMethod);
         }
 
+
+        public async Task<StudyMethodResponseDto> DeleteByIdAsync(Guid id)
+        {
+            var existingStudyMethod = await _studyMethodRepository.GetByIdAsync(id);
+            if (existingStudyMethod == null)
+                throw new ApiException.NotFoundException($"Study method with ID {id} not found.");
+
+            existingStudyMethod.IsDeleted = true;
+            existingStudyMethod.UpdateDate = DateTime.UtcNow;
+
+            await _studyMethodRepository.UpdateAsync(existingStudyMethod);
+
+            return MapToDTO(existingStudyMethod);
+        }
+
+        
         protected StudyMethod MapToEntity(StudyMethodRequestDto request)
         {
             return new StudyMethod
             {
                 IsDeleted = request.IsDeleted,
                 MethodId = request.MethodId,
-                UserId = request.UserId,
+                UserId = request.UserId
             };
         }
 
-        protected StudyMethodResponseDto MapToDTO(StudyMethod studyMethod)
+        
+        public StudyMethodResponseDto MapToDTO(StudyMethod studyMethod)
         {
+            if (studyMethod == null) return null;
+
             return new StudyMethodResponseDto
             {
                 Id = studyMethod.Id,
                 UpdateDate = studyMethod.UpdateDate,
                 IsDeleted = studyMethod.IsDeleted,
                 MethodId = studyMethod.MethodId,
-                UserId = studyMethod.UserId,
+                UserId = studyMethod.UserId
             };
         }
+
+       
     }
 }

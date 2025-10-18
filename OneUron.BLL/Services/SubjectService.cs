@@ -1,158 +1,113 @@
-﻿using OneUron.BLL.DTOs.SubjectDTOs;
+﻿using FluentValidation;
+using OneUron.BLL.DTOs.ScheduleDTOs;
+using OneUron.BLL.DTOs.StudyMethodDTOs;
+using OneUron.BLL.DTOs.SubjectDTOs;
 using OneUron.BLL.ExceptionHandle;
+using OneUron.BLL.FluentValidation;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository.SubjectRepo;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace OneUron.BLL.Services
 {
     public class SubjectService : ISubjectService
     {
         private readonly ISubjectRepository _subjectRepository;
-
-        public SubjectService(ISubjectRepository subjectRepository)
+        private readonly IValidator<SubjectRequestDto> _subjectRequestValidator;
+        private readonly IValidator<SubjectListRequest> _subjectListRequestValidator;
+        public SubjectService(ISubjectRepository subjectRepository, IValidator<SubjectRequestDto> subjectRequestValidator, IValidator<SubjectListRequest> subjectListRequestValidator)
         {
             _subjectRepository = subjectRepository;
+            _subjectRequestValidator = subjectRequestValidator;
+            _subjectListRequestValidator = subjectListRequestValidator;
         }
 
-        public async Task<ApiResponse<List<SubjectResponseDto>>> GetAllAsync()
+
+        public async Task<List<SubjectResponseDto>> GetAllAsync()
         {
-            try
-            {
-                var subjects = await _subjectRepository.GetAllAsync();
+            var subjects = await _subjectRepository.GetAllAsync();
 
-                if (subjects == null)
-                {
-                    return ApiResponse<List<SubjectResponseDto>>.FailResponse("Get All Subject fail", "subjects are empty");
-                }
+            if (subjects == null || !subjects.Any())
+                throw new ApiException.NotFoundException("No subjects found.");
 
-                var result = subjects.Select(MapToDTO).ToList();
-
-                return ApiResponse<List<SubjectResponseDto>>.SuccessResponse(result, "Get All Subjecct Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<SubjectResponseDto>>.FailResponse("Get All Subject fail", ex.Message);
-            }
+            return subjects.Select(MapToDTO).ToList();
         }
 
-        public async Task<ApiResponse<SubjectResponseDto>> GetByIdAsync(Guid id)
+
+        public async Task<SubjectResponseDto> GetByIdAsync(Guid id)
         {
-            try
-            {
-                var existSubject = await _subjectRepository.GetByIdAsync(id);
+            var subject = await _subjectRepository.GetByIdAsync(id);
+            if (subject == null)
+                throw new ApiException.NotFoundException($"Subject with ID {id} not found.");
 
-                if (existSubject == null)
-                {
-                    return ApiResponse<SubjectResponseDto>.FailResponse("Get Subject By Id Fail", "Subject are not exist");
-                }
-
-                var result = MapToDTO(existSubject);
-
-                return ApiResponse<SubjectResponseDto>.SuccessResponse(result, "Get Subject by Id Succcessfully");
-
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<SubjectResponseDto>.FailResponse("Get Subject By Id Fail", ex.Message);
-            }
+            return MapToDTO(subject);
         }
 
-        public async Task<ApiResponse<SubjectResponseDto>> CreateNewSubjectAsync(SubjectRequestDto request)
+        public async Task<SubjectResponseDto> CreateAsync(SubjectRequestDto request)
         {
-            try
-            {
-                if (request == null)
-                {
-                    return ApiResponse<SubjectResponseDto>.FailResponse("Create New Subject Fail", "New Subject are null");
-                }
+            if (request == null)
+                throw new ApiException.BadRequestException("Subject request cannot be null.");
 
-                var newSubject = MapToEntity(request);
+            var validationResult = await _subjectRequestValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                await _subjectRepository.AddAsync(newSubject);
+            var newSubject = MapToEntity(request);
+            await _subjectRepository.AddAsync(newSubject);
 
-                var result = MapToDTO(newSubject);
-
-                return ApiResponse<SubjectResponseDto>.SuccessResponse(result, "Create New Subject sucessfully");
-
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<SubjectResponseDto>.FailResponse("Create New Subject Fail", ex.Message);
-            }
+            return MapToDTO(newSubject);
         }
 
-        public async Task<ApiResponse<SubjectResponseDto>> UpdateSubjectByIdAsync(Guid id, SubjectRequestDto newSubject)
+        public async Task<SubjectResponseDto> UpdateByIdAsync(Guid id, SubjectRequestDto request)
         {
-            try
-            {
-                var existSubject = await _subjectRepository.GetByIdAsync(id);
+            var existingSubject = await _subjectRepository.GetByIdAsync(id);
+            if (existingSubject == null)
+                throw new ApiException.NotFoundException($"Subject with ID {id} not found.");
 
-                if (existSubject == null)
-                {
-                    return ApiResponse<SubjectResponseDto>.FailResponse("Update Subject By Id Fail", "Subject are not exist");
-                }
+            if (request == null)
+                throw new ApiException.BadRequestException("Request data cannot be null.");
 
-                if (newSubject == null)
-                {
-                    return ApiResponse<SubjectResponseDto>.FailResponse("Update subject By Id Fail", "new Subject are not exist");
-                }
+            var validationResult = await _subjectRequestValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                existSubject.Name = newSubject.Name;
-                existSubject.Priority = newSubject.Priority;
-                existSubject.ProcessId = newSubject.ProcessId;
-                existSubject.ScheduleId = newSubject.ScheduleId;
+            existingSubject.Name = request.Name;
+            existingSubject.Priority = request.Priority;
+            existingSubject.ProcessId = request.ProcessId;
+            existingSubject.ScheduleId = request.ScheduleId;
 
-                await _subjectRepository.UpdateAsync(existSubject);
+            await _subjectRepository.UpdateAsync(existingSubject);
 
-                var result = MapToDTO(existSubject);
-
-                return ApiResponse<SubjectResponseDto>.SuccessResponse(result, "Update subject by id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<SubjectResponseDto>.FailResponse("Update subject By Id Fail", ex.Message);
-            }
+            return MapToDTO(existingSubject);
         }
 
-        public async Task<ApiResponse<SubjectResponseDto>> DeleteSubjectByIdAsync(Guid id)
+
+        public async Task<SubjectResponseDto> DeleteByIdAsync(Guid id)
         {
-            try
-            {
-                var existSubject = await _subjectRepository.GetByIdAsync(id);
+            var existingSubject = await _subjectRepository.GetByIdAsync(id);
+            if (existingSubject == null)
+                throw new ApiException.NotFoundException($"Subject with ID {id} not found.");
 
-                if (existSubject == null)
-                {
-                    return ApiResponse<SubjectResponseDto>.FailResponse("Delete Subject By Id Fail", "Subject are not exist");
-                }
-
-                var result = MapToDTO(existSubject);
-
-                await _subjectRepository.DeleteAsync(existSubject);
-
-                return ApiResponse<SubjectResponseDto>.SuccessResponse(result, "Delete Subject By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<SubjectResponseDto>.FailResponse("Delete Subject By Id Fail", ex.Message);
-            }
+            await _subjectRepository.DeleteAsync(existingSubject);
+            return MapToDTO(existingSubject);
         }
 
-        public SubjectResponseDto MapToDTO(Subject subject)
+        public async Task<List<SubjectResponseDto>> GetAllSubjectbyScheduleIdAsync(Guid scheduleId)
         {
-            return new SubjectResponseDto
-            {
-                Id = subject.Id,
-                Name = subject.Name,
-                Priority = subject.Priority,
-                ProcessId = subject.ProcessId,
-                ScheduleId = subject.ScheduleId
-            };
+            var existSubjects = await _subjectRepository.GetAllSubjectbyScheduleIdAsync(scheduleId);
+            if (!existSubjects.Any())
+                throw new ApiException.NotFoundException("Schedule have empty subject");
+
+            var result = existSubjects.Select(MapToDTO).ToList();
+
+            return result;
         }
 
         public Subject MapToEntity(SubjectRequestDto request)
@@ -161,9 +116,24 @@ namespace OneUron.BLL.Services
             {
                 Name = request.Name,
                 Priority = request.Priority,
-                ProcessId = request.ProcessId,
+                ProcessId = request.ProcessId == Guid.Empty ? null : request.ProcessId,
                 ScheduleId = request.ScheduleId
             };
         }
+
+        public SubjectResponseDto MapToDTO(Subject subject)
+        {
+            if (subject == null) return null;
+
+            return new SubjectResponseDto
+            {
+                Id = subject.Id,
+                Name = subject.Name,
+                Priority = subject.Priority,
+                ProcessId = subject.ProcessId ?? Guid.Empty,
+                ScheduleId = subject.ScheduleId
+            };
+        }
+
     }
 }

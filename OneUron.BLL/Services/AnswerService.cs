@@ -1,5 +1,8 @@
-﻿using OneUron.BLL.DTOs.AnswerDTOs;
+﻿using FluentValidation;
+using OneUron.BLL.DTOs.AcknowledgeDTOs;
+using OneUron.BLL.DTOs.AnswerDTOs;
 using OneUron.BLL.ExceptionHandle;
+using OneUron.BLL.FluentValidation;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository.AnswerRepo;
@@ -14,131 +17,89 @@ namespace OneUron.BLL.Services
     public class AnswerService : IAnswerService
     {
         private readonly IAnswerRepository _answerRepository;
+        private readonly IValidator<AnswerRequestDto> _answerRequestValidator;
 
-        public AnswerService(IAnswerRepository answerRepository)
+        public AnswerService(
+            IAnswerRepository answerRepository,
+            IValidator<AnswerRequestDto> answerRequestValidator)
         {
             _answerRepository = answerRepository;
+            _answerRequestValidator = answerRequestValidator;
         }
 
-        public async Task<ApiResponse<List<AnswerResponseDto>>> GetAllAnswerAsync()
+       
+        public async Task<List<AnswerResponseDto>> GetAllAnswerAsync()
         {
-            try
-            {
-                var answers = await _answerRepository.GetAllAnswerAsync();
+            var answers = await _answerRepository.GetAllAnswerAsync();
 
+            if (answers == null || !answers.Any())
+                throw new ApiException.NotFoundException("No answers found.");
 
-                if (!answers.Any())
-                {
-                    return ApiResponse<List<AnswerResponseDto>>.FailResponse("Get All Answer Fail", "Answer are empty");
-                }
-
-                var result = answers.Select(MapToDTO).ToList();
-
-                return ApiResponse<List<AnswerResponseDto>>.SuccessResponse(result, "Get All Answer Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<AnswerResponseDto>>.FailResponse("Get All Answer Fail", ex.Message);
-            }
+            return answers.Select(MapToDTO).ToList();
         }
 
-        public async Task<ApiResponse<AnswerResponseDto>> GetAnswerByIdAsyc(Guid id)
+        public async Task<AnswerResponseDto> GetAnswerByIdAsync(Guid id)
         {
-            try
-            {
-                var existAnswer = await _answerRepository.GetByIdAsync(id);
+            var existAnswer = await _answerRepository.GetByIdAsync(id);
+            if (existAnswer == null)
+                throw new ApiException.NotFoundException($"Answer with ID {id} not found.");
 
-                if (existAnswer == null)
-                {
-                    return ApiResponse<AnswerResponseDto>.FailResponse("Get Answer By Id Fail", "Answer is not exist");
-                }
-
-                var result = MapToDTO(existAnswer);
-
-                return ApiResponse<AnswerResponseDto>.SuccessResponse(result, "Get Answer By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<AnswerResponseDto>.FailResponse("Get Answer By Id Fail", ex.Message);
-            }
+            return MapToDTO(existAnswer);
         }
 
-        public async Task<ApiResponse<AnswerResponseDto>> CreateNewAnswerAsync(AnswerRequestDto answerRequest)
+    
+        public async Task<AnswerResponseDto> CreateNewAnswerAsync(AnswerRequestDto answerRequest)
         {
-            try
-            {
-                if (answerRequest == null)
-                {
-                    return ApiResponse<AnswerResponseDto>.FailResponse("Create new Answer Fail", "Answer are null");
-                }
+            if (answerRequest == null)
+                throw new ApiException.BadRequestException("Answer request cannot be null.");
 
-                var newAnswer = MaptoEntity(answerRequest);
+            var validationResult = await _answerRequestValidator.ValidateAsync(answerRequest);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                await _answerRepository.AddAsync(newAnswer);
+            var newAnswer = MapToEntity(answerRequest);
 
-                var result = MapToDTO(newAnswer);
+            await _answerRepository.AddAsync(newAnswer);
 
-                return ApiResponse<AnswerResponseDto>.SuccessResponse(result, "Create new Answer Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<AnswerResponseDto>.FailResponse("Create new Answer Fail", ex.Message);
-            }
+            return MapToDTO(newAnswer);
         }
 
-        public async Task<ApiResponse<AnswerResponseDto>> UpdateAnswerByIdAsync(Guid id, AnswerRequestDto newAnswer)
+   
+        public async Task<AnswerResponseDto> UpdateAnswerByIdAsync(Guid id, AnswerRequestDto newAnswer)
         {
-            try
-            {
-                var existAnswer = await _answerRepository.GetByIdAsync(id);
-                if (existAnswer == null)
-                {
-                    return ApiResponse<AnswerResponseDto>.FailResponse("Update  Answer By Id Fail", " Answer are not exist");
-                }
+            var existAnswer = await _answerRepository.GetByIdAsync(id);
+            if (existAnswer == null)
+                throw new ApiException.NotFoundException($"Answer with ID {id} not found.");
 
-                if (newAnswer == null)
-                {
-                    return ApiResponse<AnswerResponseDto>.FailResponse("Update  Answer By Id Fail", "New Answer is null");
-                }
+            if (newAnswer == null)
+                throw new ApiException.BadRequestException("New answer data cannot be null.");
 
-                existAnswer.QuestionChoiceId = newAnswer.QuestionChoiceId;
-                existAnswer.QuestionId = newAnswer.QuestionId;
-                existAnswer.UserQuizAttemptId = newAnswer.UserQuizAttemptId;
+            var validationResult = await _answerRequestValidator.ValidateAsync(newAnswer);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                await _answerRepository.UpdateAsync(existAnswer);
+            existAnswer.QuestionChoiceId = newAnswer.QuestionChoiceId;
+            existAnswer.QuestionId = newAnswer.QuestionId;
+            existAnswer.UserQuizAttemptId = newAnswer.UserQuizAttemptId;
 
-                var result = MapToDTO(existAnswer);
+            await _answerRepository.UpdateAsync(existAnswer);
 
-                return ApiResponse<AnswerResponseDto>.SuccessResponse(result, "Update  Answer By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<AnswerResponseDto>.FailResponse("Update  Answer By Id Fail", ex.Message);
-            }
+            return MapToDTO(existAnswer);
         }
 
-        public async Task<ApiResponse<AnswerResponseDto>> DeleteAnswerByIdAsync(Guid id)
+      
+        public async Task<AnswerResponseDto> DeleteAnswerByIdAsync(Guid id)
         {
-            try
-            {
-                var existAnswer = await _answerRepository.GetByIdAsync(id);
-                if (existAnswer == null)
-                {
-                    return ApiResponse<AnswerResponseDto>.FailResponse("Delete  Answer By Id Fail", "New Answer are not exist");
-                }
+            var existAnswer = await _answerRepository.GetByIdAsync(id);
+            if (existAnswer == null)
+                throw new ApiException.NotFoundException($"Answer with ID {id} not found.");
 
-                var result = MapToDTO(existAnswer);
+            await _answerRepository.DeleteAsync(existAnswer);
 
-                await _answerRepository.DeleteAsync(existAnswer);
-
-                return ApiResponse<AnswerResponseDto>.SuccessResponse(result, "Delete Answer By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<AnswerResponseDto>.FailResponse("Delete new Answer By Id Fail", ex.Message);
-            }
+            return MapToDTO(existAnswer);
         }
 
+   
         public AnswerResponseDto MapToDTO(Answer answer)
         {
             return new AnswerResponseDto
@@ -150,13 +111,14 @@ namespace OneUron.BLL.Services
             };
         }
 
-        public Answer MaptoEntity(AnswerRequestDto answerRequest)
+        private Answer MapToEntity(AnswerRequestDto answerRequest)
         {
             return new Answer
             {
+                Id = Guid.NewGuid(),
                 QuestionId = answerRequest.QuestionId,
-                UserQuizAttemptId = answerRequest.UserQuizAttemptId,
-                QuestionChoiceId = answerRequest.QuestionChoiceId
+                QuestionChoiceId = answerRequest.QuestionChoiceId,
+                UserQuizAttemptId = answerRequest.UserQuizAttemptId
             };
         }
     }

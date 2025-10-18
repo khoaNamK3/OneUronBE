@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OneUron.BLL.DTOs.StudyMethodDTOs;
+using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
 
 namespace OneUron.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class StudyMethodController : Controller
+    public class StudyMethodController : ControllerBase
     {
         private readonly IStudyMethodService _studyMethodService;
 
@@ -16,62 +17,38 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAll()
         {
-            var response = await _studyMethodService.GetALlAsync();
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _studyMethodService.GetAllAsync();
+            return Ok(ApiResponse<List<StudyMethodResponseDto>>.SuccessResponse(result, "Get all study methods successfully"));
         }
 
         [HttpGet("get-by/{id}")]
-        public async Task<IActionResult> GetStudyMethodByIdAsync(Guid id)
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var response = await _studyMethodService.GetByIdAsyc(id);
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _studyMethodService.GetByIdAsync(id);
+            return Ok(ApiResponse<StudyMethodResponseDto>.SuccessResponse(result, "Get study method successfully"));
         }
 
-        [HttpPost("create-new")]
-        public async Task<IActionResult> CreateNewStudyMethodAsync([FromBody] StudyMethodRequestDto request)
+        [HttpPost("create")]
+        public async Task<IActionResult> Create(StudyMethodRequestDto request)
         {
-            var response = await _studyMethodService.CreateNewStudyMethodAsync(request);
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _studyMethodService.CreateAsync(request);
+            return Ok(ApiResponse<StudyMethodResponseDto>.SuccessResponse(result, "Create study method successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> UpdateStudyMethodByIdAsync(Guid id, [FromBody] StudyMethodRequestDto request)
+        public async Task<IActionResult> Update(Guid id, StudyMethodRequestDto request)
         {
-            var response = await _studyMethodService.UpdateStudyMethodbyIdAsync(id, request);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _studyMethodService.UpdateByIdAsync(id, request);
+            return Ok(ApiResponse<StudyMethodResponseDto>.SuccessResponse(result, "Update study method successfully"));
         }
 
         [HttpDelete("delete-by/{id}")]
-        public async Task<IActionResult> DeleteStudyMethodByIdAsync(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var response = await _studyMethodService.DeleteStudyMethodbyIdAsync(id);
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _studyMethodService.DeleteByIdAsync(id);
+            return Ok(ApiResponse<StudyMethodResponseDto>.SuccessResponse(result, "Delete study method successfully"));
         }
-
     }
 }

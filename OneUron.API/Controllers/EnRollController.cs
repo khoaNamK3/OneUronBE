@@ -1,78 +1,55 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OneUron.BLL.DTOs.EnRollDTOs;
+using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
 
 namespace OneUron.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class EnRollController : Controller
+    public class EnRollController : ControllerBase
     {
-        private readonly IEnRollService _enrollService;
+        private readonly IEnRollService _enRollService;
 
         public EnRollController(IEnRollService enRollService)
         {
-            _enrollService = enRollService;
+            _enRollService = enRollService;
         }
 
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAll()
         {
-            var response = await _enrollService.GetAllEnRollAsync();
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _enRollService.GetAllEnRollAsync();
+            return Ok(ApiResponse<List<EnRollResponseDto>>.SuccessResponse(result, "Get all enrollments successfully"));
         }
 
         [HttpGet("get-by/{id}")]
-        public async Task<IActionResult> GetByIdAsync(Guid id)
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var response = await _enrollService.GetEnRollByIdAsync(id);
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _enRollService.GetEnRollByIdAsync(id);
+            return Ok(ApiResponse<EnRollResponseDto>.SuccessResponse(result, "Get enrollment by ID successfully"));
         }
 
-        [HttpPost("create-new")]
-        public async Task<IActionResult> CreateNewEnRollAsync([FromBody] EnRollRequestDto request)
+        [HttpPost("create")]
+        public async Task<IActionResult> Create(EnRollRequestDto request)
         {
-            var response = await _enrollService.CreateNewEnRollAsync(request);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _enRollService.CreateNewEnRollAsync(request);
+            return Ok(ApiResponse<EnRollResponseDto>.SuccessResponse(result, "Create enrollment successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> UpdateEnRollByIdAsync(Guid id, [FromBody] EnRollRequestDto request)
+        public async Task<IActionResult> Update(Guid id, EnRollRequestDto request)
         {
-            var response = await _enrollService.UpdateEnRollByIdAsync(id, request);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _enRollService.UpdateEnRollByIdAsync(id, request);
+            return Ok(ApiResponse<EnRollResponseDto>.SuccessResponse(result, "Update enrollment successfully"));
         }
 
         [HttpDelete("delete-by/{id}")]
-        public async Task<IActionResult> DeleteEnRollByIdAsync(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var response = await _enrollService.DeleteEnRollByIdAsync(id);
-            if (!response.Success) 
-            { 
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _enRollService.DeleteEnRollByIdAsync(id);
+            return Ok(ApiResponse<EnRollResponseDto>.SuccessResponse(result, "Delete enrollment successfully"));
         }
     }
 }

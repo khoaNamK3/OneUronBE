@@ -11,20 +11,19 @@ namespace OneUron.BLL.Interface
 {
     public interface IScheduleService
     {
-        public Task<ApiResponse<List<ScheduleResponeDto>>> GetAllAsync();
+        Task<List<ScheduleResponeDto>> GetAllAsync();
 
-        public Task<ApiResponse<ScheduleResponeDto>> GetByIdAsync(Guid id);
+        Task<ScheduleResponeDto> GetByIdAsync(Guid id);
 
-        public  Task<ApiResponse<ScheduleResponeDto>> CreateScheduleAsync(ScheduleRequestDto request);
+        Task<ScheduleResponeDto> CreateScheduleAsync(ScheduleRequestDto request);
 
+        Task<ScheduleResponeDto> UpdateScheduleByIdAsync(Guid id, ScheduleRequestDto newSchedule);
 
-        public  Task<ApiResponse<ScheduleResponeDto>> UpdateScheduleByIdAsync(Guid id, ScheduleRequestDto newSchedule);
-
-
-        public  Task<ApiResponse<ScheduleResponeDto>> DeleteScheduleByIdAsync(Guid id);
+        Task<ScheduleResponeDto> DeleteScheduleByIdAsync(Guid id);
 
         public ScheduleResponeDto MapToDTO(Schedule schedule);
 
+        public  Task<ScheduleWeekRespone> GetScheduleWeekInFormationAsync(Guid id);
 
     }
 }

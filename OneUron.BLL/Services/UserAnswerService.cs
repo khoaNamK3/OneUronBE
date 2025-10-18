@@ -1,6 +1,9 @@
-﻿using OneUron.BLL.DTOs.EvaluationDTOs;
+﻿using FluentValidation;
+using OneUron.BLL.DTOs.EvaluationDTOs;
+using OneUron.BLL.DTOs.TechniqueDTOs;
 using OneUron.BLL.DTOs.UserAnswerDTOs;
 using OneUron.BLL.ExceptionHandle;
+using OneUron.BLL.FluentValidation;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository.UserAnswerRepo;
@@ -15,221 +18,154 @@ namespace OneUron.BLL.Services
     public class UserAnswerService : IUserAnswerService
     {
         private readonly IUserAnswerRepository _userAnswerRepository;
+        private readonly IValidator<UserAnswerRequestDto> _userAnswerValidator;
 
-        public UserAnswerService(IUserAnswerRepository userAnswerRepository)
+        public UserAnswerService(
+            IUserAnswerRepository userAnswerRepository,
+            IValidator<UserAnswerRequestDto> userAnswerValidator)
         {
             _userAnswerRepository = userAnswerRepository;
-        }
-
-        public async Task<ApiResponse<List<UserAnswerResponseDto>>> GetAllAsync()
-        {
-            try
-            {
-                var existUserAnswer = await _userAnswerRepository.GetAllAsync();
-
-                if (!existUserAnswer.Any())
-                {
-                    return ApiResponse<List<UserAnswerResponseDto>>.FailResponse("Get All UserAnswer Fail ", "UserAnswers Are empty");
-                }
-                var result = existUserAnswer.Select(MaptoDTO).ToList();
-
-                return ApiResponse<List<UserAnswerResponseDto>>.SuccessResponse(result, "Get All UserAnswer Successfully");
-
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<UserAnswerResponseDto>>.FailResponse("Get All UserAnswer Fail ", ex.Message);
-            }
-        }
-
-        public async Task<ApiResponse<List<UserAnswerResponseDto>>> GetByListUserAnswerAsync(Guid userId, Guid eluationQuestionId)
-        {
-            try
-            {
-                var exitsUserAnswers = await _userAnswerRepository.GetByListUserAnswerAsync(userId, eluationQuestionId);
-
-                if (exitsUserAnswers == null)
-                {
-                    return ApiResponse<List<UserAnswerResponseDto>>.FailResponse("Get UserAnswer By Id Fail", "UserAnswer are not exist");
-                }
-
-                var result = exitsUserAnswers.Select(MaptoDTO).ToList();
-
-                return ApiResponse<List<UserAnswerResponseDto>>.SuccessResponse(result, "Get All UserAnswer By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<UserAnswerResponseDto>>.FailResponse("Get UserAnswer By Id Fail", ex.Message);
-            }
-        }
-
-        public async Task<ApiResponse<UserAnswerResponseDto>> CreateNewUserAnswerAsync(UserAnswerRequestDto resquest)
-        {
-            try
-            {
-                if (resquest == null)
-                {
-                    return ApiResponse<UserAnswerResponseDto>.FailResponse("Create New UserAnswer Fail", "New UserAnswer is null");
-                }
-
-                var newUserAnswer = MapToEntity(resquest);
-
-                await _userAnswerRepository.AddAsync(newUserAnswer);
-
-                var result = MaptoDTO(newUserAnswer);
-
-                return ApiResponse<UserAnswerResponseDto>.SuccessResponse(result, "Create New UserAnswer Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<UserAnswerResponseDto>.FailResponse("Create New UserAnswer Fail", ex.Message);
-            }
-        }
-
-        public async Task<ApiResponse<UserAnswerResponseDto>> UpdateUserAnswerByUserIdAsync(Guid id, UserAnswerUpdateRequestDto request)
-        {
-            try
-            {
-                var existUserAnswer = await _userAnswerRepository.GetByIdAsync(id);
-
-                if (existUserAnswer == null)
-                {
-                    return ApiResponse<UserAnswerResponseDto>.FailResponse("Update New UserAnswer Fail", " UserAnswer is Not Exist");
-                }
-
-                if (request == null)
-                {
-                    return ApiResponse<UserAnswerResponseDto>.FailResponse("Update New UserAnswer Fail", "New UserAnswer is Null");
-                }
-                existUserAnswer.UserId = existUserAnswer.UserId;
-                existUserAnswer.ChoiceId = request.ChoiceId;
-                existUserAnswer.EvaluationQuestionId = existUserAnswer.EvaluationQuestionId;
-
-                var result = MaptoDTO(existUserAnswer);
-
-                await _userAnswerRepository.UpdateAsync(existUserAnswer);
-
-                return ApiResponse<UserAnswerResponseDto>.SuccessResponse(result, "Update UserAnswer Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<UserAnswerResponseDto>.FailResponse("Update New UserAnswer Fail", ex.Message);
-            }
+            _userAnswerValidator = userAnswerValidator;
         }
 
 
-        public async Task<ApiResponse<UserAnswerResponseDto>> DeleteUserAnswerByAsync(Guid id)
+        public async Task<List<UserAnswerResponseDto>> GetAllAsync()
         {
-            try
-            {
-                var existUserAnswer = await _userAnswerRepository.GetByIdAsync(id);
+            var userAnswers = await _userAnswerRepository.GetAllAsync();
 
-                if (existUserAnswer == null)
-                {
-                    return ApiResponse<UserAnswerResponseDto>.FailResponse("Delete New UserAnswer Fail", " UserAnswer is Not Exist");
-                }
+            if (userAnswers == null || !userAnswers.Any())
+                throw new ApiException.NotFoundException("No user answers found.");
 
-                var result = MaptoDTO(existUserAnswer);
+            return userAnswers.Select(MapToDTO).ToList();
+        }
 
-                await _userAnswerRepository.DeleteAsync(existUserAnswer);
+ 
+        public async Task<List<UserAnswerResponseDto>> GetByListAsync(Guid userId, Guid evaluationQuestionId)
+        {
+            var userAnswers = await _userAnswerRepository.GetByListUserAnswerAsync(userId, evaluationQuestionId);
 
-                return ApiResponse<UserAnswerResponseDto>.SuccessResponse(result, "Delete UserAnswer By User Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<UserAnswerResponseDto>.FailResponse("Delete New UserAnswer Fail", ex.Message);
-            }
+            if (userAnswers == null || !userAnswers.Any())
+                throw new ApiException.NotFoundException("No user answers found for given user and question.");
+
+            return userAnswers.Select(MapToDTO).ToList();
+        }
+
+ 
+        public async Task<UserAnswerResponseDto> CreateAsync(UserAnswerRequestDto request)
+        {
+            if (request == null)
+                throw new ApiException.BadRequestException("UserAnswer request cannot be null.");
+
+            var validationResult = await _userAnswerValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
+
+            var newUserAnswer = MapToEntity(request);
+            await _userAnswerRepository.AddAsync(newUserAnswer);
+
+            return MapToDTO(newUserAnswer);
         }
 
 
-        public async Task<ApiResponse<List<UserAnswerResponseDto>>> SubmitAnswersAsync(List<EvaluationSubmitRequest> evaluations)
+        public async Task<UserAnswerResponseDto> UpdateByIdAsync(Guid id, UserAnswerUpdateRequestDto request)
         {
-            try
+            var existing = await _userAnswerRepository.GetByIdAsync(id);
+            if (existing == null)
+                throw new ApiException.NotFoundException($"UserAnswer with ID {id} not found.");
+
+            if (request == null)
+                throw new ApiException.BadRequestException("Request data cannot be null.");
+
+            existing.ChoiceId = request.ChoiceId;
+
+            await _userAnswerRepository.UpdateAsync(existing);
+
+            return MapToDTO(existing);
+        }
+
+
+        public async Task<UserAnswerResponseDto> DeleteByIdAsync(Guid id)
+        {
+            var existing = await _userAnswerRepository.GetByIdAsync(id);
+            if (existing == null)
+                throw new ApiException.NotFoundException($"UserAnswer with ID {id} not found.");
+
+            await _userAnswerRepository.DeleteAsync(existing);
+
+            return MapToDTO(existing);
+        }
+
+ 
+        public async Task<List<UserAnswerResponseDto>> SubmitAnswersAsync(List<EvaluationSubmitRequest> evaluations)
+        {
+            if (evaluations == null || !evaluations.Any())
+                throw new ApiException.BadRequestException("Evaluations cannot be empty.");
+
+            var results = new List<UserAnswerResponseDto>();
+
+            foreach (var eval in evaluations)
             {
-                var results = new List<UserAnswerResponseDto>();
+                if (eval.Questions == null || !eval.Questions.Any())
+                    continue;
 
-                foreach (var eval in evaluations)
+                var oldAnswers = await _userAnswerRepository.GetUserAnswerByEvaluationIdAsync(eval.UserId, eval.EvaluationId);
+                if (oldAnswers != null && oldAnswers.Any())
+                    await _userAnswerRepository.DeleteRangeAsync(oldAnswers);
+
+                foreach (var question in eval.Questions)
                 {
-                    if (eval.Questions == null || !eval.Questions.Any())
-                        continue; // bo qua vong lap va tien qua phan tu tiep theo
+                    if (eval.UserId == Guid.Empty || question.EvaluationQuestionId == Guid.Empty || question.ChoiceId == Guid.Empty)
+                        continue;
 
-                    var oldAnswers = await _userAnswerRepository.GetUserAnswerByEvaluationIdAsync(eval.UserId, eval.EvaluationId);
-
-                    if (oldAnswers != null && oldAnswers.Any())
+                    var entity = new UserAnswer
                     {
-                        await _userAnswerRepository.DeleteRangeAsync(oldAnswers);
-                    }
+                        Id = Guid.NewGuid(),
+                        UserId = eval.UserId,
+                        EvaluationQuestionId = question.EvaluationQuestionId,
+                        ChoiceId = question.ChoiceId
+                    };
 
-
-                    foreach (var question in eval.Questions)
-                    {
-
-                        if (eval.UserId == Guid.Empty || question.EvaluationQuestionId == Guid.Empty || question.ChoiceId == Guid.Empty)
-                            continue;
-
-                        var entity = new UserAnswer
-                        {
-                            Id = Guid.NewGuid(),
-                            UserId = eval.UserId,
-                            EvaluationQuestionId = question.EvaluationQuestionId,
-                            ChoiceId = question.ChoiceId
-                        };
-
-                        await _userAnswerRepository.AddAsync(entity);
-                        results.Add(MaptoDTO(entity));
-
-                    }
+                    await _userAnswerRepository.AddAsync(entity);
+                    results.Add(MapToDTO(entity));
                 }
+            }
 
-                return ApiResponse<List<UserAnswerResponseDto>>.SuccessResponse(results, "Answers saved successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<UserAnswerResponseDto>>.FailResponse("Answers save failed", ex.Message);
-            }
+            return results;
         }
 
-        public async Task<ApiResponse<List<UserAnswerResponseDto>>> GetAllUserAnswerByUserIdAsync(Guid userId)
+
+        public async Task<List<UserAnswerResponseDto>> GetAllByUserIdAsync(Guid userId)
         {
-            try
-            {
-                var userAnswers = await _userAnswerRepository.GetAllUserAnswerByUserIdAsync(userId);
+            var userAnswers = await _userAnswerRepository.GetAllUserAnswerByUserIdAsync(userId);
 
-                if (!userAnswers.Any())
-                {
-                    return ApiResponse<List<UserAnswerResponseDto>>.FailResponse("Get All UserAnswer By UserId Fail", "UserAnswer are Empty");
-                }
+            if (userAnswers == null || !userAnswers.Any())
+                throw new ApiException.NotFoundException($"No user answers found for UserId {userId}.");
 
-                var results = userAnswers.Select(MaptoDTO).ToList();
-
-                return ApiResponse<List<UserAnswerResponseDto>>.SuccessResponse(results, "Get All UserAnswer By UserId Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<UserAnswerResponseDto>>.FailResponse("Get All UserAnswer By UserId Fail", ex.Message);
-            }
+            return userAnswers.Select(MapToDTO).ToList();
         }
 
-        protected UserAnswer MapToEntity(UserAnswerRequestDto resquest)
+      
+        protected UserAnswer MapToEntity(UserAnswerRequestDto request)
         {
             return new UserAnswer
             {
-                UserId = resquest.UserId,
-                ChoiceId = resquest.ChoiceId,
-                EvaluationQuestionId = resquest.EvaluationQuestionId,
+                UserId = request.UserId,
+                ChoiceId = request.ChoiceId,
+                EvaluationQuestionId = request.EvaluationQuestionId
             };
         }
 
-        public UserAnswerResponseDto MaptoDTO(UserAnswer userAnswer)
+        public UserAnswerResponseDto MapToDTO(UserAnswer userAnswer)
         {
+            if (userAnswer == null) return null;
+
             return new UserAnswerResponseDto
             {
                 Id = userAnswer.Id,
                 UserId = userAnswer.UserId,
-                EvaluationQuestionId = userAnswer.EvaluationQuestionId,
                 ChoiceId = userAnswer.ChoiceId,
+                EvaluationQuestionId = userAnswer.EvaluationQuestionId
             };
         }
-
     }
 }

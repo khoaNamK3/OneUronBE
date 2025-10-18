@@ -11,15 +11,12 @@ namespace OneUron.BLL.Interface
 {
     public interface ICourseDetailService
     {
-        public Task<ApiResponse<List<CourseDetailResponseDto>>> GetAllCourseDetailAsync();
 
-        public Task<ApiResponse<CourseDetailResponseDto>> GetCourseDetailbyIdAsync(Guid id);
-
-        public  Task<ApiResponse<CourseDetailResponseDto>> CreateNewCourseDetailAsync(CourseDetailRequestDto request);
-
-        public  Task<ApiResponse<CourseDetailResponseDto>> UpdateCourseDetailByIdAsync(Guid id, CourseDetailRequestDto newCourseDetail);
-
-        public  Task<ApiResponse<CourseDetailResponseDto>> DeleteCourseDetailByIdAsync(Guid id);
+        Task<List<CourseDetailResponseDto>> GetAllCourseDetailAsync();
+        Task<CourseDetailResponseDto> GetCourseDetailByIdAsync(Guid id);
+        Task<CourseDetailResponseDto> CreateNewCourseDetailAsync(CourseDetailRequestDto request);
+        Task<CourseDetailResponseDto> UpdateCourseDetailByIdAsync(Guid id, CourseDetailRequestDto newCourseDetail);
+        Task<CourseDetailResponseDto> DeleteCourseDetailByIdAsync(Guid id);
 
         public CourseDetailResponseDto MapToDto(CourseDetail courseDetail);
 

@@ -11,19 +11,15 @@ namespace OneUron.BLL.Interface
 {
     public interface IMethodRuleConditionService
     {
-        public Task<ApiResponse<List<MethodRuleConditionResponseDto>>> GetAllAsync();
-
-        public Task<ApiResponse<MethodRuleConditionResponseDto>> GetByIdAsync(Guid id);
-
-        public  Task<ApiResponse<MethodRuleConditionResponseDto>> CreateNewMethodRuleConditionAsync(MethodRuleConditionRequestDto request);
-
-        public  Task<ApiResponse<MethodRuleConditionResponseDto>> UpdateMethodRuleConditionByIdAsync(Guid id, MethodRuleConditionRequestDto newMethodRuleCondtion);
-
-        public  Task<ApiResponse<MethodRuleConditionResponseDto>> DeleteMethodRuleConditionByIdAsync(Guid id);
+        Task<List<MethodRuleConditionResponseDto>> GetAllAsync();
+        Task<MethodRuleConditionResponseDto> GetByIdAsync(Guid id);
+        Task<MethodRuleConditionResponseDto> CreateNewMethodRuleConditionAsync(MethodRuleConditionRequestDto request);
+        Task<MethodRuleConditionResponseDto> UpdateMethodRuleConditionByIdAsync(Guid id, MethodRuleConditionRequestDto newMethodRuleCondition);
+        Task<MethodRuleConditionResponseDto> DeleteMethodRuleConditionByIdAsync(Guid id);
+        Task<MethodRuleConditionResponseDto?> GetMethodRuleConditionByChoiceId(Guid choiceId);
 
         public MethodRuleConditionResponseDto MapToDTO(MethodRuleCondition methodRuleCondition);
 
-        public Task<MethodRuleConditionResponseDto> GetMethodRuleConditionByChoiceId(Guid choiceId);
 
     }
 }

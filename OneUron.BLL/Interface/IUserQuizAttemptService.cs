@@ -11,17 +11,15 @@ namespace OneUron.BLL.Interface
 {
     public interface IUserQuizAttemptService
     {
-        public Task<ApiResponse<List<UserQuizAttemptResponseDto>>> GetAllUserQuizAttemptAsync();
+        Task<List<UserQuizAttemptResponseDto>> GetAllAsync();
+        Task<UserQuizAttemptResponseDto> GetByIdAsync(Guid id);
+        Task<UserQuizAttemptResponseDto> CreateAsync(UserQuizAttemptRequestDto request);
+        Task<UserQuizAttemptResponseDto> UpdateByIdAsync(Guid id, UserQuizAttemptRequestDto request);
+        Task<UserQuizAttemptResponseDto> DeleteByIdAsync(Guid id);
+        UserQuizAttemptResponseDto MapToDTO(UserQuizAttempt attempt);
 
-        public Task<ApiResponse<UserQuizAttemptResponseDto>> GetUserQuizAttemptsByIdAsync(Guid id);
+        Task<List<UserQuizAttemptResponseDto>> GetAllUserQuizAttemptByQuizIdAsync(Guid quizId);
 
-        public  Task<ApiResponse<UserQuizAttemptResponseDto>> CreateNewUserQuizAttemptAsync(UserQuizAttemptRequestDto request);
-
-        public  Task<ApiResponse<UserQuizAttemptResponseDto>> UpdateUserQuizAttemptByIdAsync(Guid id, UserQuizAttemptRequestDto newUserQuizAttempt);
-
-        public  Task<ApiResponse<UserQuizAttemptResponseDto>> DeleteUserQuizAttemptByIdAsync(Guid id);
-
-        public UserQuizAttemptResponseDto MapToDTO(UserQuizAttempt userQuizAttempt);
-
+        Task<UserQuizAttemptResponseDto> SubmitAnswerAsync(SubmitAnswerRequest newSubmit);
     }
 }

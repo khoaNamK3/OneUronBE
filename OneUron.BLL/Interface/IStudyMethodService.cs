@@ -11,16 +11,12 @@ namespace OneUron.BLL.Interface
 {
     public interface IStudyMethodService
     {
-        public Task<ApiResponse<List<StudyMethodResponseDto>>> GetALlAsync();
-
-        public Task<ApiResponse<StudyMethodResponseDto>> GetByIdAsyc(Guid id);
-
-        public  Task<ApiResponse<StudyMethodResponseDto>> CreateNewStudyMethodAsync(StudyMethodRequestDto request);
-
-        public  Task<ApiResponse<StudyMethodResponseDto>> UpdateStudyMethodbyIdAsync(Guid id, StudyMethodRequestDto newStudyMethod);
-
-        public  Task<ApiResponse<StudyMethodResponseDto>> DeleteStudyMethodbyIdAsync(Guid id);
-
-
+        Task<List<StudyMethodResponseDto>> GetAllAsync();
+        Task<StudyMethodResponseDto> GetByIdAsync(Guid id);
+        Task<StudyMethodResponseDto> CreateAsync(StudyMethodRequestDto request);
+        Task<StudyMethodResponseDto> UpdateByIdAsync(Guid id, StudyMethodRequestDto request);
+        Task<StudyMethodResponseDto> DeleteByIdAsync(Guid id);
+        StudyMethodResponseDto MapToDTO(StudyMethod studyMethod);
+        Task<StudyMethodResponseDto> GetStudyMethodByUserIdAsync(Guid userId);
     }
 }

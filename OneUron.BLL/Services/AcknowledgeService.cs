@@ -1,5 +1,7 @@
-﻿using OneUron.BLL.DTOs.AcknowledgeDTOs;
+﻿using FluentValidation;
+using OneUron.BLL.DTOs.AcknowledgeDTOs;
 using OneUron.BLL.ExceptionHandle;
+using OneUron.BLL.FluentValidation;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository.AcknowledgeRepo;
@@ -14,125 +16,86 @@ namespace OneUron.BLL.Services
     public class AcknowledgeService : IAcknowledgeService
     {
         private readonly IAcknowledgeRepository _acknowledgeRepository;
+        private readonly IValidator<AcknowledgeRequestDto> _acknowledgeRequestValidator;
 
-        public AcknowledgeService(IAcknowledgeRepository acknowledgeRepository)
+        public AcknowledgeService(
+            IAcknowledgeRepository acknowledgeRepository,
+            IValidator<AcknowledgeRequestDto> acknowledgeRequestValidator)
         {
             _acknowledgeRepository = acknowledgeRepository;
+            _acknowledgeRequestValidator = acknowledgeRequestValidator;
         }
 
-        public async Task<ApiResponse<List<AcknowledgeResponseDto>>> GetAllAcknowledgeAsync()
+      
+        public async Task<List<AcknowledgeResponseDto>> GetAllAcknowledgeAsync()
         {
-            try
-            {
-                var acknowLedges = await _acknowledgeRepository.GetAllAcknowledgeAsync();
+            var acknowLedges = await _acknowledgeRepository.GetAllAcknowledgeAsync();
 
-                if (!acknowLedges.Any())
-                {
-                    return ApiResponse<List<AcknowledgeResponseDto>>.FailResponse("Get All AcKnowledge Fail", "Knowledge Are Empty");
-                }
+            if (acknowLedges == null || !acknowLedges.Any())
+                throw new ApiException.NotFoundException("No Acknowledge records found.");
 
-                var result = acknowLedges.Select(MapToDTO).ToList();
-                return ApiResponse<List<AcknowledgeResponseDto>>.SuccessResponse(result, "Get Acknowledge Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<AcknowledgeResponseDto>>.FailResponse("Get All Knowledge Fail", ex.Message);
-            }
+            return acknowLedges.Select(MapToDTO).ToList();
         }
 
-        public async Task<ApiResponse<AcknowledgeResponseDto>> GetAcknowledgeByIdAsync(Guid id)
+       
+        public async Task<AcknowledgeResponseDto> GetAcknowledgeByIdAsync(Guid id)
         {
-            try
-            {
-                var existAcknowLedge = await _acknowledgeRepository.GetAcknowledgeByIdAsync(id);
+            var existAcknowledge = await _acknowledgeRepository.GetAcknowledgeByIdAsync(id);
+            if (existAcknowledge == null)
+                throw new ApiException.NotFoundException($"Acknowledge with ID {id} not found.");
 
-                if (existAcknowLedge == null)
-                {
-                    return ApiResponse<AcknowledgeResponseDto>.FailResponse("Get Acknowledge By Id Fail", "Acknowledge Are Not Exist");
-                }
-
-                var result = MapToDTO(existAcknowLedge);
-
-                return ApiResponse<AcknowledgeResponseDto>.SuccessResponse(result, "Get Acknowledge By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<AcknowledgeResponseDto>.FailResponse("Get Acknowledge By Id Fail", ex.Message);
-            }
+            return MapToDTO(existAcknowledge);
         }
 
-        public async Task<ApiResponse<AcknowledgeResponseDto>> CreateNewAcknowledgeAsync(AcknowledgeRequestDto request)
+  
+        public async Task<AcknowledgeResponseDto> CreateNewAcknowledgeAsync(AcknowledgeRequestDto request)
         {
-            try
-            {
-                if (request == null)
-                {
-                    return ApiResponse<AcknowledgeResponseDto>.FailResponse("Create New Acknowledge Fail", "AcknowLedge is Null");
-                }
+            if (request == null)
+                throw new ApiException.BadRequestException("Acknowledge request cannot be null.");
 
-                var newAcknowLedge = MapToEnitity(request);
-                await _acknowledgeRepository.AddAsync(newAcknowLedge);
-                var result = MapToDTO(newAcknowLedge);
-                return ApiResponse<AcknowledgeResponseDto>.SuccessResponse(result, "Create new AcknowLedge Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<AcknowledgeResponseDto>.FailResponse("Create New Acknowledge Fail", ex.Message);
-            }
+            var validationResult = await _acknowledgeRequestValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
+
+            var newAcknowledge = MapToEnitity(request);
+            await _acknowledgeRepository.AddAsync(newAcknowledge);
+
+            return MapToDTO(newAcknowledge);
         }
 
-        public async Task<ApiResponse<AcknowledgeResponseDto>> UpdateAcknowLedgeByIdAsync(Guid id, AcknowledgeRequestDto newAcknowLedge)
+      
+        public async Task<AcknowledgeResponseDto> UpdateAcknowLedgeByIdAsync(Guid id, AcknowledgeRequestDto newAcknowLedge)
         {
-            try
-            {
-                var existAcknowledge = await _acknowledgeRepository.GetAcknowledgeByIdAsync(id);
+            var existAcknowledge = await _acknowledgeRepository.GetAcknowledgeByIdAsync(id);
+            if (existAcknowledge == null)
+                throw new ApiException.NotFoundException($"Acknowledge with ID {id} not found.");
 
-                if (existAcknowledge == null)
-                {
-                    return ApiResponse<AcknowledgeResponseDto>.FailResponse("Update Acknowledge By Id Fail", "Acknowledge Are Not Exist");
-                }
+            if (newAcknowLedge == null)
+                throw new ApiException.BadRequestException("Acknowledge data cannot be null.");
 
-                if (newAcknowLedge == null)
-                {
-                    return ApiResponse<AcknowledgeResponseDto>.FailResponse("Update Acknowledge By Id Fail", "Acknowledge is Null");
-                }
+            var validationResult = await _acknowledgeRequestValidator.ValidateAsync(newAcknowLedge);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                existAcknowledge.Text = newAcknowLedge.Text;
-                existAcknowledge.CourseId = newAcknowLedge.CourseId;
+            existAcknowledge.Text = newAcknowLedge.Text;
+            existAcknowledge.CourseId = newAcknowLedge.CourseId;
 
-                await _acknowledgeRepository.UpdateAsync(existAcknowledge);
+            await _acknowledgeRepository.UpdateAsync(existAcknowledge);
 
-                var result = MapToDTO(existAcknowledge);
-
-                return ApiResponse<AcknowledgeResponseDto>.SuccessResponse(result, "Update Acknowledge Successafully");
-
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<AcknowledgeResponseDto>.FailResponse("Update Acknowledge By Id Fail", ex.Message);
-            }
+            return MapToDTO(existAcknowledge);
         }
 
-        public async Task<ApiResponse<AcknowledgeResponseDto>> DeleteAcknowledgeByIdAsync(Guid id)
+   
+        public async Task<AcknowledgeResponseDto> DeleteAcknowledgeByIdAsync(Guid id)
         {
-            try
-            {
-                var existAcknowledge = await _acknowledgeRepository.GetAcknowledgeByIdAsync(id);
-                if (existAcknowledge == null)
-                {
-                    return ApiResponse<AcknowledgeResponseDto>.FailResponse("Delete Acknowledge By Id Fail", "Acknowledge Are Not Exist");
-                }
-                var result = MapToDTO(existAcknowledge);
+            var existAcknowledge = await _acknowledgeRepository.GetAcknowledgeByIdAsync(id);
+            if (existAcknowledge == null)
+                throw new ApiException.NotFoundException($"Acknowledge with ID {id} not found.");
 
-                await _acknowledgeRepository.DeleteAsync(existAcknowledge);
-
-                return ApiResponse<AcknowledgeResponseDto>.SuccessResponse(result, "Delete AcknowLedge Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<AcknowledgeResponseDto>.FailResponse("Delete Acknowledge By Id Fail", ex.Message);
-            }
+            await _acknowledgeRepository.DeleteAsync(existAcknowledge);
+            return MapToDTO(existAcknowledge);
         }
+
 
         protected Acknowledge MapToEnitity(AcknowledgeRequestDto request)
         {

@@ -1,15 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OneUron.BLL.DTOs.QuestionChoiceDTOs;
+using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
 
 namespace OneUron.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class QuestionChoiceController : Controller
+    public class QuestionChoiceController : ControllerBase
     {
         private readonly IQuestionChoiceService _questionChoiceService;
-
 
         public QuestionChoiceController(IQuestionChoiceService questionChoiceService)
         {
@@ -17,63 +17,38 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAll()
         {
-            var response = await _questionChoiceService.GetAllQuestionChoiceAsync();
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _questionChoiceService.GetAllQuestionChoiceAsync();
+            return Ok(ApiResponse<List<QuestionChoiceReponseDto>>.SuccessResponse(result, "Get all QuestionChoices successfully"));
         }
 
         [HttpGet("get-by/{id}")]
-        public async Task<IActionResult> GetByIdAsync(Guid id)
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var response = await _questionChoiceService.GetQuestionChoiceByIdAsync(id);
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _questionChoiceService.GetQuestionChoiceByIdAsync(id);
+            return Ok(ApiResponse<QuestionChoiceReponseDto>.SuccessResponse(result, "Get QuestionChoice by ID successfully"));
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateNewQuestionChoiceAsync([FromBody] QuestionChoiceRequestDto request)
+        public async Task<IActionResult> Create(QuestionChoiceRequestDto request)
         {
-            var response = await _questionChoiceService.CreateNewQuestionChoiceAsync(request);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _questionChoiceService.CreateNewQuestionChoiceAsync(request);
+            return Ok(ApiResponse<QuestionChoiceReponseDto>.SuccessResponse(result, "Create QuestionChoice successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> UpdateQuestionChoiceByIdAsync(Guid id, QuestionChoiceRequestDto request)
+        public async Task<IActionResult> Update(Guid id, QuestionChoiceRequestDto request)
         {
-            var respone = await _questionChoiceService.UpdateQuestionChoiceByIdAsync(id, request);
-
-            if (!respone.Success)
-            {
-                return BadRequest(respone);
-            }
-            return Ok(respone);
+            var result = await _questionChoiceService.UpdateQuestionChoiceByIdAsync(id, request);
+            return Ok(ApiResponse<QuestionChoiceReponseDto>.SuccessResponse(result, "Update QuestionChoice successfully"));
         }
 
         [HttpDelete("delete-by/{id}")]
-        public async Task<IActionResult> DeleteQuestionChoiceByIdAsync(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var response = await _questionChoiceService.DeleteQuestionChoiceByIdAsync(id);
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _questionChoiceService.DeleteQuestionChoiceByIdAsync(id);
+            return Ok(ApiResponse<QuestionChoiceReponseDto>.SuccessResponse(result, "Delete QuestionChoice successfully"));
         }
     }
 }

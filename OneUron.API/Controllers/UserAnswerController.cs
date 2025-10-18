@@ -1,13 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OneUron.BLL.DTOs.EvaluationDTOs;
 using OneUron.BLL.DTOs.UserAnswerDTOs;
+using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
 
 namespace OneUron.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UserAnswerController : Controller
+    public class UserAnswerController : ControllerBase
     {
         private readonly IUserAnswerService _userAnswerService;
 
@@ -17,72 +18,52 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAll()
         {
-            var response = await _userAnswerService.GetAllAsync();
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _userAnswerService.GetAllAsync();
+            return Ok(ApiResponse<List<UserAnswerResponseDto>>.SuccessResponse(result, "Get all user answers successfully"));
         }
 
-        [HttpGet("get-by-user")]
-        public async Task<IActionResult> GetUserAnswerByUserIdAsync([FromQuery] Guid userId, [FromQuery] Guid evaluatioQuestionId)
+        [HttpGet("get-list-by/{userId}/{questionId}")]
+        public async Task<IActionResult> GetByList(Guid userId, Guid questionId)
         {
-            var response = await _userAnswerService.GetByListUserAnswerAsync(userId, evaluatioQuestionId);
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _userAnswerService.GetByListAsync(userId, questionId);
+            return Ok(ApiResponse<List<UserAnswerResponseDto>>.SuccessResponse(result, "Get user answers successfully"));
         }
 
-        [HttpPost("create-new")]
-        public async Task<IActionResult> CreateNewUserAnswerAsync([FromBody] UserAnswerRequestDto request)
+        [HttpPost("create")]
+        public async Task<IActionResult> Create(UserAnswerRequestDto request)
         {
-            var response = await _userAnswerService.CreateNewUserAnswerAsync(request);
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _userAnswerService.CreateAsync(request);
+            return Ok(ApiResponse<UserAnswerResponseDto>.SuccessResponse(result, "Create user answer successfully"));
         }
 
-        [HttpPut("update-by")]
-        public async Task<IActionResult> UpdateUserAnswerByUserIdAsync([FromQuery] Guid id, [FromBody] UserAnswerUpdateRequestDto request)
+        [HttpPut("update-by/{id}")]
+        public async Task<IActionResult> Update(Guid id, UserAnswerUpdateRequestDto request)
         {
-            var response = await _userAnswerService.UpdateUserAnswerByUserIdAsync(id, request);
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _userAnswerService.UpdateByIdAsync(id, request);
+            return Ok(ApiResponse<UserAnswerResponseDto>.SuccessResponse(result, "Update user answer successfully"));
         }
 
-        [HttpDelete("delete-by")]
-        public async Task<IActionResult> DeleteUserAnswerByUserIdAsync([FromQuery] Guid id)
+        [HttpDelete("delete-by/{id}")]
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var response = await _userAnswerService.DeleteUserAnswerByAsync(id);
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _userAnswerService.DeleteByIdAsync(id);
+            return Ok(ApiResponse<UserAnswerResponseDto>.SuccessResponse(result, "Delete user answer successfully"));
         }
 
         [HttpPost("submit")]
-        public async Task<IActionResult> SubmitEvaluationAsync([FromBody] List<EvaluationSubmitRequest> request)
+        public async Task<IActionResult> SubmitAnswers(List<EvaluationSubmitRequest> evaluations)
         {
-            var response = await _userAnswerService.SubmitAnswersAsync(request);
+            var result = await _userAnswerService.SubmitAnswersAsync(evaluations);
+            return Ok(ApiResponse<List<UserAnswerResponseDto>>.SuccessResponse(result, "Submit answers successfully"));
+        }
 
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetAllByUser(Guid userId)
+        {
+            var result = await _userAnswerService.GetAllByUserIdAsync(userId);
+            return Ok(ApiResponse<List<UserAnswerResponseDto>>.SuccessResponse(result, "Get all answers by user successfully"));
         }
     }
 }

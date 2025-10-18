@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OneUron.BLL.DTOs.SkillDTOs;
+using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
 
 namespace OneUron.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class SkillController : Controller
+    public class SkillController : ControllerBase
     {
         private readonly ISkillService _skillService;
 
@@ -16,61 +17,38 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAll()
         {
-            var response = await _skillService.GetAllAsync();
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _skillService.GetAllAsync();
+            return Ok(ApiResponse<List<SkillResponseDto>>.SuccessResponse(result, "Get all skills successfully"));
         }
 
         [HttpGet("get-by/{id}")]
-        public async Task<IActionResult> GetSkillByIdAsync(Guid id)
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var response = await _skillService.GetByIdAsync(id);
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _skillService.GetByIdAsync(id);
+            return Ok(ApiResponse<SkillResponseDto>.SuccessResponse(result, "Get skill successfully"));
         }
 
-        [HttpPost("create-new")]
-        public async Task<IActionResult> CreateNewSkillAsync([FromBody] SkillRequestDto request)
+        [HttpPost("create")]
+        public async Task<IActionResult> Create(SkillRequestDto request)
         {
-            var response = await _skillService.CreateNewSkillAsync(request);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _skillService.CreateNewSkillAsync(request);
+            return Ok(ApiResponse<SkillResponseDto>.SuccessResponse(result, "Create skill successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> UpdateSkillByIdAsync(Guid id, [FromBody] SkillRequestDto request)
+        public async Task<IActionResult> Update(Guid id, SkillRequestDto request)
         {
-            var response = await _skillService.UpdateSkillByIdAsync(id, request);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _skillService.UpdateSkillByIdAsync(id, request);
+            return Ok(ApiResponse<SkillResponseDto>.SuccessResponse(result, "Update skill successfully"));
         }
 
         [HttpDelete("delete-by/{id}")]
-        public async Task<IActionResult> DeleteSkillByIdAsync(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var response = await _skillService.DeleteSkillByIdAsync(id);
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _skillService.DeleteSkillByIdAsync(id);
+            return Ok(ApiResponse<SkillResponseDto>.SuccessResponse(result, "Delete skill successfully"));
         }
     }
 }

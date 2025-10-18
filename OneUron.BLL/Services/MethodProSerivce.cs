@@ -1,4 +1,6 @@
-﻿using OneUron.BLL.DTOs.MethodProDTOs;
+﻿using FluentValidation;
+using OneUron.BLL.DTOs.MethodConDTOs;
+using OneUron.BLL.DTOs.MethodProDTOs;
 using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
@@ -11,152 +13,109 @@ using System.Threading.Tasks;
 
 namespace OneUron.BLL.Services
 {
-    public class MethodProSerivce : IMethodProSerivce
+    public class MethodProService : IMethodProSerivce
     {
         private readonly IMethodProRepository _methodProRepository;
+        private readonly IValidator<MethodProRequestDto> _methodProValidator;
 
-        public MethodProSerivce(IMethodProRepository methodProRepository)
+        public MethodProService(
+            IMethodProRepository methodProRepository,
+            IValidator<MethodProRequestDto> methodProValidator)
         {
             _methodProRepository = methodProRepository;
+            _methodProValidator = methodProValidator;
         }
 
-        public async Task<ApiResponse<List<MethodProResponseDto>>> GetAllAsync()
+        
+        public async Task<List<MethodProResponseDto>> GetAllAsync()
         {
-            try
-            {
-                var methodPros = await _methodProRepository.GetAllAsync();
+            var methodPros = await _methodProRepository.GetAllAsync();
 
-                if (!methodPros.Any())
-                {
-                    return ApiResponse<List<MethodProResponseDto>>.FailResponse("Get All MethodPro Fail", "Method Pro Is Empty");
-                }
+            if (methodPros == null || !methodPros.Any())
+                throw new ApiException.NotFoundException("No MethodPro records found.");
 
-                var results = methodPros.Select(MapToDTO).ToList();
-
-                return ApiResponse<List<MethodProResponseDto>>.SuccessResponse(results, "Get All MethodPro Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<MethodProResponseDto>>.FailResponse("Get All MethodPro Fail", ex.Message);
-            }
+            return methodPros.Select(MapToDTO).ToList();
         }
 
-        public async Task<ApiResponse<MethodProResponseDto>> GetByIdAsync(Guid id)
+       
+        public async Task<MethodProResponseDto> GetByIdAsync(Guid id)
         {
-            try
-            {
-                var existMethodPro = await _methodProRepository.GetByIdAsync(id);
+            var existMethodPro = await _methodProRepository.GetByIdAsync(id);
+            if (existMethodPro == null)
+                throw new ApiException.NotFoundException($"MethodPro with ID {id} not found.");
 
-                if (existMethodPro == null)
-                {
-                    return ApiResponse<MethodProResponseDto>.FailResponse("Get MethodPro By Id Fail", "Method Pro Are Not Exist");
-                }
-
-                var result = MapToDTO(existMethodPro);
-
-                return ApiResponse<MethodProResponseDto>.SuccessResponse(result, "Get MethodPro By Id Successfully");
-
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<MethodProResponseDto>.FailResponse("Get MethodPro By Id Fail", ex.Message);
-            }
+            return MapToDTO(existMethodPro);
         }
 
-        public async Task<ApiResponse<MethodProResponseDto>> CreateNewMethoProAsync(MethodProRequestDto request)
+      
+        public async Task<MethodProResponseDto> CreateNewMethodProAsync(MethodProRequestDto request)
         {
-            try
-            {
-                if (request == null)
-                {
-                    return ApiResponse<MethodProResponseDto>.FailResponse("Create new MethodPro Fail", "New MethodPro is Null");
-                }
+            if (request == null)
+                throw new ApiException.BadRequestException("MethodPro request cannot be null.");
 
-                var newMethodPro = MapToEntity(request);
+            var validationResult = await _methodProValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                await _methodProRepository.AddAsync(newMethodPro);
+            var newMethodPro = MapToEntity(request);
 
-                var result = MapToDTO(newMethodPro);
+            await _methodProRepository.AddAsync(newMethodPro);
 
-                return ApiResponse<MethodProResponseDto>.SuccessResponse(result, "Create New MethodPro Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<MethodProResponseDto>.FailResponse("Create new MethodPro Fail", ex.Message);
-            }
+            return MapToDTO(newMethodPro);
         }
 
-        public async Task<ApiResponse<MethodProResponseDto>> UpdateMethodProByIdAsync(Guid id, MethodProRequestDto newMethodPro)
+      
+        public async Task<MethodProResponseDto> UpdateMethodProByIdAsync(Guid id, MethodProRequestDto newMethodPro)
         {
-            try
-            {
-                var existMethodPro = await _methodProRepository.GetByIdAsync(id);
+            var existMethodPro = await _methodProRepository.GetByIdAsync(id);
+            if (existMethodPro == null)
+                throw new ApiException.NotFoundException($"MethodPro with ID {id} not found.");
 
-                if (existMethodPro == null)
-                {
-                    return ApiResponse<MethodProResponseDto>.FailResponse("Update MethodPro By Id Fail", "MethodPro is Not Exist");
-                }
-                if (newMethodPro == null)
-                {
-                    return ApiResponse<MethodProResponseDto>.FailResponse("Update MethodPro By Id Fail", "New MethodPro is Null");
-                }
+            if (newMethodPro == null)
+                throw new ApiException.BadRequestException("New MethodPro data cannot be null.");
 
-                existMethodPro.Pro = newMethodPro.Pro;
-                existMethodPro.MethodId = newMethodPro.MethodId;
+            var validationResult = await _methodProValidator.ValidateAsync(newMethodPro);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                await _methodProRepository.UpdateAsync(existMethodPro);
+            existMethodPro.Pro = newMethodPro.Pro;
+            existMethodPro.MethodId = newMethodPro.MethodId;
 
-                var result = MapToDTO(existMethodPro);
+            await _methodProRepository.UpdateAsync(existMethodPro);
 
-                return ApiResponse<MethodProResponseDto>.SuccessResponse(result, "Update MethodPro By Id Successfully");
-
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<MethodProResponseDto>.FailResponse("Update MethodPro By Id Fail", ex.Message);
-            }
+            return MapToDTO(existMethodPro);
         }
 
-
-        public async Task<ApiResponse<MethodProResponseDto>> DeleteMethodProByIdAsync(Guid id)
+        public async Task<MethodProResponseDto> DeleteMethodProByIdAsync(Guid id)
         {
-            try
-            {
-                var existMethodPro = await _methodProRepository.GetByIdAsync(id);
+            var existMethodPro = await _methodProRepository.GetByIdAsync(id);
+            if (existMethodPro == null)
+                throw new ApiException.NotFoundException($"MethodPro with ID {id} not found.");
 
-                if (existMethodPro == null)
-                {
-                    return ApiResponse<MethodProResponseDto>.FailResponse("Update MethodPro By Id Fail", "MethodPro is Not Exist");
-                }
+            await _methodProRepository.DeleteAsync(existMethodPro);
 
-                var result = MapToDTO(existMethodPro);
-
-                await _methodProRepository.DeleteAsync(existMethodPro);
-
-                return ApiResponse<MethodProResponseDto>.SuccessResponse(result, "Delete MethodPro Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<MethodProResponseDto>.FailResponse("Update MethodPro By Id Fail", ex.Message);
-            }
+            return MapToDTO(existMethodPro);
         }
 
-        protected MethodPro MapToEntity(MethodProRequestDto newMethodPro)
+     
+        protected MethodPro MapToEntity(MethodProRequestDto request)
         {
             return new MethodPro
             {
-                Pro = newMethodPro.Pro,
-                MethodId = newMethodPro.MethodId,
+                Pro = request.Pro,
+                MethodId = request.MethodId
             };
         }
 
         public MethodProResponseDto MapToDTO(MethodPro methodPro)
         {
+            if (methodPro == null) return null;
+
             return new MethodProResponseDto
             {
                 Id = methodPro.Id,
                 Pro = methodPro.Pro,
-                MethodId = methodPro.MethodId,
+                MethodId = methodPro.MethodId
             };
         }
     }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace OneUron.DAL.Repository.QuizRepo
 {
-    public class QuizRepository : GenericRepository<Quiz> , IQuizRepository
+    public class QuizRepository : GenericRepository<Quiz>, IQuizRepository
     {
         public QuizRepository(AppDbContext context) : base(context)
         {
@@ -24,5 +24,47 @@ namespace OneUron.DAL.Repository.QuizRepo
             return await _dbSet.Include(q => q.Questions).ThenInclude(q => q.QuestionChoices).FirstOrDefaultAsync(qu => qu.Id == id);
         }
 
+        public async Task<List<Quiz>> GetAllQuizByUserIdAsync(Guid userId)
+        {
+            return await _dbSet.Include(q => q.UserQuizAttempts).Where(u => u.UserId == userId).ToListAsync();
+        }
+
+        public async Task<PagedResult<Quiz>> GetPagedQuizzesAsync(int pageNumber, int pageSize, string? name)
+        {
+
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            var query = _dbSet.AsNoTracking().AsQueryable();
+
+          
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                query = query.Where(q => q.Name.Contains(name));
+            }
+
+
+            int totalCount = await query.CountAsync();
+
+          
+            if ((pageNumber - 1) * pageSize >= totalCount && totalCount > 0)
+            {
+                pageNumber = (int)Math.Ceiling((double)totalCount / pageSize);
+            }
+
+           
+            var quizzes = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<Quiz>
+            {
+                CurrentPage = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                Items = quizzes
+            };
+        }
     }
 }

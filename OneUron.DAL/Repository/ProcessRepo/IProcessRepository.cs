@@ -12,5 +12,7 @@ namespace OneUron.DAL.Repository.ProcessRepo
         public Task<List<Process>> GetAllAsync();
 
         public Task<Process> GetByIdAsync(Guid id);
+
+        public  Task<List<Process>> GetProcessesByScheduleId(Guid scheduleId);
     }
 }

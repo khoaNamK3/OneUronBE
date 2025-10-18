@@ -1,78 +1,55 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OneUron.BLL.DTOs.MethodProDTOs;
+using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
+using OneUron.BLL.Services;
 
 namespace OneUron.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class MethodProController : Controller
+    public class MethodProController : ControllerBase
     {
         private readonly IMethodProSerivce _methodProService;
 
-        public MethodProController(IMethodProSerivce methodProSerivce)
+        public MethodProController(IMethodProSerivce methodProService)
         {
-            _methodProService = methodProSerivce;
+            _methodProService = methodProService;
         }
 
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAll()
         {
-            var response = await _methodProService.GetAllAsync();
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-
-            return Ok(response);
+            var result = await _methodProService.GetAllAsync();
+            return Ok(ApiResponse<List<MethodProResponseDto>>.SuccessResponse(result, "Get all MethodPro successfully"));
         }
 
         [HttpGet("get-by/{id}")]
-        public async Task<IActionResult> GetMethodProByIdAsync(Guid id)
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var response = await _methodProService.GetByIdAsync(id);
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _methodProService.GetByIdAsync(id);
+            return Ok(ApiResponse<MethodProResponseDto>.SuccessResponse(result, "Get MethodPro by id successfully"));
         }
 
-        [HttpPost("create-new")]
-        public async Task<IActionResult> CreateNewMethodProAsync([FromBody] MethodProRequestDto request)
+        [HttpPost("create")]
+        public async Task<IActionResult> Create(MethodProRequestDto request)
         {
-            var response = await _methodProService.CreateNewMethoProAsync(request);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _methodProService.CreateNewMethodProAsync(request);
+            return Ok(ApiResponse<MethodProResponseDto>.SuccessResponse(result, "Create MethodPro successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> UpdateMethodProByIdAsync(Guid id, [FromBody] MethodProRequestDto request)
+        public async Task<IActionResult> Update(Guid id, MethodProRequestDto request)
         {
-            var response = await _methodProService.UpdateMethodProByIdAsync(id, request);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _methodProService.UpdateMethodProByIdAsync(id, request);
+            return Ok(ApiResponse<MethodProResponseDto>.SuccessResponse(result, "Update MethodPro successfully"));
         }
 
         [HttpDelete("delete-by/{id}")]
-        public async Task<IActionResult> DeleteMethodProByIdAsync(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var response = await _methodProService.DeleteMethodProByIdAsync(id);
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _methodProService.DeleteMethodProByIdAsync(id);
+            return Ok(ApiResponse<MethodProResponseDto>.SuccessResponse(result, "Delete MethodPro successfully"));
         }
     }
 }

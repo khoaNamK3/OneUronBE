@@ -458,6 +458,9 @@ namespace OneUron.DAL.Migrations
                     b.Property<Guid>("MemberShipPlanId")
                         .HasColumnType("uuid");
 
+                    b.Property<long>("OrderCode")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text");
@@ -488,7 +491,7 @@ namespace OneUron.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("ScheduleId")
+                    b.Property<Guid?>("ScheduleId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
@@ -797,7 +800,8 @@ namespace OneUron.DAL.Migrations
                     b.HasIndex("MethodId")
                         .IsUnique();
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("StudyMethods");
                 });
@@ -816,7 +820,7 @@ namespace OneUron.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("ProcessId")
+                    b.Property<Guid?>("ProcessId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("ScheduleId")
@@ -1194,8 +1198,7 @@ namespace OneUron.DAL.Migrations
                     b.HasOne("OneUron.DAL.Data.Entity.Schedule", "Schedule")
                         .WithMany("Processes")
                         .HasForeignKey("ScheduleId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Schedule");
                 });
@@ -1285,8 +1288,8 @@ namespace OneUron.DAL.Migrations
                         .IsRequired();
 
                     b.HasOne("OneUron.DAL.Data.Entity.User", "User")
-                        .WithMany("StudyMethods")
-                        .HasForeignKey("UserId")
+                        .WithOne("StudyMethod")
+                        .HasForeignKey("OneUron.DAL.Data.Entity.StudyMethod", "UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1300,8 +1303,7 @@ namespace OneUron.DAL.Migrations
                     b.HasOne("OneUron.DAL.Data.Entity.Process", "Process")
                         .WithMany("Subjects")
                         .HasForeignKey("ProcessId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("OneUron.DAL.Data.Entity.Schedule", "Schedule")
                         .WithMany("Subjects")
@@ -1501,7 +1503,8 @@ namespace OneUron.DAL.Migrations
 
                     b.Navigation("Schedules");
 
-                    b.Navigation("StudyMethods");
+                    b.Navigation("StudyMethod")
+                        .IsRequired();
 
                     b.Navigation("Token")
                         .IsRequired();

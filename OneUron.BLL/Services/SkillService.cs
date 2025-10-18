@@ -1,5 +1,8 @@
-﻿using OneUron.BLL.DTOs.SkillDTOs;
+﻿using FluentValidation;
+using OneUron.BLL.DTOs.ScheduleDTOs;
+using OneUron.BLL.DTOs.SkillDTOs;
 using OneUron.BLL.ExceptionHandle;
+using OneUron.BLL.FluentValidation;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository.SkillRepo;
@@ -14,139 +17,103 @@ namespace OneUron.BLL.Services
     public class SkillService : ISkillService
     {
         private readonly ISkillRepository _skillRepository;
+        private readonly IValidator<SkillRequestDto> _skillRequestValidator;
 
-        public SkillService(ISkillRepository skillRepository)
+        public SkillService(ISkillRepository skillRepository, IValidator<SkillRequestDto> skillRequestValidator)
         {
             _skillRepository = skillRepository;
+            _skillRequestValidator = skillRequestValidator;
         }
 
-        public async Task<ApiResponse<List<SkillResponseDto>>> GetAllAsync()
+       
+        public async Task<List<SkillResponseDto>> GetAllAsync()
         {
-            try
-            {
-                var skills = await _skillRepository.GetAllAsync();
+            var skills = await _skillRepository.GetAllAsync();
 
-                if (!skills.Any())
-                {
-                    return ApiResponse<List<SkillResponseDto>>.FailResponse("Get All Skill Fail", "Skills Are Empty");
-                }
+            if (skills == null || !skills.Any())
+                throw new ApiException.NotFoundException("No skills found.");
 
-                var result = skills.Select(MapToDTO).ToList();
-                return ApiResponse<List<SkillResponseDto>>.SuccessResponse(result, "Get All Skill Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<SkillResponseDto>>.FailResponse("Get All Skill Fail", ex.Message);
-            }
+            return skills.Select(MapToDTO).ToList();
         }
 
-        public async Task<ApiResponse<SkillResponseDto>> GetByIdAsync(Guid id)
+        
+        public async Task<SkillResponseDto> GetByIdAsync(Guid id)
         {
-            try
-            {
-                var existSkill = await _skillRepository.GetByIdAsync(id);
-                if (existSkill == null)
-                {
-                    return ApiResponse<SkillResponseDto>.FailResponse("Get Skill By Id Fail", "Skills Are Not Exist");
-                }
+            var skill = await _skillRepository.GetByIdAsync(id);
+            if (skill == null)
+                throw new ApiException.NotFoundException($"Skill with ID {id} not found.");
 
-                var result = MapToDTO(existSkill);
-                return ApiResponse<SkillResponseDto>.SuccessResponse(result, "get  Skill By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<SkillResponseDto>.FailResponse("Get Skill By Id Fail", ex.Message);
-            }
+            return MapToDTO(skill);
         }
 
-        public async Task<ApiResponse<SkillResponseDto>> CreateNewSkillAsync(SkillRequestDto request)
+        
+        public async Task<SkillResponseDto> CreateNewSkillAsync(SkillRequestDto request)
         {
-            try
-            {
-                if (request == null)
-                {
-                    return ApiResponse<SkillResponseDto>.FailResponse("Create New Skill Fail", "New Skill is Null");
-                }
-                var newSkill = MapToEnitity(request);
+            if (request == null)
+                throw new ApiException.BadRequestException("Skill request cannot be null.");
 
-                await _skillRepository.AddAsync(newSkill);
+            var validationResult = await _skillRequestValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                var result = MapToDTO(newSkill);
-                return ApiResponse<SkillResponseDto>.SuccessResponse(result, "Create New Skill Successfully");
+            var newSkill = MapToEntity(request);
+            await _skillRepository.AddAsync(newSkill);
 
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<SkillResponseDto>.FailResponse("Create New Skill Fail", ex.Message);
-            }
+            return MapToDTO(newSkill);
         }
 
-        public async Task<ApiResponse<SkillResponseDto>> UpdateSkillByIdAsync(Guid id, SkillRequestDto newSkill)
+        
+        public async Task<SkillResponseDto> UpdateSkillByIdAsync(Guid id, SkillRequestDto request)
         {
-            try
-            {
-                var existSkill = await _skillRepository.GetByIdAsync(id);
-                if (existSkill == null)
-                {
-                    return ApiResponse<SkillResponseDto>.FailResponse("Update Skill By Id Fail", "Skills Are Not Exist");
-                }
+            var existingSkill = await _skillRepository.GetByIdAsync(id);
+            if (existingSkill == null)
+                throw new ApiException.NotFoundException($"Skill with ID {id} not found.");
 
-                if (newSkill == null)
-                {
-                    return ApiResponse<SkillResponseDto>.FailResponse("Create New Skill Fail", "New Skill is Null");
-                }
-                existSkill.Text = newSkill.Text;
-                existSkill.CourseId = newSkill.CourseId;
+            if (request == null)
+                throw new ApiException.BadRequestException("Request data cannot be null.");
 
-                await _skillRepository.UpdateAsync(existSkill);
+            var validationResult = await _skillRequestValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                var result = MapToDTO(existSkill);
+            existingSkill.Text = request.Text;
+            existingSkill.CourseId = request.CourseId;
 
-                return ApiResponse<SkillResponseDto>.SuccessResponse(result, "Update Skill Successfully");
+            await _skillRepository.UpdateAsync(existingSkill);
 
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<SkillResponseDto>.FailResponse("Update New Skill Fail", ex.Message);
-            }
+            return MapToDTO(existingSkill);
         }
 
-        public async Task<ApiResponse<SkillResponseDto>> DeleteSkillByIdAsync(Guid id)
+        
+        public async Task<SkillResponseDto> DeleteSkillByIdAsync(Guid id)
         {
-            try
-            {
-                var existSkill = await _skillRepository.GetByIdAsync(id);
-                if (existSkill == null)
-                {
-                    return ApiResponse<SkillResponseDto>.FailResponse("Delete SKill Fail", "Skill Are Not Exist");
-                }
+            var skill = await _skillRepository.GetByIdAsync(id);
+            if (skill == null)
+                throw new ApiException.NotFoundException($"Skill with ID {id} not found.");
 
-                var result = MapToDTO(existSkill);
-                await _skillRepository.DeleteAsync(existSkill);
-                return ApiResponse<SkillResponseDto>.SuccessResponse(result, "Delete Skill Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<SkillResponseDto>.FailResponse("Delete SKill Fail",ex.Message);
-            }
+            await _skillRepository.DeleteAsync(skill);
+            return MapToDTO(skill);
         }
 
-        protected Skill MapToEnitity(SkillRequestDto request)
+      
+        protected Skill MapToEntity(SkillRequestDto request)
         {
             return new Skill
             {
                 Text = request.Text,
-                CourseId = request.CourseId,
+                CourseId = request.CourseId
             };
         }
 
         public SkillResponseDto MapToDTO(Skill skill)
         {
+            if (skill == null) return null;
+
             return new SkillResponseDto
             {
                 Id = skill.Id,
                 Text = skill.Text,
-                CourseId = skill.CourseId,
+                CourseId = skill.CourseId
             };
         }
     }

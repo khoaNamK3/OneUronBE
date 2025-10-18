@@ -15,6 +15,6 @@ namespace OneUron.BLL.DTOs.SubjectDTOs
 
         public Guid ScheduleId { get; set; }
 
-        public Guid ProcessId { get; set; }
+        public Guid? ProcessId { get; set; }
     }
 }

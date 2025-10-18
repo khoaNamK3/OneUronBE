@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OneUron.BLL.DTOs.CourseDetailDTOs;
+using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
 
 namespace OneUron.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class CourseDetailController : Controller
+    public class CourseDetailController : ControllerBase
     {
         private readonly ICourseDetailService _courseDetailService;
 
@@ -15,61 +16,39 @@ namespace OneUron.API.Controllers
             _courseDetailService = courseDetailService;
         }
 
-
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAll()
         {
-            var response = await _courseDetailService.GetAllCourseDetailAsync();
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _courseDetailService.GetAllCourseDetailAsync();
+            return Ok(ApiResponse<List<CourseDetailResponseDto>>.SuccessResponse(result, "Get all course details successfully"));
         }
 
         [HttpGet("get-by/{id}")]
-        public async Task<IActionResult> GetByIdAsync(Guid id)
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var response = await _courseDetailService.GetCourseDetailbyIdAsync(id);
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _courseDetailService.GetCourseDetailByIdAsync(id);
+            return Ok(ApiResponse<CourseDetailResponseDto>.SuccessResponse(result, "Get course detail by id successfully"));
         }
 
-        [HttpPost("create-new")]
-        public async Task<IActionResult> CreateNewCourseDetailAsync([FromBody] CourseDetailRequestDto request)
+        [HttpPost("create")]
+        public async Task<IActionResult> Create(CourseDetailRequestDto request)
         {
-            var response = await _courseDetailService.CreateNewCourseDetailAsync(request);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _courseDetailService.CreateNewCourseDetailAsync(request);
+            return Ok(ApiResponse<CourseDetailResponseDto>.SuccessResponse(result, "Create course detail successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> UpdateCourseDetailByIdAsync(Guid id, [FromBody] CourseDetailRequestDto request)
+        public async Task<IActionResult> Update(Guid id, CourseDetailRequestDto request)
         {
-            var response = await _courseDetailService.UpdateCourseDetailByIdAsync(id, request);
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _courseDetailService.UpdateCourseDetailByIdAsync(id, request);
+            return Ok(ApiResponse<CourseDetailResponseDto>.SuccessResponse(result, "Update course detail successfully"));
         }
 
         [HttpDelete("delete-by/{id}")]
-        public async Task<IActionResult> DeleteCourseDetailByIdAsync(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var response = await _courseDetailService.DeleteCourseDetailByIdAsync(id);
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _courseDetailService.DeleteCourseDetailByIdAsync(id);
+            return Ok(ApiResponse<CourseDetailResponseDto>.SuccessResponse(result, "Delete course detail successfully"));
         }
     }
 }

@@ -12,5 +12,7 @@ namespace OneUron.DAL.Repository.StudyMethodRepo
         public  Task<List<StudyMethod>> GetALlAsync();
 
         public  Task<StudyMethod> GetByIdAsync(Guid id);
+
+        public  Task<StudyMethod> GetStudyMethodByUserIdAsync(Guid userId);
     }
 }

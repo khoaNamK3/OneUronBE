@@ -11,17 +11,12 @@ namespace OneUron.BLL.Interface
 {
     public interface IQuestionService
     {
-        public Task<ApiResponse<List<QuestionResponseDto>>> GetAllAsync();
-
-        public Task<ApiResponse<QuestionResponseDto>> GetbyIdAsync(Guid id);
-
-        public  Task<ApiResponse<QuestionResponseDto>> CreateNewQuestionAsync(QuestionRequestDto request);
-
-        public  Task<ApiResponse<QuestionResponseDto>> UpdateQuestionByIdAsync(Guid id, QuestionRequestDto newQuestion);
-
-        public  Task<ApiResponse<QuestionResponseDto>> DeleteQuestionByIdAsync(Guid id);
-
-        public QuestionResponseDto MapToDTO(Question question);
+        Task<List<QuestionResponseDto>> GetAllAsync();
+        Task<QuestionResponseDto> GetByIdAsync(Guid id);
+        Task<QuestionResponseDto> CreateNewQuestionAsync(QuestionRequestDto request);
+        Task<QuestionResponseDto> UpdateQuestionByIdAsync(Guid id, QuestionRequestDto request);
+        Task<QuestionResponseDto> DeleteQuestionByIdAsync(Guid id);
+        QuestionResponseDto MapToDTO(Question question);
 
     }
 }

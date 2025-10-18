@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace OneUron.DAL.Repository.ProcessRepo
 {
-    public class ProcessRepository : GenericRepository<Process> , IProcessRepository
+    public class ProcessRepository : GenericRepository<Process>, IProcessRepository
     {
         public ProcessRepository(AppDbContext context) : base(context)
         {
@@ -22,6 +22,11 @@ namespace OneUron.DAL.Repository.ProcessRepo
         public async Task<Process> GetByIdAsync(Guid id)
         {
             return await _dbSet.Include(p => p.ProcessTasks).Include(p => p.Subjects).FirstOrDefaultAsync(p => p.Id == id);
+        }
+
+        public async Task<List<Process>> GetProcessesByScheduleId(Guid scheduleId)
+        {
+            return await _dbSet.Include(p => p.ProcessTasks).Include(p => p.Subjects).Where(p => p.ScheduleId == scheduleId).ToListAsync();
         }
 
     }

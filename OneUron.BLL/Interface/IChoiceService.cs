@@ -11,15 +11,11 @@ namespace OneUron.BLL.Interface
 {
     public interface IChoiceService
     {
-        public Task<ApiResponse<List<ChoiceResponseDto>>> GetAllAsync();
-
-        public Task<ApiResponse<ChoiceResponseDto>> GetByIdAsync(Guid id);
-
-        public  Task<ApiResponse<ChoiceResponseDto>> CreateNewChoiceAsync(ChoiceRequestDto request);
-
-        public  Task<ApiResponse<ChoiceResponseDto>> UpdateChoiceByIdAsync(Guid id, ChoiceRequestDto newChoice);
-
-        public  Task<ApiResponse<ChoiceResponseDto>> DeleteChoiceByIdAsync(Guid id);
+        Task<List<ChoiceResponseDto>> GetAllAsync();
+        Task<ChoiceResponseDto> GetByIdAsync(Guid id);
+        Task<ChoiceResponseDto> CreateNewChoiceAsync(ChoiceRequestDto request);
+        Task<ChoiceResponseDto> UpdateChoiceByIdAsync(Guid id, ChoiceRequestDto newChoice);
+        Task<ChoiceResponseDto> DeleteChoiceByIdAsync(Guid id);
 
         public ChoiceResponseDto MapToDTO(Choice choice);
     }

@@ -11,15 +11,11 @@ namespace OneUron.BLL.Interface
 {
     public interface ISkillService
     {
-        public Task<ApiResponse<List<SkillResponseDto>>> GetAllAsync();
-
-        public Task<ApiResponse<SkillResponseDto>> GetByIdAsync(Guid id);
-
-        public  Task<ApiResponse<SkillResponseDto>> CreateNewSkillAsync(SkillRequestDto request);
-
-        public  Task<ApiResponse<SkillResponseDto>> UpdateSkillByIdAsync(Guid id, SkillRequestDto newSkill);
-
-        public  Task<ApiResponse<SkillResponseDto>> DeleteSkillByIdAsync(Guid id);
+        Task<List<SkillResponseDto>> GetAllAsync();
+        Task<SkillResponseDto> GetByIdAsync(Guid id);
+        Task<SkillResponseDto> CreateNewSkillAsync(SkillRequestDto request);
+        Task<SkillResponseDto> UpdateSkillByIdAsync(Guid id, SkillRequestDto request);
+        Task<SkillResponseDto> DeleteSkillByIdAsync(Guid id);
 
         public SkillResponseDto MapToDTO(Skill skill);
     }

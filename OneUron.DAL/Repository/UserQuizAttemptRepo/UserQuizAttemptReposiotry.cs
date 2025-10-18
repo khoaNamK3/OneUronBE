@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace OneUron.DAL.Repository.UserQuizAttemptRepo
 {
-    public class UserQuizAttemptReposiotry : GenericRepository<UserQuizAttempt> , IUserQuizAttemptReposiotry
+    public class UserQuizAttemptReposiotry : GenericRepository<UserQuizAttempt>, IUserQuizAttemptReposiotry
     {
         public UserQuizAttemptReposiotry(AppDbContext context) : base(context)
         {
@@ -24,5 +24,9 @@ namespace OneUron.DAL.Repository.UserQuizAttemptRepo
             return await _dbSet.Include(ua => ua.Answers).FirstOrDefaultAsync(a => a.Id == id);
         }
 
+        public async Task<List<UserQuizAttempt>> GetAllUserQuizAttemptByQuizIdAsync(Guid quizId)
+        {
+            return await _dbSet.Where(q => q.QuizId == quizId).ToListAsync();
+        }
     }
 }

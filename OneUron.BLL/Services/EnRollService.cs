@@ -1,4 +1,6 @@
-﻿using OneUron.BLL.DTOs.EnRollDTOs;
+﻿using FluentValidation;
+using OneUron.BLL.DTOs.CourseDetailDTOs;
+using OneUron.BLL.DTOs.EnRollDTOs;
 using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
@@ -13,152 +15,109 @@ namespace OneUron.BLL.Services
 {
     public class EnRollService : IEnRollService
     {
-        public readonly IEnRollRepository _enRollRepository;
+        private readonly IEnRollRepository _enRollRepository;
+        private readonly IValidator<EnRollRequestDto> _enRollRequestValidator;
 
-
-        public EnRollService(IEnRollRepository enRollRepository)
+        public EnRollService(IEnRollRepository enRollRepository, IValidator<EnRollRequestDto> enRollRequestValidator)
         {
             _enRollRepository = enRollRepository;
+            _enRollRequestValidator = enRollRequestValidator;
         }
 
-        public async Task<ApiResponse<List<EnRollResponseDto>>> GetAllEnRollAsync()
+       
+        public async Task<List<EnRollResponseDto>> GetAllEnRollAsync()
         {
-            try
-            {
-                var enRolls = await _enRollRepository.GetAllEnRollAsync();
+            var enRolls = await _enRollRepository.GetAllEnRollAsync();
 
-                if (!enRolls.Any())
-                {
-                    return ApiResponse<List<EnRollResponseDto>>.FailResponse("Get All Fail", "Enroll Are Empty");
-                }
+            if (enRolls == null || !enRolls.Any())
+                throw new ApiException.NotFoundException("No EnRoll records found.");
 
-                var result = enRolls.Select(MapToDto).ToList();
-
-                return ApiResponse<List<EnRollResponseDto>>.SuccessResponse(result, "Get All Successfully");
-
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<EnRollResponseDto>>.FailResponse("Get All Fail", ex.Message);
-            }
+            return enRolls.Select(MapToDto).ToList();
         }
 
-        public async Task<ApiResponse<EnRollResponseDto>> GetEnRollByIdAsync(Guid id)
+       
+        public async Task<EnRollResponseDto> GetEnRollByIdAsync(Guid id)
         {
-            try
-            {
-                var exitEnRoll = await _enRollRepository.GetEnRollByIdAsync(id);
+            var existEnRoll = await _enRollRepository.GetEnRollByIdAsync(id);
+            if (existEnRoll == null)
+                throw new ApiException.NotFoundException($"EnRoll with ID {id} not found.");
 
-                if (exitEnRoll == null)
-                {
-                    return ApiResponse<EnRollResponseDto>.FailResponse("Get By Id Fail", "EnRoll Are Not Exists");
-                }
-
-                var result = MapToDto(exitEnRoll);
-
-                return ApiResponse<EnRollResponseDto>.SuccessResponse(result, "Get By Id Successfully");
-
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<EnRollResponseDto>.FailResponse("Get By Id Fail", ex.Message);
-            }
+            return MapToDto(existEnRoll);
         }
 
-        public async Task<ApiResponse<EnRollResponseDto>> CreateNewEnRollAsync(EnRollRequestDto request)
+        
+        public async Task<EnRollResponseDto> CreateNewEnRollAsync(EnRollRequestDto request)
         {
-            try
-            {
-                if (request == null)
-                {
-                    return ApiResponse<EnRollResponseDto>.FailResponse("Create New EnRoll Fail", "EnRoll Are Null");
-                }
+            if (request == null)
+                throw new ApiException.BadRequestException("EnRoll request cannot be null.");
 
-                var newEnRoll = MaptoEnity(request);
+            var validationResult = await _enRollRequestValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                await _enRollRepository.AddAsync(newEnRoll);
+            var newEnRoll = MapToEntity(request);
 
-                var result = MapToDto(newEnRoll);
+            await _enRollRepository.AddAsync(newEnRoll);
 
-                return ApiResponse<EnRollResponseDto>.SuccessResponse(result, "Create New EnRoll Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<EnRollResponseDto>.FailResponse("Create New EnRoll fail", ex.Message);
-            }
+            return MapToDto(newEnRoll);
         }
 
-        public async Task<ApiResponse<EnRollResponseDto>> UpdateEnRollByIdAsync(Guid id, EnRollRequestDto enRollRequestDto)
+       
+        public async Task<EnRollResponseDto> UpdateEnRollByIdAsync(Guid id, EnRollRequestDto enRollRequestDto)
         {
-            try
-            {
-                var existEnRoll = await _enRollRepository.GetEnRollByIdAsync(id);
+            var existEnRoll = await _enRollRepository.GetEnRollByIdAsync(id);
+            if (existEnRoll == null)
+                throw new ApiException.NotFoundException($"EnRoll with ID {id} not found.");
 
-                if (existEnRoll == null)
-                {
-                    return ApiResponse<EnRollResponseDto>.FailResponse("Update EnRoll Fail", "EnRoll Are Not Exists");
-                }
+            if (enRollRequestDto == null)
+                throw new ApiException.BadRequestException("EnRoll update data cannot be null.");
 
-                if (enRollRequestDto == null)
-                {
-                    return ApiResponse<EnRollResponseDto>.FailResponse("Update EnRoll Fail", "EnRoll Are Empty");
-                }
+            var validationResult = await _enRollRequestValidator.ValidateAsync(enRollRequestDto);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                existEnRoll.UserId = enRollRequestDto.UserId;
-                existEnRoll.ResourceId = enRollRequestDto.ResourceId;
-                existEnRoll.EnrollDate = enRollRequestDto.EnrollDate;
+            existEnRoll.UserId = enRollRequestDto.UserId;
+            existEnRoll.ResourceId = enRollRequestDto.ResourceId;
+            existEnRoll.EnrollDate = enRollRequestDto.EnrollDate;
 
-                await _enRollRepository.UpdateAsync(existEnRoll);
+            await _enRollRepository.UpdateAsync(existEnRoll);
 
-                var result = MapToDto(existEnRoll);
-                return ApiResponse<EnRollResponseDto>.SuccessResponse(result, "Update EnRoll Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<EnRollResponseDto>.FailResponse("Update EnRoll Fail", ex.Message);
-            }
+            return MapToDto(existEnRoll);
         }
 
-        public async Task<ApiResponse<EnRollResponseDto>> DeleteEnRollByIdAsync(Guid id)
+        
+        public async Task<EnRollResponseDto> DeleteEnRollByIdAsync(Guid id)
         {
-            try
-            {
-                var exitEnRoll = await _enRollRepository.GetEnRollByIdAsync(id);
-                if (exitEnRoll == null)
-                {
-                    return ApiResponse<EnRollResponseDto>.FailResponse("Delete EnRoll Fail", "EnRoll Are Not Exists");
-                }
-                var result = MapToDto(exitEnRoll);
+            var existEnRoll = await _enRollRepository.GetEnRollByIdAsync(id);
+            if (existEnRoll == null)
+                throw new ApiException.NotFoundException($"EnRoll with ID {id} not found.");
 
-                await _enRollRepository.DeleteAsync(exitEnRoll);
+            await _enRollRepository.DeleteAsync(existEnRoll);
 
-                return ApiResponse<EnRollResponseDto>.SuccessResponse(result, "Delete EnRoll Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<EnRollResponseDto>.FailResponse("Delete EnRoll Fail", ex.Message);
-            }
+            return MapToDto(existEnRoll);
         }
 
-
-        protected EnRollResponseDto MapToDto(EnRoll enRoll)
+        
+        public EnRollResponseDto MapToDto(EnRoll enRoll)
         {
+            if (enRoll == null) return null;
+
             return new EnRollResponseDto
             {
                 Id = enRoll.Id,
                 UserId = enRoll.UserId,
                 ResourceId = enRoll.ResourceId,
-                EnrollDate = enRoll.EnrollDate,
+                EnrollDate = enRoll.EnrollDate
             };
         }
 
-        protected EnRoll MaptoEnity(EnRollRequestDto newEnRoll)
+        protected EnRoll MapToEntity(EnRollRequestDto newEnRoll)
         {
             return new EnRoll
             {
                 UserId = newEnRoll.UserId,
                 ResourceId = newEnRoll.ResourceId,
-                EnrollDate = newEnRoll.EnrollDate,
+                EnrollDate = newEnRoll.EnrollDate
             };
         }
     }

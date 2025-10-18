@@ -11,16 +11,11 @@ namespace OneUron.BLL.Interface
 {
     public interface ITechniqueService
     {
-        public Task<ApiResponse<List<TechniqueResponseDto>>> GetAllAsync();
-
-        public Task<ApiResponse<TechniqueResponseDto>> GetByIdAsync(Guid id);
-
-        public  Task<ApiResponse<TechniqueResponseDto>> CreateNewTechiqueAsync(TechniqueRequestDto request);
-
-        public  Task<ApiResponse<TechniqueResponseDto>> UpdateTechniqueByIdAsync(Guid id, TechniqueRequestDto newTechnique);
-
-        public  Task<ApiResponse<TechniqueResponseDto>> DeleteTechniqueByidAsync(Guid id);
-
-        public TechniqueResponseDto MapToDTO(Technique technique);
+        Task<List<TechniqueResponseDto>> GetAllAsync();
+        Task<TechniqueResponseDto> GetByIdAsync(Guid id);
+        Task<TechniqueResponseDto> CreateAsync(TechniqueRequestDto request);
+        Task<TechniqueResponseDto> UpdateByIdAsync(Guid id, TechniqueRequestDto request);
+        Task<TechniqueResponseDto> DeleteByIdAsync(Guid id);
+        TechniqueResponseDto MapToDTO(Technique technique);
     }
 }

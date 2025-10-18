@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OneUron.BLL.DTOs.AnswerDTOs;
+using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
 
 namespace OneUron.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AnswerController : Controller
+    public class AnswerController : ControllerBase
     {
         private readonly IAnswerService _answerService;
 
@@ -16,63 +17,38 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAll()
         {
-            var response = await _answerService.GetAllAnswerAsync();
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _answerService.GetAllAnswerAsync();
+            return Ok(ApiResponse<List<AnswerResponseDto>>.SuccessResponse(result, "Get all answers successfully"));
         }
 
         [HttpGet("get-by/{id}")]
-        public async Task<IActionResult> GetByIdAsync(Guid id)
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var respone = await _answerService.GetAnswerByIdAsyc(id);
-
-            if (!respone.Success)
-            {
-                return NotFound(respone);
-            }
-            return Ok(respone);
+            var result = await _answerService.GetAnswerByIdAsync(id);
+            return Ok(ApiResponse<AnswerResponseDto>.SuccessResponse(result, "Get answer by id successfully"));
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateAnswerAsync([FromBody] AnswerRequestDto request)
+        public async Task<IActionResult> Create(AnswerRequestDto request)
         {
-            var response = await _answerService.CreateNewAnswerAsync(request);
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _answerService.CreateNewAnswerAsync(request);
+            return Ok(ApiResponse<AnswerResponseDto>.SuccessResponse(result, "Create answer successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> UpdateAnswerByIdAsync(Guid id, [FromBody] AnswerRequestDto request)
+        public async Task<IActionResult> Update(Guid id, AnswerRequestDto request)
         {
-            var respone = await _answerService.UpdateAnswerByIdAsync(id, request);
-
-            if (!respone.Success)
-            {
-                return BadRequest(respone);
-            }
-            return Ok(respone);
+            var result = await _answerService.UpdateAnswerByIdAsync(id, request);
+            return Ok(ApiResponse<AnswerResponseDto>.SuccessResponse(result, "Update answer successfully"));
         }
 
         [HttpDelete("delete-by/{id}")]
-        public async Task<IActionResult> DeleteAnswerByIdAsync(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var response = await _answerService.DeleteAnswerByIdAsync(id);
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _answerService.DeleteAnswerByIdAsync(id);
+            return Ok(ApiResponse<AnswerResponseDto>.SuccessResponse(result, "Delete answer successfully"));
         }
-
     }
 }

@@ -1,5 +1,8 @@
-﻿using OneUron.BLL.DTOs.QuestionChoiceDTOs;
+﻿using FluentValidation;
+using OneUron.BLL.DTOs.ProcessTaskTDOs;
+using OneUron.BLL.DTOs.QuestionChoiceDTOs;
 using OneUron.BLL.ExceptionHandle;
+using OneUron.BLL.FluentValidation;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository.QuestionChoiceRepo;
@@ -14,149 +17,106 @@ namespace OneUron.BLL.Services
     public class QuestionChoiceService : IQuestionChoiceService
     {
         private readonly IQuestionChoiceRepository _questionChoiceRepository;
+        private readonly IValidator<QuestionChoiceRequestDto> _questionChoiceValidator;
 
-
-        public QuestionChoiceService(IQuestionChoiceRepository questionChoiceRepository)
+        public QuestionChoiceService(
+            IQuestionChoiceRepository questionChoiceRepository,
+            IValidator<QuestionChoiceRequestDto> questionChoiceValidator)
         {
             _questionChoiceRepository = questionChoiceRepository;
+            _questionChoiceValidator = questionChoiceValidator;
         }
 
-        public async Task<ApiResponse<List<QuestionChoiceReponseDto>>> GetAllQuestionChoiceAsync()
+     
+        public async Task<List<QuestionChoiceReponseDto>> GetAllQuestionChoiceAsync()
         {
-            try
-            {
-                var questionChoices = await _questionChoiceRepository.GetAllQuestionChoiceAsync();
+            var questionChoices = await _questionChoiceRepository.GetAllQuestionChoiceAsync();
 
-                if (!questionChoices.Any())
-                {
-                    return ApiResponse<List<QuestionChoiceReponseDto>>.FailResponse("Get All QuestionChoice Fail", "QuestionChoice are empty");
-                }
+            if (questionChoices == null || !questionChoices.Any())
+                throw new ApiException.NotFoundException("No QuestionChoices found.");
 
-                var result = questionChoices.Select(MapToDTO).ToList();
-
-                return ApiResponse<List<QuestionChoiceReponseDto>>.SuccessResponse(result, "Get All QuestionChoice Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<QuestionChoiceReponseDto>>.FailResponse("Get All QuestionChoice Fail", ex.Message);
-            }
+            return questionChoices.Select(MapToDTO).ToList();
         }
 
-        public async Task<ApiResponse<QuestionChoiceReponseDto>> GetQuestionChoiceByIdAsync(Guid id)
+        
+        public async Task<QuestionChoiceReponseDto> GetQuestionChoiceByIdAsync(Guid id)
         {
-            try
-            {
-                var existQuestionChoice = await _questionChoiceRepository.GetQuestionChoiceByIdAsync(id);
+            var existQuestionChoice = await _questionChoiceRepository.GetQuestionChoiceByIdAsync(id);
+            if (existQuestionChoice == null)
+                throw new ApiException.NotFoundException($"QuestionChoice with ID {id} not found.");
 
-                if (existQuestionChoice == null)
-                {
-                    return ApiResponse<QuestionChoiceReponseDto>.FailResponse("Get QuestionChoice By Id Fail", "QuestionChoice are not exist");
-                }
-                var result = MapToDTO(existQuestionChoice);
-
-                return ApiResponse<QuestionChoiceReponseDto>.SuccessResponse(result, "Get QuestionChoice By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<QuestionChoiceReponseDto>.FailResponse("Get QuestionChoice By Id Fail", ex.Message);
-            }
+            return MapToDTO(existQuestionChoice);
         }
 
-        public async Task<ApiResponse<QuestionChoiceReponseDto>> CreateNewQuestionChoiceAsync(QuestionChoiceRequestDto request)
+       
+        public async Task<QuestionChoiceReponseDto> CreateNewQuestionChoiceAsync(QuestionChoiceRequestDto request)
         {
-            try
-            {
-                if (request == null)
-                {
-                    return ApiResponse<QuestionChoiceReponseDto>.FailResponse("Create new QuestionChoice Fail", "QuestionChoice is null");
-                }
+            if (request == null)
+                throw new ApiException.BadRequestException("QuestionChoice request cannot be null.");
 
-                var newQuestionChoice = MapToEntity(request);
+            var validationResult = await _questionChoiceValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                await _questionChoiceRepository.AddAsync(newQuestionChoice);
+            var newQuestionChoice = MapToEntity(request);
+            await _questionChoiceRepository.AddAsync(newQuestionChoice);
 
-                var result = MapToDTO(newQuestionChoice);
-
-                return ApiResponse<QuestionChoiceReponseDto>.SuccessResponse(result, "Create New QuestionChoice Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<QuestionChoiceReponseDto>.FailResponse("Create new QuestionChoice Fail", ex.Message);
-            }
+            return MapToDTO(newQuestionChoice);
         }
 
-        public async Task<ApiResponse<QuestionChoiceReponseDto>> UpdateQuestionChoiceByIdAsync(Guid id, QuestionChoiceRequestDto newQuestionChoice)
+       
+        public async Task<QuestionChoiceReponseDto> UpdateQuestionChoiceByIdAsync(Guid id, QuestionChoiceRequestDto newQuestionChoice)
         {
-            try
-            {
-                var existQuestionChoice = await _questionChoiceRepository.GetQuestionChoiceByIdAsync(id);
-                if (existQuestionChoice == null)
-                {
-                    return ApiResponse<QuestionChoiceReponseDto>.FailResponse("Update QuestionChoice By Id Fail", "QuestionChoice are not exist");
-                }
+            var existQuestionChoice = await _questionChoiceRepository.GetQuestionChoiceByIdAsync(id);
+            if (existQuestionChoice == null)
+                throw new ApiException.NotFoundException($"QuestionChoice with ID {id} not found.");
 
-                if (newQuestionChoice == null)
-                {
-                    return ApiResponse<QuestionChoiceReponseDto>.FailResponse("Update QuestionChoice By Id Fail", "New QuestionChoice are null");
-                }
+            if (newQuestionChoice == null)
+                throw new ApiException.BadRequestException("New QuestionChoice data cannot be null.");
 
-                existQuestionChoice.Name = newQuestionChoice.Name;
-                existQuestionChoice.IsCorrect = newQuestionChoice.IsCorrect;
-                existQuestionChoice.QuestionId = newQuestionChoice.QuestionId;
+            var validationResult = await _questionChoiceValidator.ValidateAsync(newQuestionChoice);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                await _questionChoiceRepository.UpdateAsync(existQuestionChoice);
+            existQuestionChoice.Name = newQuestionChoice.Name;
+            existQuestionChoice.IsCorrect = newQuestionChoice.IsCorrect;
+            existQuestionChoice.QuestionId = newQuestionChoice.QuestionId;
 
-                var result = MapToDTO(existQuestionChoice);
+            await _questionChoiceRepository.UpdateAsync(existQuestionChoice);
 
-                return ApiResponse<QuestionChoiceReponseDto>.SuccessResponse(result, "Update QuestionChoice By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<QuestionChoiceReponseDto>.FailResponse("Update QuestionChoice By Id Fail", ex.Message);
-            }
+            return MapToDTO(existQuestionChoice);
         }
 
-
-        public async Task<ApiResponse<QuestionChoiceReponseDto>> DeleteQuestionChoiceByIdAsync(Guid id)
+      
+        public async Task<QuestionChoiceReponseDto> DeleteQuestionChoiceByIdAsync(Guid id)
         {
-            try
-            {
-                var existQuestionChoice = await _questionChoiceRepository.GetQuestionChoiceByIdAsync(id);
-                if (existQuestionChoice == null)
-                {
-                    return ApiResponse<QuestionChoiceReponseDto>.FailResponse("Delete QuestionChoice By Id Fail", "QuestionChoice are not exist");
-                }
+            var existQuestionChoice = await _questionChoiceRepository.GetQuestionChoiceByIdAsync(id);
+            if (existQuestionChoice == null)
+                throw new ApiException.NotFoundException($"QuestionChoice with ID {id} not found.");
 
-                var result = MapToDTO(existQuestionChoice);
-
-                await _questionChoiceRepository.DeleteAsync(existQuestionChoice);
-
-                return ApiResponse<QuestionChoiceReponseDto>.SuccessResponse(result, "Delete QuestionChoice By Id Successfully");
-
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<QuestionChoiceReponseDto>.FailResponse("Delete QuestionChoice By Id Fail",ex.Message);
-            }
+            await _questionChoiceRepository.DeleteAsync(existQuestionChoice);
+            return MapToDTO(existQuestionChoice);
         }
 
-        public QuestionChoice MapToEntity(QuestionChoiceRequestDto requestDto)
+        public QuestionChoiceReponseDto MapToDTO(QuestionChoice entity)
         {
-            return new QuestionChoice
+            if (entity == null) return null;
+
+            return new QuestionChoiceReponseDto
             {
-                Name = requestDto.Name,
-                IsCorrect = requestDto.IsCorrect,
-                QuestionId = requestDto.QuestionId,
+                Id = entity.Id,
+                Name = entity.Name,
+                IsCorrect = entity.IsCorrect,
             };
         }
 
-        public QuestionChoiceReponseDto MapToDTO(QuestionChoice question)
+        protected QuestionChoice MapToEntity(QuestionChoiceRequestDto request)
         {
-            return new QuestionChoiceReponseDto
+            return new QuestionChoice
             {
-                Id = question.Id,
-                Name = question.Name,
-                IsCorrect = question.IsCorrect,
+                Name = request.Name,
+                IsCorrect = request.IsCorrect,
+                QuestionId = request.QuestionId
             };
         }
     }

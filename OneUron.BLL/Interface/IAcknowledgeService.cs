@@ -11,15 +11,11 @@ namespace OneUron.BLL.Interface
 {
     public interface IAcknowledgeService
     {
-        public Task<ApiResponse<List<AcknowledgeResponseDto>>> GetAllAcknowledgeAsync();
-
-        public Task<ApiResponse<AcknowledgeResponseDto>> GetAcknowledgeByIdAsync(Guid id);
-
-        public  Task<ApiResponse<AcknowledgeResponseDto>> CreateNewAcknowledgeAsync(AcknowledgeRequestDto request);
-
-        public  Task<ApiResponse<AcknowledgeResponseDto>> UpdateAcknowLedgeByIdAsync(Guid id, AcknowledgeRequestDto newAcknowLedge);
-
-        public  Task<ApiResponse<AcknowledgeResponseDto>> DeleteAcknowledgeByIdAsync(Guid id);
+        Task<List<AcknowledgeResponseDto>> GetAllAcknowledgeAsync();
+        Task<AcknowledgeResponseDto> GetAcknowledgeByIdAsync(Guid id);
+        Task<AcknowledgeResponseDto> CreateNewAcknowledgeAsync(AcknowledgeRequestDto request);
+        Task<AcknowledgeResponseDto> UpdateAcknowLedgeByIdAsync(Guid id, AcknowledgeRequestDto newAcknowLedge);
+        Task<AcknowledgeResponseDto> DeleteAcknowledgeByIdAsync(Guid id);
         public AcknowledgeResponseDto MapToDTO(Acknowledge acknowledge);
     }
 }

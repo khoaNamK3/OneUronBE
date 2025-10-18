@@ -22,6 +22,8 @@ namespace OneUron.DAL.Data.Entity
 
         public Guid MemberShipPlanId { get; set; }
 
+        public long OrderCode { get; set; }
+
         public virtual MemberShipPlan MemberShipPlan { get; set; }
     }
 

@@ -11,16 +11,11 @@ namespace OneUron.BLL.Interface
 {
     public interface IMethodSerivce
     {
-        public Task<ApiResponse<List<MethodResponseDto>>> GetAllAsync();
-
-        public Task<ApiResponse<MethodResponseDto>> GetByIdAsync(Guid id);
-
-        public  Task<ApiResponse<MethodResponseDto>> CreateNewMethodAsync(MethodRequestDto request);
-
-        public  Task<ApiResponse<MethodResponseDto>> UpdateMethodByIdAsync(Guid id, MethodRequestDto newMethod);
-
-        public  Task<ApiResponse<MethodResponseDto>> DeleteMethodByIdAsync(Guid id);
-
-        public  Task<ApiResponse<List<MethodSuggestionRespone>>> GetTop3MetodForUserAsync(Guid userId);
+        Task<List<MethodResponseDto>> GetAllAsync();
+        Task<MethodResponseDto> GetByIdAsync(Guid id);
+        Task<MethodResponseDto> CreateNewMethodAsync(MethodRequestDto request);
+        Task<MethodResponseDto> UpdateMethodByIdAsync(Guid id, MethodRequestDto newMethod);
+        Task<MethodResponseDto> DeleteMethodByIdAsync(Guid id);
+        Task<List<MethodSuggestionRespone>> GetTop3MethodForUserAsync(Guid userId);
     }
 }

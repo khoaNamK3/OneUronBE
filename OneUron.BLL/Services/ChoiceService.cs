@@ -1,7 +1,10 @@
-﻿using OneUron.BLL.DTOs.ChoiceDTOs;
+﻿using FluentValidation;
+using OneUron.BLL.DTOs.AnswerDTOs;
+using OneUron.BLL.DTOs.ChoiceDTOs;
 using OneUron.BLL.DTOs.MethodRuleConditionDTOs;
 using OneUron.BLL.DTOs.UserAnswerDTOs;
 using OneUron.BLL.ExceptionHandle;
+using OneUron.BLL.FluentValidation;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository.ChoiceRepo;
@@ -16,135 +19,93 @@ namespace OneUron.BLL.Services
     public class ChoiceService : IChoiceService
     {
         private readonly IChoiceRepository _choiceRepository;
-
         private readonly IUserAnswerService _userAnswerService;
-
         private readonly IMethodRuleConditionService _methodRuleConditionService;
-        public ChoiceService(IChoiceRepository choiceRepository, IUserAnswerService userAnswerService, IMethodRuleConditionService methodRuleConditionService)
+        private readonly IValidator<ChoiceRequestDto> _choiceRequestValidator;
+
+        public ChoiceService(
+            IChoiceRepository choiceRepository,
+            IUserAnswerService userAnswerService,
+            IMethodRuleConditionService methodRuleConditionService,
+            IValidator<ChoiceRequestDto> choiceRequestValidator)
         {
             _choiceRepository = choiceRepository;
             _userAnswerService = userAnswerService;
             _methodRuleConditionService = methodRuleConditionService;
+            _choiceRequestValidator = choiceRequestValidator;
         }
 
-        public async Task<ApiResponse<List<ChoiceResponseDto>>> GetAllAsync()
+   
+        public async Task<List<ChoiceResponseDto>> GetAllAsync()
         {
-            try
-            {
-                var existChoices = await _choiceRepository.GetAllAsync();
+            var existChoices = await _choiceRepository.GetAllAsync();
 
-                if (!existChoices.Any())
-                {
-                    return ApiResponse<List<ChoiceResponseDto>>.FailResponse("Get All Choice Fail", "Choice Are Empty");
-                }
+            if (existChoices == null || !existChoices.Any())
+                throw new ApiException.NotFoundException("No choices found.");
 
-                var result = existChoices.Select(MapToDTO).ToList();
-
-                return ApiResponse<List<ChoiceResponseDto>>.SuccessResponse(result, "Get All Choice Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<ChoiceResponseDto>>.FailResponse("Get All Choice Fail", ex.Message);
-            }
-
+            return existChoices.Select(MapToDTO).ToList();
         }
 
-        public async Task<ApiResponse<ChoiceResponseDto>> GetByIdAsync(Guid id)
+
+        public async Task<ChoiceResponseDto> GetByIdAsync(Guid id)
         {
-            try
-            {
-                var existChoice = await _choiceRepository.GetByIdAsync(id);
+            var existChoice = await _choiceRepository.GetByIdAsync(id);
+            if (existChoice == null)
+                throw new ApiException.NotFoundException($"Choice with ID {id} not found.");
 
-                if (existChoice == null)
-                {
-                    return ApiResponse<ChoiceResponseDto>.FailResponse("Get Choice By Id Fail", "Choice is Not Exist");
-                }
-                var result = MapToDTO(existChoice);
-
-                return ApiResponse<ChoiceResponseDto>.SuccessResponse(result, "Get Choice By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ChoiceResponseDto>.FailResponse("Get Choice By Id Fail", ex.Message);
-            }
+            return MapToDTO(existChoice);
         }
 
-        public async Task<ApiResponse<ChoiceResponseDto>> CreateNewChoiceAsync(ChoiceRequestDto request)
+
+        public async Task<ChoiceResponseDto> CreateNewChoiceAsync(ChoiceRequestDto request)
         {
-            try
-            {
-                if (request == null)
-                {
-                    return ApiResponse<ChoiceResponseDto>.FailResponse("Create New Choice Fail", "New Choice is null");
-                }
+            if (request == null)
+                throw new ApiException.BadRequestException("Choice request cannot be null.");
 
-                var newChoice = MapToEntityDTO(request);
+            var validationResult = await _choiceRequestValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                await _choiceRepository.AddAsync(newChoice);
+            var newChoice = MapToEntityDTO(request);
 
-                var result = MapToDTO(newChoice);
+            await _choiceRepository.AddAsync(newChoice);
 
-                return ApiResponse<ChoiceResponseDto>.SuccessResponse(result, "Create New Choice Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ChoiceResponseDto>.FailResponse("Create New Choice Fail", ex.Message);
-            }
+            return MapToDTO(newChoice);
         }
 
-        public async Task<ApiResponse<ChoiceResponseDto>> UpdateChoiceByIdAsync(Guid id, ChoiceRequestDto newChoice)
+
+        public async Task<ChoiceResponseDto> UpdateChoiceByIdAsync(Guid id, ChoiceRequestDto newChoice)
         {
-            try
-            {
-                var existChoice = await _choiceRepository.GetByIdAsync(id);
+            var existChoice = await _choiceRepository.GetByIdAsync(id);
+            if (existChoice == null)
+                throw new ApiException.NotFoundException($"Choice with ID {id} not found.");
 
-                if (existChoice == null)
-                {
-                    return ApiResponse<ChoiceResponseDto>.FailResponse("Update Choice By Id Fail", "Choice is Not Exist");
-                }
+            if (newChoice == null)
+                throw new ApiException.BadRequestException("New choice data cannot be null.");
 
-                if (newChoice == null)
-                {
-                    return ApiResponse<ChoiceResponseDto>.FailResponse("Update Choice By Id Fail", "New Choice is Null");
-                }
+            var validationResult = await _choiceRequestValidator.ValidateAsync(newChoice);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                existChoice.Description = newChoice.Description;
-                existChoice.EvaluationQuestionId = newChoice.EvaluationQuestionId;
-                existChoice.Title = newChoice.Title;
+            existChoice.Description = newChoice.Description;
+            existChoice.EvaluationQuestionId = newChoice.EvaluationQuestionId;
+            existChoice.Title = newChoice.Title;
 
-                await _choiceRepository.UpdateAsync(existChoice);
+            await _choiceRepository.UpdateAsync(existChoice);
 
-                var result = MapToDTO(existChoice);
-
-                return ApiResponse<ChoiceResponseDto>.SuccessResponse(result, "Update Choice By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ChoiceResponseDto>.FailResponse("Update Choice By Id Fail", ex.Message);
-            }
+            return MapToDTO(existChoice);
         }
 
-        public async Task<ApiResponse<ChoiceResponseDto>> DeleteChoiceByIdAsync(Guid id)
+
+        public async Task<ChoiceResponseDto> DeleteChoiceByIdAsync(Guid id)
         {
-            try
-            {
-                var existChoice = await _choiceRepository.GetByIdAsync(id);
+            var existChoice = await _choiceRepository.GetByIdAsync(id);
+            if (existChoice == null)
+                throw new ApiException.NotFoundException($"Choice with ID {id} not found.");
 
-                if (existChoice == null)
-                {
-                    return ApiResponse<ChoiceResponseDto>.FailResponse("Delete Choice By Id Fail", "Choice is Not Exist");
-                }
+            await _choiceRepository.DeleteAsync(existChoice);
 
-                var result = MapToDTO(existChoice);
-
-                await _choiceRepository.DeleteAsync(existChoice);
-
-                return ApiResponse<ChoiceResponseDto>.SuccessResponse(result, "Delete Choice Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ChoiceResponseDto>.FailResponse("Delete Choice By Id Fail",ex.Message);
-            }
+            return MapToDTO(existChoice);
         }
 
 
@@ -158,7 +119,6 @@ namespace OneUron.BLL.Services
             };
         }
 
-
         public ChoiceResponseDto MapToDTO(Choice choice)
         {
             if (choice == null) return null;
@@ -169,16 +129,15 @@ namespace OneUron.BLL.Services
                 Description = choice.Description,
                 EvaluationQuestionId = choice.EvaluationQuestionId,
                 Title = choice.Title,
-
-                //UserAnswers = choice.UserAnswers?
-                //    .Select(c => _userAnswerService.MaptoDTO(c))
-                //    .ToList() ?? new List<UserAnswerResponseDto>(),
-
-                //MethodRuleConditions = choice.MethodRuleConditions?
-                //    .Select(c => _methodRuleConditionService.MapToDTO(c))
-                //    .ToList() ?? new List<MethodRuleConditionResponseDto>()
+             
+                // UserAnswers = choice.UserAnswers?
+                //     .Select(c => _userAnswerService.MaptoDTO(c))
+                //     .ToList() ?? new List<UserAnswerResponseDto>(),
+                //
+                // MethodRuleConditions = choice.MethodRuleConditions?
+                //     .Select(c => _methodRuleConditionService.MapToDTO(c))
+                //     .ToList() ?? new List<MethodRuleConditionResponseDto>()
             };
         }
-
     }
 }

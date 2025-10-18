@@ -1,4 +1,5 @@
-﻿using OneUron.BLL.DTOs.QuizDTOs;
+﻿using OneUron.BLL.DTOs.ProcessTaskTDOs;
+using OneUron.BLL.DTOs.QuizDTOs;
 using OneUron.BLL.DTOs.ScheduleDTOs;
 using OneUron.BLL.ExceptionHandle;
 using System;
@@ -11,8 +12,11 @@ namespace OneUron.BLL.Interface
 {
     public interface IGeminiService
     {
-        public  Task<ApiResponse<QuizResponseDto>> GenerateQuestionByQuizIdAsync(QuizRequestDto newQuiz);
+        Task<QuizResponseDto> GenerateQuestionsByQuizAsync(QuizRequestDto quiz);
+        //Task<ScheduleResponeDto> CreateTasksForScheduleAsync(Guid studyMethodId, ScheduleRequestDto schedule);
 
-        public  Task<ApiResponse<ScheduleResponeDto>> CreateTaskForScheduleFollowStudyMethodIdAsync(Guid studyMethodId, ScheduleRequestDto newSchedule);
+        public Task<ScheduleResponeDto> CreateScheduleWithListSubjectAsync(ScheduleSubjectRequestDto scheduleSubject, Guid userId);
+
+        public Task<ScheduleResponeDto> CreatProcessTaskForProcessAsync(Guid scheduleId, Guid userId, ProcessTaskGenerateRequest taskGenerateRequest);
     }
 }

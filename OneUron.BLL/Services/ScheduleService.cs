@@ -1,12 +1,16 @@
-﻿using OneUron.BLL.DTOs.ProcessDTOs;
+﻿using FluentValidation;
+using OneUron.BLL.DTOs.ProcessDTOs;
+using OneUron.BLL.DTOs.ResourceDTOs;
 using OneUron.BLL.DTOs.ScheduleDTOs;
 using OneUron.BLL.DTOs.SubjectDTOs;
 using OneUron.BLL.ExceptionHandle;
+using OneUron.BLL.FluentValidation;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository.ScheduleRepo;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,140 +22,170 @@ namespace OneUron.BLL.Services
         private readonly IScheduleRepository _scheduleRepository;
         private readonly IProcessService _processService;
         private readonly ISubjectService _subjectService;
-        public ScheduleService(IScheduleRepository scheduleRepository, IProcessService processService, ISubjectService subjectService)
+        private readonly IValidator<ScheduleRequestDto> _scheduleRequestValidator;
+        private readonly IValidator<ScheduleSubjectRequestDto> _schedulerSubjectRequestValidator;
+        private readonly IProcessTaskService _processTaskService;
+        public ScheduleService(
+            IScheduleRepository scheduleRepository,
+            IProcessService processService,
+            ISubjectService subjectService,
+            IValidator<ScheduleRequestDto> scheduleRequestValidator,
+            IValidator<ScheduleSubjectRequestDto> schedulerSubjectRequestValidator,
+            IProcessTaskService processTaskService)
         {
             _scheduleRepository = scheduleRepository;
             _processService = processService;
             _subjectService = subjectService;
+            _scheduleRequestValidator = scheduleRequestValidator;
+            _schedulerSubjectRequestValidator = schedulerSubjectRequestValidator;
+            _processTaskService = processTaskService;
         }
-        public async Task<ApiResponse<List<ScheduleResponeDto>>> GetAllAsync()
+
+
+        public async Task<List<ScheduleResponeDto>> GetAllAsync()
         {
-            try
-            {
-                var schedules = await _scheduleRepository.GetAllAsync();
+            var schedules = await _scheduleRepository.GetAllAsync();
 
-                if (!schedules.Any())
-                {
-                    return ApiResponse<List<ScheduleResponeDto>>.FailResponse("Get  All Schedule Fail", "Schedule are empty");
-                }
+            if (schedules == null || !schedules.Any())
+                throw new ApiException.NotFoundException("No schedules found.");
 
-                var result = schedules.Select(MapToDTO).ToList();
-
-                return ApiResponse<List<ScheduleResponeDto>>.SuccessResponse(result, "Get All Schedule successfully");
-
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<ScheduleResponeDto>>.FailResponse("Get  All Schedule Fail", ex.Message);
-            }
+            return schedules.Select(MapToDTO).ToList();
         }
 
-        public async Task<ApiResponse<ScheduleResponeDto>> GetByIdAsync(Guid id)
+
+        public async Task<ScheduleResponeDto> GetByIdAsync(Guid id)
         {
-            try
-            {
-                var schedule = await _scheduleRepository.GetByIdAsync(id);
+            var schedule = await _scheduleRepository.GetByIdAsync(id);
+            if (schedule == null)
+                throw new ApiException.NotFoundException($"Schedule with ID {id} not found.");
 
-                if (schedule == null)
-                {
-                    return ApiResponse<ScheduleResponeDto>.FailResponse("Get Schedule by Id fail", "schedule are not exist");
-                }
-
-                var result = MapToDTO(schedule);
-
-                return ApiResponse<ScheduleResponeDto>.SuccessResponse(result, "Get Schedule By Id Successfully");
-
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ScheduleResponeDto>.FailResponse("Get Schedule by Id fail", ex.Message);
-            }
+            return MapToDTO(schedule);
         }
 
-        public async Task<ApiResponse<ScheduleResponeDto>> CreateScheduleAsync(ScheduleRequestDto request)
+        public async Task<ScheduleResponeDto> CreateScheduleAsync(ScheduleRequestDto request)
         {
-            try
-            {
-                if (request == null)
-                {
-                    return ApiResponse<ScheduleResponeDto>.FailResponse("Create New Schedule Fail", "Schedule are null");
-                }
+            if (request == null)
+                throw new ApiException.BadRequestException("Schedule request cannot be null.");
 
-                var newSchedule = MapToEntity(request);
 
-                await _scheduleRepository.AddAsync(newSchedule);
+            var validationResult = await _scheduleRequestValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                var result = MapToDTO(newSchedule);
 
-                return ApiResponse<ScheduleResponeDto>.SuccessResponse(result, "Create new Schedule Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ScheduleResponeDto>.FailResponse("Create New Schedule Fail", ex.Message);
-            }
+            var newSchedule = MapToEntity(request);
+
+            await _scheduleRepository.AddAsync(newSchedule);
+
+            return MapToDTO(newSchedule);
         }
 
-        public async Task<ApiResponse<ScheduleResponeDto>> UpdateScheduleByIdAsync(Guid id, ScheduleRequestDto newSchedule)
+
+        public async Task<ScheduleResponeDto> UpdateScheduleByIdAsync(Guid id, ScheduleRequestDto newSchedule)
         {
-            try
-            {
-                var exsitScheDule = await _scheduleRepository.GetByIdAsync(id);
+            var existingSchedule = await _scheduleRepository.GetByIdAsync(id);
+            if (existingSchedule == null)
+                throw new ApiException.NotFoundException($"Schedule with ID {id} not found.");
 
-                if (exsitScheDule == null)
-                {
-                    return ApiResponse<ScheduleResponeDto>.FailResponse("Update Schedule By Id fail", "Schedule are no exist");
-                }
+            if (newSchedule == null)
+                throw new ApiException.BadRequestException("New schedule data cannot be null.");
 
-                if (newSchedule == null)
-                {
-                    return ApiResponse<ScheduleResponeDto>.FailResponse("Update Schedule By Id fail", "New Schedule is null");
-                }
+            var validationResult = await _scheduleRequestValidator.ValidateAsync(newSchedule);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                exsitScheDule.Title = newSchedule.Title;
-                exsitScheDule.StartDate = newSchedule.StartDate;
-                exsitScheDule.EndDate = newSchedule.EndDate;
-                exsitScheDule.TotalTime = newSchedule.TotalTime;
-                exsitScheDule.AmountSubject = newSchedule.AmountSubject;
-                exsitScheDule.CreateAt = newSchedule.CreateAt;
-                exsitScheDule.IsDeleted = false;
-                exsitScheDule.UserId = newSchedule.UserId;
+            existingSchedule.Title = newSchedule.Title;
+            existingSchedule.StartDate = newSchedule.StartDate;
+            existingSchedule.EndDate = newSchedule.EndDate;
+            existingSchedule.TotalTime = newSchedule.TotalTime;
+            existingSchedule.AmountSubject = newSchedule.AmountSubject;
+            existingSchedule.CreateAt = newSchedule.CreateAt;
+            existingSchedule.IsDeleted = false;
+            existingSchedule.UserId = newSchedule.UserId;
 
-                await _scheduleRepository.UpdateAsync(exsitScheDule);
+            await _scheduleRepository.UpdateAsync(existingSchedule);
 
-                var result = MapToDTO(exsitScheDule);
-
-                return ApiResponse<ScheduleResponeDto>.SuccessResponse(result, "Update Schedule By Id successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ScheduleResponeDto>.FailResponse("Update Schedule By Id fail", ex.Message);
-            }
+            return MapToDTO(existingSchedule);
         }
 
-        public async Task<ApiResponse<ScheduleResponeDto>> DeleteScheduleByIdAsync(Guid id)
+        public async Task<ScheduleWeekRespone> GetScheduleWeekInFormationAsync(Guid id)
         {
-            try
-            {
-                var exsitScheDule = await _scheduleRepository.GetByIdAsync(id);
+            var existSchedule = await _scheduleRepository.GetByIdAsync(id);
 
-                if (exsitScheDule == null)
+            if (existSchedule == null)
+                throw new ApiException.NotFoundException($"Schedule with ID {id} not found.");
+
+            var processes = existSchedule.Processes?.ToList() ?? new List<Process>();
+            if (!processes.Any())
+                throw new ApiException.NotFoundException("Schedule has no processes.");
+
+          
+            DateTime today = DateTime.UtcNow.Date;
+
+           
+            DateTime startOfWeek = today.AddDays(-(int)today.DayOfWeek + (int)DayOfWeek.Monday);
+            DateTime endOfWeek = startOfWeek.AddDays(7);
+
+            int taskOnDay = 0;
+            double totalTimeOfDay = 0;
+            int totalTaskOfWeek = 0;
+            int totalTaskCount = 0;
+            int completedTaskCount = 0;
+
+            foreach (var process in processes)
+            {
+                if (process.ProcessTasks == null || !process.ProcessTasks.Any())
+                    continue;
+
+                if (process.Date.Date == today)
                 {
-                    return ApiResponse<ScheduleResponeDto>.FailResponse("Delete Schedule By Id fail", "Schedule are no exist");
+                    foreach (var task in process.ProcessTasks)
+                    {
+                        taskOnDay++;
+                        if (task.EndTime > task.StartTime)
+                            totalTimeOfDay += (task.EndTime - task.StartTime).TotalHours;
+                    }
                 }
 
-                exsitScheDule.IsDeleted = true;
 
-                await _scheduleRepository.UpdateAsync(exsitScheDule);
+                if (process.Date.Date >= startOfWeek && process.Date.Date < endOfWeek)
+                {
+                    totalTaskOfWeek += process.ProcessTasks.Count;
+                }
 
-                var result = MapToDTO(exsitScheDule);
 
-                return ApiResponse<ScheduleResponeDto>.SuccessResponse(result, "Delete Schedule By id Successfully");
+                totalTaskCount += process.ProcessTasks.Count;
+                completedTaskCount += process.ProcessTasks.Count(t => t.IsCompleted);
             }
-            catch (Exception ex)
+
+            double percentComplete = totalTaskCount == 0
+                ? 0
+                : (double)completedTaskCount / totalTaskCount * 100;
+
+            return new ScheduleWeekRespone
             {
-                return ApiResponse<ScheduleResponeDto>.FailResponse("Delete Schedule By Id fail",ex.Message);
-            }
+                TaskOnDay = taskOnDay,
+                TotalTaskOfWeek = totalTaskOfWeek,
+                TotalTimeOfDay = Math.Round(totalTimeOfDay, 2),
+                PercentComplete = Math.Round(percentComplete, 2)
+            };
         }
+
+        public async Task<ScheduleResponeDto> DeleteScheduleByIdAsync(Guid id)
+        {
+            var schedule = await _scheduleRepository.GetByIdAsync(id);
+            if (schedule == null)
+                throw new ApiException.NotFoundException($"Schedule with ID {id} not found.");
+
+            if (schedule.IsDeleted)
+                throw new ApiException.BussinessException("Schedule is already deleted.");
+
+            schedule.IsDeleted = true;
+            await _scheduleRepository.UpdateAsync(schedule);
+
+            return MapToDTO(schedule);
+        }
+
 
         public ScheduleResponeDto MapToDTO(Schedule schedule)
         {

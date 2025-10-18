@@ -18,9 +18,9 @@ namespace OneUron.DAL.Data.Entity
 
         public virtual Schedule Schedule { get; set; }
 
-        public Guid ProcessId { get; set; }
+        public Guid? ProcessId { get; set; }
 
-        public virtual Process Process { get; set; }  
+        public virtual Process? Process { get; set; }  
     }
 
     public enum SubjectType

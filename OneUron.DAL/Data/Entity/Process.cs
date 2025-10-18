@@ -14,7 +14,7 @@ namespace OneUron.DAL.Data.Entity
 
         public string Description { get; set; }
 
-        public Guid ScheduleId { get; set; }
+        public Guid? ScheduleId { get; set; }
 
         public virtual Schedule Schedule { get; set; }
 

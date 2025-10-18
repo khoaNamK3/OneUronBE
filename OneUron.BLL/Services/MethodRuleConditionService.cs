@@ -1,4 +1,6 @@
-﻿using OneUron.BLL.DTOs.MethodRuleConditionDTOs;
+﻿using FluentValidation;
+using OneUron.BLL.DTOs.MethodProDTOs;
+using OneUron.BLL.DTOs.MethodRuleConditionDTOs;
 using OneUron.BLL.DTOs.MethodRuleDTOs;
 using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
@@ -16,154 +18,100 @@ namespace OneUron.BLL.Services
     {
         private readonly IMethodRuleConditionRepository _methodRuleConditionRepository;
         private readonly IMethodRuleService _methodRuleService;
-        public MethodRuleConditionService(IMethodRuleConditionRepository methodRuleConditionRepository, IMethodRuleService methodRuleService)
+        private readonly IValidator<MethodRuleConditionRequestDto> _methodRuleConditionValidator;
+
+        public MethodRuleConditionService(
+            IMethodRuleConditionRepository methodRuleConditionRepository,
+            IMethodRuleService methodRuleService,
+            IValidator<MethodRuleConditionRequestDto> methodRuleConditionValidator)
         {
             _methodRuleConditionRepository = methodRuleConditionRepository;
             _methodRuleService = methodRuleService;
+            _methodRuleConditionValidator = methodRuleConditionValidator;
         }
 
-        public async Task<ApiResponse<List<MethodRuleConditionResponseDto>>> GetAllAsync()
+        
+        public async Task<List<MethodRuleConditionResponseDto>> GetAllAsync()
         {
-            try
-            {
-                var methodRuleCondtions = await _methodRuleConditionRepository.GetAllAsync();
+            var methodRuleConditions = await _methodRuleConditionRepository.GetAllAsync();
 
-                if (!methodRuleCondtions.Any())
-                {
-                    return ApiResponse<List<MethodRuleConditionResponseDto>>.FailResponse("Get All MethodRuleCondition Fail", "MethodRuleCondtion Are empty");
-                }
+            if (methodRuleConditions == null || !methodRuleConditions.Any())
+                throw new ApiException.NotFoundException("No MethodRuleCondition records found.");
 
-                var result = methodRuleCondtions.Select(MapToDTO).ToList();
-
-                return ApiResponse<List<MethodRuleConditionResponseDto>>.SuccessResponse(result, "Get All MethodRuleContion Successfully");
-            }
-            catch (Exception ex)
-            {
-
-                return ApiResponse<List<MethodRuleConditionResponseDto>>.FailResponse("Get All MethodRuleCondition Fail", ex.Message);
-            }
+            return methodRuleConditions.Select(MapToDTO).ToList();
         }
 
-        public async Task<ApiResponse<MethodRuleConditionResponseDto>> GetByIdAsync(Guid id)
+        public async Task<MethodRuleConditionResponseDto> GetByIdAsync(Guid id)
         {
-            try
-            {
-                var existMethodRuleCondition = await _methodRuleConditionRepository.GetByIdAsync(id);
+            var existMethodRuleCondition = await _methodRuleConditionRepository.GetByIdAsync(id);
+            if (existMethodRuleCondition == null)
+                throw new ApiException.NotFoundException($"MethodRuleCondition with ID {id} not found.");
 
-                if (existMethodRuleCondition == null)
-                {
-                    return ApiResponse<MethodRuleConditionResponseDto>.FailResponse("Get MethodRuleContion By Id Fail", "MethodRuleContion is not exist");
-                }
-
-                var result = MapToDTO(existMethodRuleCondition);
-
-                return ApiResponse<MethodRuleConditionResponseDto>.SuccessResponse(result, "Get All MethodRuleCondtion Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<MethodRuleConditionResponseDto>.FailResponse("Get MethodRuleContion By Id Fail", ex.Message);
-            }
-
+            return MapToDTO(existMethodRuleCondition);
         }
 
-        public async Task<ApiResponse<MethodRuleConditionResponseDto>> CreateNewMethodRuleConditionAsync(MethodRuleConditionRequestDto request)
+       
+        public async Task<MethodRuleConditionResponseDto> CreateNewMethodRuleConditionAsync(MethodRuleConditionRequestDto request)
         {
-            try
-            {
-                if (request == null)
-                {
-                    return ApiResponse<MethodRuleConditionResponseDto>.FailResponse("Create New MethodRuleContion Fail", "New MethodRuleCondtion are Empty");
-                }
+            if (request == null)
+                throw new ApiException.BadRequestException("MethodRuleCondition request cannot be null.");
 
-                var newMethodRuleCondition = MapToEntity(request);
+            var validationResult = await _methodRuleConditionValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                await _methodRuleConditionRepository.AddAsync(newMethodRuleCondition);
+            var newMethodRuleCondition = MapToEntity(request);
 
-                var result = MapToDTO(newMethodRuleCondition);
+            await _methodRuleConditionRepository.AddAsync(newMethodRuleCondition);
 
-                return ApiResponse<MethodRuleConditionResponseDto>.SuccessResponse(result, "Create New MethodRuleCondition Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<MethodRuleConditionResponseDto>.FailResponse("Create New MethodRuleContion Fail", ex.Message);
-            }
+            return MapToDTO(newMethodRuleCondition);
         }
 
-        public async Task<ApiResponse<MethodRuleConditionResponseDto>> UpdateMethodRuleConditionByIdAsync(Guid id, MethodRuleConditionRequestDto newMethodRuleCondtion)
+        
+        public async Task<MethodRuleConditionResponseDto> UpdateMethodRuleConditionByIdAsync(Guid id, MethodRuleConditionRequestDto newMethodRuleCondition)
         {
-            try
-            {
-                var existMethodRuleCondition = await _methodRuleConditionRepository.GetByIdAsync(id);
+            var existMethodRuleCondition = await _methodRuleConditionRepository.GetByIdAsync(id);
+            if (existMethodRuleCondition == null)
+                throw new ApiException.NotFoundException($"MethodRuleCondition with ID {id} not found.");
 
-                if (existMethodRuleCondition == null)
-                {
-                    return ApiResponse<MethodRuleConditionResponseDto>.FailResponse("Update MethodRuleContion By Id Fail", "MethodRuleContion is not exist");
-                }
+            if (newMethodRuleCondition == null)
+                throw new ApiException.BadRequestException("New MethodRuleCondition data cannot be null.");
 
-                if (newMethodRuleCondtion == null)
-                {
-                    return ApiResponse<MethodRuleConditionResponseDto>.FailResponse("Update MethodRuleContion By Id Fail", "New MethodRuleContion is Empty");
-                }
-                existMethodRuleCondition.Weight = newMethodRuleCondtion.Weight;
-                existMethodRuleCondition.Effectiveness = newMethodRuleCondtion.Effectiveness;
-                existMethodRuleCondition.ChoiceId = newMethodRuleCondtion.ChoiceId;
-                existMethodRuleCondition.EvaluationId = newMethodRuleCondtion.EvaluationId;
-                existMethodRuleCondition.EvaluationQuestionId = newMethodRuleCondtion.EvaluationQuestionId;
+            var validationResult = await _methodRuleConditionValidator.ValidateAsync(newMethodRuleCondition);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                await _methodRuleConditionRepository.UpdateAsync(existMethodRuleCondition);
+            existMethodRuleCondition.Weight = newMethodRuleCondition.Weight;
+            existMethodRuleCondition.Effectiveness = newMethodRuleCondition.Effectiveness;
+            existMethodRuleCondition.ChoiceId = newMethodRuleCondition.ChoiceId;
+            existMethodRuleCondition.EvaluationId = newMethodRuleCondition.EvaluationId;
+            existMethodRuleCondition.EvaluationQuestionId = newMethodRuleCondition.EvaluationQuestionId;
 
-                var result = MapToDTO(existMethodRuleCondition);
+            await _methodRuleConditionRepository.UpdateAsync(existMethodRuleCondition);
 
-                return ApiResponse<MethodRuleConditionResponseDto>.SuccessResponse(result, "Update MethodRuleCondtion By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<MethodRuleConditionResponseDto>.FailResponse("Update MethodRuleContion By Id Fail", ex.Message);
-            }
+            return MapToDTO(existMethodRuleCondition);
         }
 
-        public async Task<ApiResponse<MethodRuleConditionResponseDto>> DeleteMethodRuleConditionByIdAsync(Guid id)
+        
+        public async Task<MethodRuleConditionResponseDto> DeleteMethodRuleConditionByIdAsync(Guid id)
         {
-            try
-            {
-                var existMethodRuleCondition = await _methodRuleConditionRepository.GetByIdAsync(id);
+            var existMethodRuleCondition = await _methodRuleConditionRepository.GetByIdAsync(id);
+            if (existMethodRuleCondition == null)
+                throw new ApiException.NotFoundException($"MethodRuleCondition with ID {id} not found.");
 
-                if (existMethodRuleCondition == null)
-                {
-                    return ApiResponse<MethodRuleConditionResponseDto>.FailResponse("Delete MethodRuleContion By Id Fail", "MethodRuleContion is not exist");
-                }
-                var result = MapToDTO(existMethodRuleCondition);
+            await _methodRuleConditionRepository.DeleteAsync(existMethodRuleCondition);
 
-                await _methodRuleConditionRepository.DeleteAsync(existMethodRuleCondition);
-
-                return ApiResponse<MethodRuleConditionResponseDto>.SuccessResponse(result, "Delete MethodRuleCondtion Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<MethodRuleConditionResponseDto>.FailResponse("Delete MethodRuleContion By Id Fail", ex.Message);
-            }
+            return MapToDTO(existMethodRuleCondition);
         }
 
-        public async Task<MethodRuleConditionResponseDto> GetMethodRuleConditionByChoiceId(Guid choiceId)
+        
+        public async Task<MethodRuleConditionResponseDto?> GetMethodRuleConditionByChoiceId(Guid choiceId)
         {
-            try
-            {
-                var methodRuleCondtion = await _methodRuleConditionRepository.GetMethodRuleConditionByChoiceId(choiceId);
-
-                if (methodRuleCondtion == null)
-                {
-                    return null;
-                }
-                var result = MapToDTO(methodRuleCondtion);
-
-                return result;      
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+            var methodRuleCondition = await _methodRuleConditionRepository.GetMethodRuleConditionByChoiceId(choiceId);
+            return methodRuleCondition != null ? MapToDTO(methodRuleCondition) : null;
         }
 
+        
         protected MethodRuleCondition MapToEntity(MethodRuleConditionRequestDto request)
         {
             return new MethodRuleCondition
@@ -172,10 +120,9 @@ namespace OneUron.BLL.Services
                 Weight = request.Weight,
                 ChoiceId = request.ChoiceId,
                 EvaluationId = request.EvaluationId,
-                EvaluationQuestionId = request.EvaluationQuestionId,
+                EvaluationQuestionId = request.EvaluationQuestionId
             };
         }
-
 
         public MethodRuleConditionResponseDto MapToDTO(MethodRuleCondition methodRuleCondition)
         {
@@ -191,10 +138,9 @@ namespace OneUron.BLL.Services
                 EvaluationQuestionId = methodRuleCondition.EvaluationQuestionId,
 
                 MethodRules = methodRuleCondition.MethodRules?
-                    .Select(mrc => _methodRuleService.MapToDTO(mrc))
+                    .Select(mr => _methodRuleService.MapToDTO(mr))
                     .ToList() ?? new List<MethodRuleResponseDto>()
             };
         }
-
     }
 }

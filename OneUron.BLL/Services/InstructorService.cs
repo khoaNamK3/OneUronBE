@@ -1,4 +1,6 @@
-﻿using OneUron.BLL.DTOs.InstructorDTOs;
+﻿using FluentValidation;
+using OneUron.BLL.DTOs.EvaluationQuestionDTOs;
+using OneUron.BLL.DTOs.InstructorDTOs;
 using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
@@ -14,129 +16,87 @@ namespace OneUron.BLL.Services
     public class InstructorService : IInstructorService
     {
         private readonly IInstructorRepository _instructorRepository;
+        private readonly IValidator<InstructorRequestDto> _instructorValidator;
 
-        public InstructorService(IInstructorRepository instructorRepository)
+        public InstructorService(
+            IInstructorRepository instructorRepository,
+            IValidator<InstructorRequestDto> instructorValidator)
         {
             _instructorRepository = instructorRepository;
+            _instructorValidator = instructorValidator;
         }
 
-        public async Task<ApiResponse<List<InstructorResponseDto>>> GetAllAsync()
+        public async Task<List<InstructorResponseDto>> GetAllAsync()
         {
-            try
-            {
-                var instructors = await _instructorRepository.GetAllAsync();
+            var instructors = await _instructorRepository.GetAllAsync();
 
-                if (!instructors.Any())
-                {
-                    return ApiResponse<List<InstructorResponseDto>>.FailResponse("Get All Instructor Fail", "Instructor Are Empty");
-                }
-                var result = instructors.Select(MapToDTO).ToList();
+            if (instructors == null || !instructors.Any())
+                throw new ApiException.NotFoundException("No instructors found.");
 
-                return ApiResponse<List<InstructorResponseDto>>.SuccessResponse(result, "Get All Instructor Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<InstructorResponseDto>>.FailResponse("Get All Instructor Fail", ex.Message);
-            }
+            return instructors.Select(MapToDTO).ToList();
         }
 
-        public async Task<ApiResponse<InstructorResponseDto>> GetInstructorByIdAsync(Guid id)
+
+        public async Task<InstructorResponseDto> GetInstructorByIdAsync(Guid id)
         {
-            try
-            {
-                var existInstructor = await _instructorRepository.GetByIdAsync(id);
-                if (existInstructor == null)
-                {
-                    return ApiResponse<InstructorResponseDto>.FailResponse("Get Instructor By Id Fail", "Instructor Are Not Exist");
-                }
+            var existInstructor = await _instructorRepository.GetInstructorByIdAsync(id);
+            if (existInstructor == null)
+                throw new ApiException.NotFoundException($"Instructor with ID {id} not found.");
 
-                var result = MapToDTO(existInstructor);
-                return ApiResponse<InstructorResponseDto>.SuccessResponse(result, "Get Instructor By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<InstructorResponseDto>.FailResponse("Get Instructor By Id Fail", ex.Message);
-            }
+            return MapToDTO(existInstructor);
         }
 
-        public async Task<ApiResponse<InstructorResponseDto>> CreateNewInstructorAsync(InstructorRequestDto request)
+  
+        public async Task<InstructorResponseDto> CreateNewInstructorAsync(InstructorRequestDto request)
         {
-            try
-            {
-                if (request == null)
-                {
-                    return ApiResponse<InstructorResponseDto>.FailResponse("Create New Instructor Fail", "New Intructor is Null");
-                }
+            if (request == null)
+                throw new ApiException.BadRequestException("Instructor request cannot be null.");
 
-                var newInstructor = MapToEntity(request);
+            var validationResult = await _instructorValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                await _instructorRepository.AddAsync(newInstructor);
+            var newInstructor = MapToEntity(request);
 
-                var result = MapToDTO(newInstructor);
+            await _instructorRepository.AddAsync(newInstructor);
 
-                return ApiResponse<InstructorResponseDto>.SuccessResponse(result, "Create New Instructor Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<InstructorResponseDto>.FailResponse("Create New Instructor Fail", ex.Message);
-            }
+            return MapToDTO(newInstructor);
         }
 
-        public async Task<ApiResponse<InstructorResponseDto>> UpdateInstructorByIdAsync(Guid id, InstructorRequestDto newInstructor)
+        public async Task<InstructorResponseDto> UpdateInstructorByIdAsync(Guid id, InstructorRequestDto newInstructor)
         {
-            try
-            {
-                var existInstructor = await _instructorRepository.GetInstructorByIdAsync(id);
+            var existInstructor = await _instructorRepository.GetInstructorByIdAsync(id);
+            if (existInstructor == null)
+                throw new ApiException.NotFoundException($"Instructor with ID {id} not found.");
 
-                if (existInstructor == null)
-                {
-                    return ApiResponse<InstructorResponseDto>.FailResponse("Update Instructor By Id Fail", "Instructor Are Not Exist");
-                }
-                if (newInstructor == null)
-                {
-                    return ApiResponse<InstructorResponseDto>.FailResponse("Update Instructor By Id Fail", "Instructor is Null");
-                }
-                existInstructor.Name = newInstructor.Name;
-                existInstructor.Description = newInstructor.Description;
-                existInstructor.Contact = newInstructor.Contact;
-                existInstructor.Experience = newInstructor.Experience;
-                existInstructor.CourseId = newInstructor.CourseId;
+            if (newInstructor == null)
+                throw new ApiException.BadRequestException("New instructor data cannot be null.");
 
-                await _instructorRepository.UpdateAsync(existInstructor);
+            var validationResult = await _instructorValidator.ValidateAsync(newInstructor);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                var result = MapToDTO(existInstructor);
+            existInstructor.Name = newInstructor.Name;
+            existInstructor.Description = newInstructor.Description;
+            existInstructor.Contact = newInstructor.Contact;
+            existInstructor.Experience = newInstructor.Experience;
+            existInstructor.CourseId = newInstructor.CourseId;
 
-                return ApiResponse<InstructorResponseDto>.SuccessResponse(result, "Update Instructor By Id Successfully");
+            await _instructorRepository.UpdateAsync(existInstructor);
 
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<InstructorResponseDto>.FailResponse("Update Instructor By Id Fail", ex.Message);
-            }
+            return MapToDTO(existInstructor);
         }
 
-        public async Task<ApiResponse<InstructorResponseDto>> DeleteInstructorByIdAsync(Guid id)
+        public async Task<InstructorResponseDto> DeleteInstructorByIdAsync(Guid id)
         {
-            try
-            {
-                var existInstructor = await _instructorRepository.GetInstructorByIdAsync(id);
-                if (existInstructor == null)
-                {
-                    return ApiResponse<InstructorResponseDto>.FailResponse("Delete Instructor By Id Fail", "Instructor Are Not Exist");
-                }
+            var existInstructor = await _instructorRepository.GetInstructorByIdAsync(id);
+            if (existInstructor == null)
+                throw new ApiException.NotFoundException($"Instructor with ID {id} not found.");
 
-                var result = MapToDTO(existInstructor);
+            await _instructorRepository.DeleteAsync(existInstructor);
 
-                await _instructorRepository.DeleteAsync(existInstructor);
-                
-                return ApiResponse<InstructorResponseDto>.SuccessResponse(result, "Delete Instructor By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<InstructorResponseDto>.FailResponse("Delete Instructor By Id Fail",ex.Message);
-            }
+            return MapToDTO(existInstructor);
         }
-
 
         protected Instructor MapToEntity(InstructorRequestDto newInstructor)
         {
@@ -146,12 +106,14 @@ namespace OneUron.BLL.Services
                 Description = newInstructor.Description,
                 Experience = newInstructor.Experience,
                 Contact = newInstructor.Contact,
-                CourseId = newInstructor.CourseId,
+                CourseId = newInstructor.CourseId
             };
         }
 
         public InstructorResponseDto MapToDTO(Instructor instructor)
         {
+            if (instructor == null) return null;
+
             return new InstructorResponseDto
             {
                 Id = instructor.Id,
@@ -159,8 +121,9 @@ namespace OneUron.BLL.Services
                 Description = instructor.Description,
                 Experience = instructor.Experience,
                 Contact = instructor.Contact,
-                CourseId = instructor.CourseId,
+                CourseId = instructor.CourseId
             };
         }
     }
+
 }

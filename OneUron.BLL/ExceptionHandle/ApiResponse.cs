@@ -10,7 +10,7 @@ namespace OneUron.BLL.ExceptionHandle
     {
         public bool Success { get; set; }
         public string Message { get; set; }
-        public string ErrorCode { get; set; } 
+        public string ErrorCode { get; set; }
         public T Data { get; set; }
 
         public static ApiResponse<T> SuccessResponse(T data, string message = "")
@@ -21,6 +21,17 @@ namespace OneUron.BLL.ExceptionHandle
         public static ApiResponse<T> FailResponse(string errorCode, string message)
         {
             return new ApiResponse<T> { Success = false, ErrorCode = errorCode, Message = message };
+        }
+
+        public static ApiResponse<object> FailValidation(string message, string errorCode, object errors)
+        {
+            return new ApiResponse<object>
+            {
+                Success = false,
+                ErrorCode = errorCode,
+                Message = message,
+                Data = errors
+            };
         }
     }
 }

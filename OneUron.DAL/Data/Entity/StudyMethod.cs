@@ -18,8 +18,7 @@ namespace OneUron.DAL.Data.Entity
 
         public virtual Method Method { get; set; }
 
-        public  Guid UserId { get; set; }
-
+        public Guid UserId { get; set; }
         public virtual User User { get; set; }
     }
 }

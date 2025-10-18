@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OneUron.BLL.DTOs.ChoiceDTOs;
+using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
 
 namespace OneUron.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ChoiceController : Controller
+    public class ChoiceController : ControllerBase
     {
         private readonly IChoiceService _choiceService;
 
@@ -16,61 +17,38 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAll()
         {
-            var response = await _choiceService.GetAllAsync();
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _choiceService.GetAllAsync();
+            return Ok(ApiResponse<List<ChoiceResponseDto>>.SuccessResponse(result, "Get all choices successfully"));
         }
 
         [HttpGet("get-by/{id}")]
-        public async Task<IActionResult> GetChoiceByIdAsync(Guid id)
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var response = await _choiceService.GetByIdAsync(id);
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _choiceService.GetByIdAsync(id);
+            return Ok(ApiResponse<ChoiceResponseDto>.SuccessResponse(result, "Get choice by id successfully"));
         }
 
-        [HttpPost("create-new")]
-        public async Task<IActionResult> CreateNewChoiceAsync([FromBody] ChoiceRequestDto request)
+        [HttpPost("create")]
+        public async Task<IActionResult> Create(ChoiceRequestDto request)
         {
-            var response = await _choiceService.CreateNewChoiceAsync(request);
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _choiceService.CreateNewChoiceAsync(request);
+            return Ok(ApiResponse<ChoiceResponseDto>.SuccessResponse(result, "Create choice successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> UpdateChoiceByIdAsync(Guid id, [FromBody] ChoiceRequestDto request)
+        public async Task<IActionResult> Update(Guid id, ChoiceRequestDto request)
         {
-            var response = await _choiceService.UpdateChoiceByIdAsync(id, request);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _choiceService.UpdateChoiceByIdAsync(id, request);
+            return Ok(ApiResponse<ChoiceResponseDto>.SuccessResponse(result, "Update choice successfully"));
         }
 
         [HttpDelete("delete-by/{id}")]
-        public async Task<IActionResult> DeleteChoiceByIdAsync(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var response = await _choiceService.DeleteChoiceByIdAsync(id);
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _choiceService.DeleteChoiceByIdAsync(id);
+            return Ok(ApiResponse<ChoiceResponseDto>.SuccessResponse(result, "Delete choice successfully"));
         }
     }
 }

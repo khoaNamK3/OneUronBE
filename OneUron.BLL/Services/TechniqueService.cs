@@ -1,5 +1,8 @@
-﻿using OneUron.BLL.DTOs.TechniqueDTOs;
+﻿using FluentValidation;
+using OneUron.BLL.DTOs.SubjectDTOs;
+using OneUron.BLL.DTOs.TechniqueDTOs;
 using OneUron.BLL.ExceptionHandle;
+using OneUron.BLL.FluentValidation;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository.TechniqueRepo;
@@ -14,152 +17,103 @@ namespace OneUron.BLL.Services
     public class TechniqueService : ITechniqueService
     {
         private readonly ITechniqueRepository _techniqueRepository;
+        private readonly IValidator<TechniqueRequestDto> _techniqueRequestValidator;
 
-        public TechniqueService(ITechniqueRepository techniqueRepository)
+        public TechniqueService(
+            ITechniqueRepository techniqueRepository,
+            IValidator<TechniqueRequestDto> techniqueRequestValidator)
         {
             _techniqueRepository = techniqueRepository;
+            _techniqueRequestValidator = techniqueRequestValidator;
         }
 
-        public async Task<ApiResponse<List<TechniqueResponseDto>>> GetAllAsync()
+      
+        public async Task<List<TechniqueResponseDto>> GetAllAsync()
         {
-            try
-            {
-                var techniques = await _techniqueRepository.GetAllAsync();
+            var techniques = await _techniqueRepository.GetAllAsync();
 
-                if (!techniques.Any())
-                {
-                    return ApiResponse<List<TechniqueResponseDto>>.FailResponse("Get All Techinique Fail", "Techniques Are Empty");
-                }
+            if (techniques == null || !techniques.Any())
+                throw new ApiException.NotFoundException("No techniques found.");
 
-                var result = techniques.Select(MapToDTO).ToList();
-
-                return ApiResponse<List<TechniqueResponseDto>>.SuccessResponse(result, "Get All Technique Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<TechniqueResponseDto>>.FailResponse("Get All Techinique Fail", ex.Message);
-
-            }
+            return techniques.Select(MapToDTO).ToList();
         }
 
-        public async Task<ApiResponse<TechniqueResponseDto>> GetByIdAsync(Guid id)
+   
+        public async Task<TechniqueResponseDto> GetByIdAsync(Guid id)
         {
-            try
-            {
-                var existTechnique = await _techniqueRepository.GetByIdAsync(id);
+            var technique = await _techniqueRepository.GetByIdAsync(id);
+            if (technique == null)
+                throw new ApiException.NotFoundException($"Technique with ID {id} not found.");
 
-                if (existTechnique == null)
-                {
-                    return ApiResponse<TechniqueResponseDto>.FailResponse("Get Technique By Id Fail", "Technique Is Not Exist");
-                }
-
-                var result = MapToDTO(existTechnique);
-
-                return ApiResponse<TechniqueResponseDto>.SuccessResponse(result, "Get Technique By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<TechniqueResponseDto>.FailResponse("Get Technique By Id Fail", ex.Message);
-            }
+            return MapToDTO(technique);
         }
 
 
-        public async Task<ApiResponse<TechniqueResponseDto>> CreateNewTechiqueAsync(TechniqueRequestDto request)
+        public async Task<TechniqueResponseDto> CreateAsync(TechniqueRequestDto request)
         {
-            try
-            {
-                if (request == null)
-                {
-                    return ApiResponse<TechniqueResponseDto>.FailResponse("Create New Technique Fail", "New Technique Is Null");
-                }
+            if (request == null)
+                throw new ApiException.BadRequestException("Technique request cannot be null.");
 
-                var newTechnique = MapToEntity(request);
+            var validationResult = await _techniqueRequestValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                await _techniqueRepository.AddAsync(newTechnique);
+            var newTechnique = MapToEntity(request);
+            await _techniqueRepository.AddAsync(newTechnique);
 
-                var result = MapToDTO(newTechnique);
-
-                return ApiResponse<TechniqueResponseDto>.SuccessResponse(result, "Get All Technique Successfully");
-
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<TechniqueResponseDto>.FailResponse("Create New Technique Fail", ex.Message);
-            }
+            return MapToDTO(newTechnique);
         }
 
 
-        public async Task<ApiResponse<TechniqueResponseDto>> UpdateTechniqueByIdAsync(Guid id, TechniqueRequestDto newTechnique)
+        public async Task<TechniqueResponseDto> UpdateByIdAsync(Guid id, TechniqueRequestDto request)
         {
-            try
-            {
-                var existTechnique = await _techniqueRepository.GetByIdAsync(id);
+            var existingTechnique = await _techniqueRepository.GetByIdAsync(id);
+            if (existingTechnique == null)
+                throw new ApiException.NotFoundException($"Technique with ID {id} not found.");
 
-                if (existTechnique == null)
-                {
-                    return ApiResponse<TechniqueResponseDto>.FailResponse("Update Technique By Id Fail", "Technique Is Not Exist");
-                }
+            if (request == null)
+                throw new ApiException.BadRequestException("Request data cannot be null.");
 
-                if (newTechnique == null)
-                {
-                    return ApiResponse<TechniqueResponseDto>.FailResponse("Update Technique By Id Fail", "New Technique is Null");
-                }
-                existTechnique.Name = newTechnique.Name;
-                existTechnique.MethodId = newTechnique.MethodId;
+            var validationResult = await _techniqueRequestValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                await _techniqueRepository.UpdateAsync(existTechnique);
+            existingTechnique.Name = request.Name;
+            existingTechnique.MethodId = request.MethodId;
 
-                var result = MapToDTO(existTechnique);
+            await _techniqueRepository.UpdateAsync(existingTechnique);
 
-                return ApiResponse<TechniqueResponseDto>.SuccessResponse(result, "Update Technique By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<TechniqueResponseDto>.FailResponse("Update Technique By Id Fail", ex.Message);
-            }
+            return MapToDTO(existingTechnique);
         }
 
-        public async Task<ApiResponse<TechniqueResponseDto>> DeleteTechniqueByidAsync(Guid id)
+        public async Task<TechniqueResponseDto> DeleteByIdAsync(Guid id)
         {
-            try
-            {
-                var existTechnique = await _techniqueRepository.GetByIdAsync(id);
+            var existingTechnique = await _techniqueRepository.GetByIdAsync(id);
+            if (existingTechnique == null)
+                throw new ApiException.NotFoundException($"Technique with ID {id} not found.");
 
-                if (existTechnique == null)
-                {
-                    return ApiResponse<TechniqueResponseDto>.FailResponse("Delete Technique By Id Fail", "Technique Is Not Exist");
-                }
-                
-                 var result = MapToDTO(existTechnique);
-
-                await _techniqueRepository.DeleteAsync(existTechnique);
-
-                return ApiResponse<TechniqueResponseDto>.SuccessResponse(result, "Delete Technique By Id Successfully");
-
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<TechniqueResponseDto>.FailResponse("Delete Technique By Id Fail", ex.Message);
-            }
+            await _techniqueRepository.DeleteAsync(existingTechnique);
+            return MapToDTO(existingTechnique);
         }
-
 
         protected Technique MapToEntity(TechniqueRequestDto request)
         {
             return new Technique
             {
                 Name = request.Name,
-                MethodId = request.MethodId,
+                MethodId = request.MethodId
             };
         }
 
         public TechniqueResponseDto MapToDTO(Technique technique)
         {
+            if (technique == null) return null;
+
             return new TechniqueResponseDto
             {
                 Id = technique.Id,
                 Name = technique.Name,
-                MethodId = technique.MethodId,
+                MethodId = technique.MethodId
             };
         }
     }

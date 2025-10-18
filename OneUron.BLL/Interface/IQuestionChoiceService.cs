@@ -11,16 +11,11 @@ namespace OneUron.BLL.Interface
 {
     public interface IQuestionChoiceService
     {
-        public Task<ApiResponse<List<QuestionChoiceReponseDto>>> GetAllQuestionChoiceAsync();
-
-        public Task<ApiResponse<QuestionChoiceReponseDto>> GetQuestionChoiceByIdAsync(Guid id);
-
-        public  Task<ApiResponse<QuestionChoiceReponseDto>> CreateNewQuestionChoiceAsync(QuestionChoiceRequestDto request);
-
-        public  Task<ApiResponse<QuestionChoiceReponseDto>> UpdateQuestionChoiceByIdAsync(Guid id, QuestionChoiceRequestDto newQuestionChoice);
-
-        public  Task<ApiResponse<QuestionChoiceReponseDto>> DeleteQuestionChoiceByIdAsync(Guid id);
-
-        public QuestionChoiceReponseDto MapToDTO(QuestionChoice question);
+        Task<List<QuestionChoiceReponseDto>> GetAllQuestionChoiceAsync();
+        Task<QuestionChoiceReponseDto> GetQuestionChoiceByIdAsync(Guid id);
+        Task<QuestionChoiceReponseDto> CreateNewQuestionChoiceAsync(QuestionChoiceRequestDto request);
+        Task<QuestionChoiceReponseDto> UpdateQuestionChoiceByIdAsync(Guid id, QuestionChoiceRequestDto request);
+        Task<QuestionChoiceReponseDto> DeleteQuestionChoiceByIdAsync(Guid id);
+        QuestionChoiceReponseDto MapToDTO(QuestionChoice entity);
     }
 }

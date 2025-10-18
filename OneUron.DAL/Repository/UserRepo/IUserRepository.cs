@@ -12,5 +12,6 @@ namespace OneUron.DAL.Repository.UserRepo
         Task<User> GetByIdWithRolesAsync(Guid userId);
         Task<User> GetByUserNameWithRolesAsync(string userName);
         Task AssignRoleToUserAsync(Guid userId, string roleName);
+        public  Task<User> GetUserByUserIdAsync(Guid userId);
     }
 }

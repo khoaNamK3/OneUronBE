@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace OneUron.DAL.Repository.StudyMethodRepo
 {
-    public class StudyMethodRepository : GenericRepository<StudyMethod> , IStudyMethodRepository
+    public class StudyMethodRepository : GenericRepository<StudyMethod>, IStudyMethodRepository
     {
         public StudyMethodRepository(AppDbContext context) : base(context)
         {
@@ -22,6 +22,11 @@ namespace OneUron.DAL.Repository.StudyMethodRepo
         public async Task<StudyMethod> GetByIdAsync(Guid id)
         {
             return await _dbSet.Include(sm => sm.Method).FirstOrDefaultAsync(sm => sm.Id == id && !sm.IsDeleted);
+        }
+
+        public async Task<StudyMethod> GetStudyMethodByUserIdAsync(Guid userId)
+        {
+            return await _dbSet.Include(sm => sm.Method).FirstOrDefaultAsync(sm => sm.UserId == userId);
         }
     }
 }

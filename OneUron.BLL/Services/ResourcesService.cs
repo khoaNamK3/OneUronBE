@@ -1,8 +1,11 @@
-﻿using OneUron.BLL.DTOs.AcknowledgeDTOs;
+﻿using FluentValidation;
+using OneUron.BLL.DTOs.AcknowledgeDTOs;
 using OneUron.BLL.DTOs.InstructorDTOs;
+using OneUron.BLL.DTOs.QuizDTOs;
 using OneUron.BLL.DTOs.ResourceDTOs;
 using OneUron.BLL.DTOs.SkillDTOs;
 using OneUron.BLL.ExceptionHandle;
+using OneUron.BLL.FluentValidation;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository.ResourceRepo;
@@ -23,141 +26,105 @@ namespace OneUron.BLL.Services
         private readonly ISkillService _skillService;
         private readonly ICourseDetailService _courseDetailService;
         private readonly IInstructorService _instructorService;
-        public ResourcesService(IResourcesRepository resourcesRepository, IAcknowledgeService acknowledgeService, ISkillService skillService, ICourseDetailService courseDetailService, IInstructorService instructorService)
+        private readonly IValidator<ResourceRequestDto> _resourceRequestValidator;
+
+        public ResourcesService(
+            IResourcesRepository resourcesRepository,
+            IAcknowledgeService acknowledgeService,
+            ISkillService skillService,
+            ICourseDetailService courseDetailService,
+            IInstructorService instructorService,
+            IValidator<ResourceRequestDto> resourceRequestValidator)
         {
             _resourcesRepository = resourcesRepository;
             _acknowledgeService = acknowledgeService;
             _skillService = skillService;
             _courseDetailService = courseDetailService;
             _instructorService = instructorService;
+            _resourceRequestValidator = resourceRequestValidator;
         }
 
-        public async Task<ApiResponse<List<ResourceResponseDto>>> GetAllResourceAsync()
+       
+        public async Task<List<ResourceResponseDto>> GetAllResourceAsync()
         {
-            try
-            {
-                var resources = await _resourcesRepository.GetAllResourceAsync();
+            var resources = await _resourcesRepository.GetAllResourceAsync();
 
-                if (!resources.Any())
-                {
-                    return ApiResponse<List<ResourceResponseDto>>.FailResponse("Get All fail", "Resource Are Empty");
-                }
+            if (resources == null || !resources.Any())
+                throw new ApiException.NotFoundException("No resources found.");
 
-
-                var result = resources.Select(MapToDto).ToList();
-
-
-                return ApiResponse<List<ResourceResponseDto>>.SuccessResponse(result, "Get Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<ResourceResponseDto>>.FailResponse("Get All Fail", ex.Message);
-            }
+            return resources.Select(MapToDto).ToList();
         }
 
-        public async Task<ApiResponse<ResourceResponseDto>> GetResourceByIdAsync(Guid id)
+        
+        public async Task<ResourceResponseDto> GetResourceByIdAsync(Guid id)
         {
-            try
-            {
-                var resource = await _resourcesRepository.GetResourceByIdAsync(id);
+            var resource = await _resourcesRepository.GetResourceByIdAsync(id);
+            if (resource == null)
+                throw new ApiException.NotFoundException($"Resource with ID {id} not found.");
 
-                if (resource == null)
-                {
-                    return ApiResponse<ResourceResponseDto>.FailResponse("Get by Id fail", "Resource are not exists");
-                }
-
-                var result = MapToDto(resource);
-                return ApiResponse<ResourceResponseDto>.SuccessResponse(result, "Get Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ResourceResponseDto>.FailResponse("Get by Id fail", ex.Message);
-            }
+            return MapToDto(resource);
         }
 
-        public async Task<ApiResponse<ResourceResponseDto>> CreateNewResourceAsync(ResourceRequestDto request)
+  
+        public async Task<ResourceResponseDto> CreateNewResourceAsync(ResourceRequestDto request)
         {
-            try
-            {
-                if (request == null)
-                {
-                    return ApiResponse<ResourceResponseDto>.FailResponse("Create fail", "resource is Null");
-                }
+            if (request == null)
+                throw new ApiException.BadRequestException("Resource request cannot be null.");
 
-                var newResource = MapToEntity(request);
+            var validationResult = await _resourceRequestValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                await _resourcesRepository.AddAsync(newResource);
+            var newResource = MapToEntity(request);
+            await _resourcesRepository.AddAsync(newResource);
 
-                var result = MapToDto(newResource);
-
-                return ApiResponse<ResourceResponseDto>.SuccessResponse(result, "Create Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ResourceResponseDto>.FailResponse("Create Fail", ex.Message);
-            }
-
+            return MapToDto(newResource);
         }
 
-        public async Task<ApiResponse<ResourceResponseDto>> UpdateResourceByIdAsync(Guid id, ResourceRequestDto request)
+     
+        public async Task<ResourceResponseDto> UpdateResourceByIdAsync(Guid id, ResourceRequestDto request)
         {
-            try
-            {
-                var exitResource = await _resourcesRepository.GetByIdAsync(id);
-                if (exitResource == null)
-                {
-                    return ApiResponse<ResourceResponseDto>.FailResponse("Update fail", "resource Are not exists");
-                }
+            var existingResource = await _resourcesRepository.GetByIdAsync(id);
+            if (existingResource == null)
+                throw new ApiException.NotFoundException($"Resource with ID {id} not found.");
 
-                if (request == null)
-                {
-                    return ApiResponse<ResourceResponseDto>.FailResponse("Update fail", "Request is Null");
-                }
+            if (request == null)
+                throw new ApiException.BadRequestException("Request data cannot be null.");
 
-               
-                exitResource.Title = request.Title;
-                exitResource.Organization = request.Organization;
-                exitResource.Description = request.Description;
-                exitResource.Star = request.Star;
-                exitResource.Image = request.Image;
-                exitResource.Reviews = request.Reviews;
-                exitResource.Price = request.Price;
-                exitResource.Type = request.Type;
+            var validationResult = await _resourceRequestValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                await _resourcesRepository.UpdateAsync(exitResource);
+            existingResource.Title = request.Title;
+            existingResource.Organization = request.Organization;
+            existingResource.Description = request.Description;
+            existingResource.Star = request.Star;
+            existingResource.Image = request.Image;
+            existingResource.Reviews = request.Reviews;
+            existingResource.Price = request.Price;
+            existingResource.Type = request.Type;
 
-                var result = MapToDto(exitResource);
-                return ApiResponse<ResourceResponseDto>.SuccessResponse(result, "Update successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ResourceResponseDto>.FailResponse("Update fail", ex.Message);
-            }
+            await _resourcesRepository.UpdateAsync(existingResource);
+
+            return MapToDto(existingResource);
         }
 
-        public async Task<ApiResponse<ResourceResponseDto>> DeletedResourceAsync(Guid id)
+       
+        public async Task<ResourceResponseDto> DeleteResourceByIdAsync(Guid id)
         {
-            try
-            {
-                var exitResource = await _resourcesRepository.GetByIdAsync(id);
-                if (exitResource == null)
-                {
-                    return ApiResponse<ResourceResponseDto>.FailResponse("Delete fail", "Resource are not exists");
-                }
-                var result = MapToDto(exitResource);
+            var resource = await _resourcesRepository.GetByIdAsync(id);
+            if (resource == null)
+                throw new ApiException.NotFoundException($"Resource with ID {id} not found.");
 
-                await _resourcesRepository.DeleteAsync(exitResource);
-
-                return ApiResponse<ResourceResponseDto>.SuccessResponse(result, "Delete successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ResourceResponseDto>.FailResponse("Delete fail", ex.Message);
-            }
+            await _resourcesRepository.DeleteAsync(resource);
+            return MapToDto(resource);
         }
 
+        
         public ResourceResponseDto MapToDto(Resource r)
         {
+            if (r == null) return null;
+
             return new ResourceResponseDto
             {
                 Id = r.Id,
@@ -172,22 +139,25 @@ namespace OneUron.BLL.Services
 
                 courseDetail = _courseDetailService.MapToDto(r.CourseDetail),
 
-                Acknowledges = r.Acknowledges?.Select(a => _acknowledgeService.MapToDTO(a)).ToList()
-                                ?? new List<AcknowledgeResponseDto>(),
+                Acknowledges = r.Acknowledges?
+                    .Select(a => _acknowledgeService.MapToDTO(a)).ToList()
+                    ?? new List<AcknowledgeResponseDto>(),
 
-                Instructors = r.Instructors?.Select(i => _instructorService.MapToDTO(i)).ToList()
-                                ?? new List<InstructorResponseDto>(),
+                Instructors = r.Instructors?
+                    .Select(i => _instructorService.MapToDTO(i)).ToList()
+                    ?? new List<InstructorResponseDto>(),
 
-                Skills = r.Skills?.Select(s => _skillService.MapToDTO(s)).ToList()
-                                ?? new List<SkillResponseDto>()
+                Skills = r.Skills?
+                    .Select(s => _skillService.MapToDTO(s)).ToList()
+                    ?? new List<SkillResponseDto>()
             };
         }
 
+  
         protected Resource MapToEntity(ResourceRequestDto request)
         {
             return new Resource
             {
-                Id = Guid.NewGuid(),
                 Title = request.Title,
                 Organization = request.Organization,
                 Description = request.Description,

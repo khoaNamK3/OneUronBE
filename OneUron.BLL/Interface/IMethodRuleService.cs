@@ -12,15 +12,11 @@ namespace OneUron.BLL.Interface
 {
     public interface IMethodRuleService
     {
-        public Task<ApiResponse<List<MethodRuleResponseDto>>> GetAllAsync();
-
-        public Task<ApiResponse<MethodRuleResponseDto>> GetByIdAsync(Guid id);
-
-        public  Task<ApiResponse<MethodRuleResponseDto>> CreateNewMethodRuleAsync(MethodRuleRequestDto request);
-
-        public  Task<ApiResponse<MethodRuleResponseDto>> UpdateMethodRuleByIdAsync(Guid id, MethodRuleRequestDto newMethodRule);
-
-        public  Task<ApiResponse<MethodRuleResponseDto>> DeleteMethodRuleByIdAsync(Guid id);
+        Task<List<MethodRuleResponseDto>> GetAllAsync();
+        Task<MethodRuleResponseDto> GetByIdAsync(Guid id);
+        Task<MethodRuleResponseDto> CreateNewMethodRuleAsync(MethodRuleRequestDto request);
+        Task<MethodRuleResponseDto> UpdateMethodRuleByIdAsync(Guid id, MethodRuleRequestDto newMethodRule);
+        Task<MethodRuleResponseDto> DeleteMethodRuleByIdAsync(Guid id);
 
         public MethodRuleResponseDto MapToDTO(MethodRule methodRule);
     }

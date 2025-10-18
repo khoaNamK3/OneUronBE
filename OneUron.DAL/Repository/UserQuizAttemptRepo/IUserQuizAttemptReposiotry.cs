@@ -12,5 +12,7 @@ namespace OneUron.DAL.Repository.UserQuizAttemptRepo
         public  Task<List<UserQuizAttempt>> GetAllUserQuizAttemptAsync();
 
         public  Task<UserQuizAttempt> GetUserQuizAttemptsByIdAsync(Guid id);
+
+        public  Task<List<UserQuizAttempt>> GetAllUserQuizAttemptByQuizIdAsync(Guid quizId);
     }
 }

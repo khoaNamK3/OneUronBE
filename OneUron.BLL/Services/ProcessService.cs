@@ -1,5 +1,10 @@
-﻿using OneUron.BLL.DTOs.ProcessDTOs;
+﻿using FluentValidation;
+using OneUron.BLL.DTOs.MethodRuleDTOs;
+using OneUron.BLL.DTOs.ProcessDTOs;
+using OneUron.BLL.DTOs.ProcessTaskTDOs;
+using OneUron.BLL.DTOs.SubjectDTOs;
 using OneUron.BLL.ExceptionHandle;
+using OneUron.BLL.FluentValidation;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository.ProcessRepo;
@@ -16,158 +21,142 @@ namespace OneUron.BLL.Services
         private readonly IProcessRepository _processRepository;
         private readonly ISubjectService _subjectService;
         private readonly IProcessTaskService _taskService;
-        public ProcessService(IProcessRepository processRepository, ISubjectService subjectService, IProcessTaskService taskService)
+        private readonly IValidator<ProcessRequestDto> _processRequestValidator;
+
+        public ProcessService(
+            IProcessRepository processRepository,
+            ISubjectService subjectService,
+            IProcessTaskService taskService,
+            IValidator<ProcessRequestDto> processRequestValidator)
         {
             _processRepository = processRepository;
             _subjectService = subjectService;
             _taskService = taskService;
+            _processRequestValidator = processRequestValidator;
         }
 
-        public async Task<ApiResponse<List<ProcessResponseDto>>> GetAllAsync()
+        
+        public async Task<List<ProcessResponseDto>> GetAllAsync()
         {
-            try
-            {
-                var processes = await _processRepository.GetAllAsync();
+            var processes = await _processRepository.GetAllAsync();
 
-                if (!processes.Any())
-                {
-                    return ApiResponse<List<ProcessResponseDto>>.FailResponse("Get All Process Fail", "process Are empty");
-                }
+            if (processes == null || !processes.Any())
+                throw new ApiException.NotFoundException("No processes found.");
 
-                var result = processes.Select(MapToDTO).ToList();
-
-                return ApiResponse<List<ProcessResponseDto>>.SuccessResponse(result, "Get All Process Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<ProcessResponseDto>>.FailResponse("Get All Process Fail", ex.Message);
-            }
+            return processes.Select(MapToDTO).ToList();
         }
 
-        public async Task<ApiResponse<ProcessResponseDto>> GetByIdAsync(Guid id)
+        public async Task<ProcessResponseDto> GetByIdAsync(Guid id)
         {
-            try
-            {
-                var process = await _processRepository.GetByIdAsync(id);
+            var process = await _processRepository.GetByIdAsync(id);
+            if (process == null)
+                throw new ApiException.NotFoundException($"Process with ID {id} not found.");
 
-                if (process == null)
-                {
-                    return ApiResponse<ProcessResponseDto>.FailResponse("Get Process By id Fail", "process are not exist");
-                }
-
-                var result = MapToDTO(process);
-
-                return ApiResponse<ProcessResponseDto>.SuccessResponse(result, "Get Process By Id Successfully");
-
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ProcessResponseDto>.FailResponse("Get Process By id Fail", ex.Message);
-            }
+            return MapToDTO(process);
         }
 
-        public async Task<ApiResponse<ProcessResponseDto>> CreateProcessAsync(ProcessRequestDto request)
+        
+        public async Task<ProcessResponseDto> CreateProcessAsync(ProcessRequestDto request)
         {
-            try
-            {
-                if (request == null)
-                {
-                    return ApiResponse<ProcessResponseDto>.FailResponse("Create new Process Fail", "Process are null");
-                }
+            if (request == null)
+                throw new ApiException.BadRequestException("Process request cannot be null.");
 
-                var newProcess = MapToEntity(request);
+            var validationResult = await _processRequestValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                await _processRepository.AddAsync(newProcess);
+            var newProcess = MapToEntity(request);
+            await _processRepository.AddAsync(newProcess);
 
-                var result = MapToDTO(newProcess);
-
-                return ApiResponse<ProcessResponseDto>.SuccessResponse(result, "Create new Process Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ProcessResponseDto>.FailResponse("Create new Process Fail", ex.Message);
-            }
+            return MapToDTO(newProcess);
         }
 
-        public async Task<ApiResponse<ProcessResponseDto>> UpdateProcessByIdAsync(Guid id, ProcessRequestDto newProcess)
+       
+        public async Task<ProcessResponseDto> UpdateProcessByIdAsync(Guid id, ProcessRequestDto newProcess)
         {
-            try
-            {
-                var existProcess = await _processRepository.GetByIdAsync(id);
+            var existProcess = await _processRepository.GetByIdAsync(id);
+            if (existProcess == null)
+                throw new ApiException.NotFoundException($"Process with ID {id} not found.");
 
-                if (existProcess == null)
-                {
-                    return ApiResponse<ProcessResponseDto>.FailResponse("Update Process By Id Fail", "Process are not exist");
-                }
+            if (newProcess == null)
+                throw new ApiException.BadRequestException("New process data cannot be null.");
 
-                if (newProcess == null)
-                {
-                    return ApiResponse<ProcessResponseDto>.FailResponse("Update Process By Id Fail", "New Process are null");
-                }
+            var validationResult = await _processRequestValidator.ValidateAsync(newProcess);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                existProcess.Date = newProcess.Date;
-                existProcess.Description = newProcess.Description;
-                existProcess.ScheduleId = newProcess.ScheduleId;
+            existProcess.Date = newProcess.Date;
+            existProcess.Description = newProcess.Description;
+            existProcess.ScheduleId = newProcess.ScheduleId;
 
-                await _processRepository.UpdateAsync(existProcess);
+            await _processRepository.UpdateAsync(existProcess);
 
-                var result = MapToDTO(existProcess);
-
-                return ApiResponse<ProcessResponseDto>.SuccessResponse(result, "Update Process By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ProcessResponseDto>.FailResponse("Update Process By Id Fail", ex.Message);
-            }
+            return MapToDTO(existProcess);
         }
 
-        public async Task<ApiResponse<ProcessResponseDto>> DeleteProcessByIdAsync(Guid id)
+       
+        public async Task<ProcessResponseDto> DeleteProcessByIdAsync(Guid id)
         {
-            try
-            {
-                var existProcess = await _processRepository.GetByIdAsync(id);
+            var existProcess = await _processRepository.GetByIdAsync(id);
+            if (existProcess == null)
+                throw new ApiException.NotFoundException($"Process with ID {id} not found.");
 
-                if (existProcess == null)
-                {
-                    return ApiResponse<ProcessResponseDto>.FailResponse("Delete Process By Id Fail", "Process are not exist");
-                }
+            await _processRepository.DeleteAsync(existProcess);
 
-                var result = MapToDTO(existProcess);
+            return MapToDTO(existProcess);
+        }
 
-                await _processRepository.DeleteAsync(existProcess);
+        public async Task<List<ProcessResponseDto>> GetProcessesByScheduleId(Guid scheduleId)
+        {
+            var processes = await _processRepository.GetProcessesByScheduleId(scheduleId);
 
-                return ApiResponse<ProcessResponseDto>.SuccessResponse(result, "Delete Process By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<ProcessResponseDto>.FailResponse("Delete Process By Id Fail", ex.Message);
-            }
+            if (!processes.Any())
+                throw new ApiException.NotFoundException("Schedule have empty process");
+
+            var results = processes.Select(MapToDTO).ToList();
+
+            return results;
         }
 
 
         public ProcessResponseDto MapToDTO(Process process)
         {
+            if (process == null) return null;
+
             return new ProcessResponseDto
             {
                 Id = process.Id,
                 Date = process.Date,
                 Description = process.Description,
-                ScheduleId = process.ScheduleId,
+                ScheduleId = process.ScheduleId ?? Guid.Empty,
 
+                Subjects = process.Subjects?
+                    .Select(_subjectService.MapToDTO)
+                    .ToList() ?? new List<SubjectResponseDto>(),
 
-                Subjects = process.Subjects?.Select(_subjectService.MapToDTO).ToList() ?? new(),
-                ProcessTasks = process.ProcessTasks?.Select(_taskService.MapToDTO).ToList() ?? new()
+                ProcessTasks = process.ProcessTasks?
+                    .Select(_taskService.MapToDTO)
+                    .ToList() ?? new List<ProcessTaskResponseDto>()
             };
         }
 
-        public Process MapToEntity(ProcessRequestDto request)
+        protected Process MapToEntity(ProcessRequestDto request)
         {
+            
+            var utcDate = request.Date;
+
+            if (utcDate.Kind == DateTimeKind.Unspecified)
+                utcDate = DateTime.SpecifyKind(utcDate, DateTimeKind.Utc);
+            else
+                utcDate = utcDate.ToUniversalTime();
+
             return new Process
             {
-                Date = request.Date,
+                Date = utcDate,
                 Description = request.Description,
-                ScheduleId = request.ScheduleId,
+                ScheduleId = request.ScheduleId == Guid.Empty ? null : request.ScheduleId
             };
         }
+
     }
 }

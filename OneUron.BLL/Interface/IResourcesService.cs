@@ -11,16 +11,11 @@ namespace OneUron.BLL.Interface
 {
     public interface IResourcesService
     {
-        public  Task<ApiResponse<List<ResourceResponseDto>>> GetAllResourceAsync();
-
-        public Task<ApiResponse<ResourceResponseDto>> GetResourceByIdAsync(Guid id);
-
-        public  Task<ApiResponse<ResourceResponseDto>> CreateNewResourceAsync(ResourceRequestDto request);
-
-        public  Task<ApiResponse<ResourceResponseDto>> UpdateResourceByIdAsync(Guid id, ResourceRequestDto request);
-
-        public  Task<ApiResponse<ResourceResponseDto>> DeletedResourceAsync(Guid id);
-
-        public ResourceResponseDto MapToDto(Resource r);
+        Task<List<ResourceResponseDto>> GetAllResourceAsync();
+        Task<ResourceResponseDto> GetResourceByIdAsync(Guid id);
+        Task<ResourceResponseDto> CreateNewResourceAsync(ResourceRequestDto request);
+        Task<ResourceResponseDto> UpdateResourceByIdAsync(Guid id, ResourceRequestDto request);
+        Task<ResourceResponseDto> DeleteResourceByIdAsync(Guid id);
+        ResourceResponseDto MapToDto(Resource resource);
     }
 }

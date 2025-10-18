@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OneUron.BLL.DTOs.TechniqueDTOs;
+using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
 
 namespace OneUron.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class TechniqueController : Controller
+    public class TechniqueController : ControllerBase
     {
         private readonly ITechniqueService _techniqueService;
 
@@ -16,62 +17,38 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAll()
         {
-            var response = await _techniqueService.GetAllAsync();
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _techniqueService.GetAllAsync();
+            return Ok(ApiResponse<List<TechniqueResponseDto>>.SuccessResponse(result, "Get all techniques successfully"));
         }
 
         [HttpGet("get-by/{id}")]
-        public async Task<IActionResult> GetTechniqueByIdAsync(Guid id)
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var response = await _techniqueService.GetByIdAsync(id);
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _techniqueService.GetByIdAsync(id);
+            return Ok(ApiResponse<TechniqueResponseDto>.SuccessResponse(result, "Get technique successfully"));
         }
 
-        [HttpPost("create-new")]
-        public async Task<IActionResult> CreateNewTechniqueAsync([FromBody] TechniqueRequestDto request)
+        [HttpPost("create")]
+        public async Task<IActionResult> Create(TechniqueRequestDto request)
         {
-            var response = await _techniqueService.CreateNewTechiqueAsync(request);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _techniqueService.CreateAsync(request);
+            return Ok(ApiResponse<TechniqueResponseDto>.SuccessResponse(result, "Create technique successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> UpdateTechniqueByIdAsync(Guid id, [FromBody] TechniqueRequestDto request)
+        public async Task<IActionResult> Update(Guid id, TechniqueRequestDto request)
         {
-            var response = await _techniqueService.UpdateTechniqueByIdAsync(id, request);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-            return Ok(response);
+            var result = await _techniqueService.UpdateByIdAsync(id, request);
+            return Ok(ApiResponse<TechniqueResponseDto>.SuccessResponse(result, "Update technique successfully"));
         }
 
         [HttpDelete("delete-by/{id}")]
-        public async Task<IActionResult> DeleteTechniquebyIdAsync(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var response = await _techniqueService.DeleteTechniqueByidAsync(id);
-
-            if (!response.Success)
-            {
-                return NotFound(response);
-            }
-            return Ok(response);
+            var result = await _techniqueService.DeleteByIdAsync(id);
+            return Ok(ApiResponse<TechniqueResponseDto>.SuccessResponse(result, "Delete technique successfully"));
         }
     }
 }

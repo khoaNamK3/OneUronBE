@@ -11,16 +11,12 @@ namespace OneUron.BLL.Interface
 {
     public interface IProcessTaskService
     {
-        public Task<ApiResponse<List<ProcessTaskResponseDto>>> GetAllAsync();
-
-        public Task<ApiResponse<ProcessTaskResponseDto>> GetByIdAsync(Guid id);
-
-        public Task<ApiResponse<ProcessTaskResponseDto>> CreateProcessTaskAsync(ProcessTaskRequestDto request);
-
-        public Task<ApiResponse<ProcessTaskResponseDto>> UpdateProcessTaskByIdAsync(Guid id, ProcessTaskRequestDto newProcessTask);
-
-        public Task<ApiResponse<ProcessTaskResponseDto>> DeleteProcessTaskByIdAsync(Guid id);
-
-        public ProcessTaskResponseDto MapToDTO(ProcessTask processTask);
+        Task<List<ProcessTaskResponseDto>> GetAllAsync();
+        Task<ProcessTaskResponseDto> GetByIdAsync(Guid id);
+        Task<ProcessTaskResponseDto> CreateProcessTaskAsync(ProcessTaskRequestDto request);
+        Task<ProcessTaskResponseDto> UpdateProcessTaskByIdAsync(Guid id, ProcessTaskRequestDto request);
+        Task<ProcessTaskResponseDto> DeleteProcessTaskByIdAsync(Guid id);
+        ProcessTaskResponseDto MapToDTO(ProcessTask processTask);
+        Task<ProcessTaskResponseDto> CompleteProcessTaskAsync(Guid processTaskId);
     }
 }

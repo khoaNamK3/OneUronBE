@@ -1,5 +1,8 @@
-﻿using OneUron.BLL.DTOs.CourseDetailDTOs;
+﻿using FluentValidation;
+using OneUron.BLL.DTOs.ChoiceDTOs;
+using OneUron.BLL.DTOs.CourseDetailDTOs;
 using OneUron.BLL.ExceptionHandle;
+using OneUron.BLL.FluentValidation;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository.CourseDetailRepo;
@@ -14,135 +17,95 @@ namespace OneUron.BLL.Services
     public class CourseDetailService : ICourseDetailService
     {
         private readonly ICourseDetailRepository _courseDetailRepository;
+        private readonly IValidator<CourseDetailRequestDto> _courseDetailRequestValidator;
 
-        public CourseDetailService(ICourseDetailRepository courseDetailRepository)
+        public CourseDetailService(
+            ICourseDetailRepository courseDetailRepository,
+            IValidator<CourseDetailRequestDto> courseDetailRequestValidator)
         {
             _courseDetailRepository = courseDetailRepository;
+            _courseDetailRequestValidator = courseDetailRequestValidator;
         }
 
-        public async Task<ApiResponse<List<CourseDetailResponseDto>>> GetAllCourseDetailAsync()
+
+        public async Task<List<CourseDetailResponseDto>> GetAllCourseDetailAsync()
         {
-            try
-            {
-                var courseDetails = await _courseDetailRepository.GetAllCourseDetailAsync();
+            var courseDetails = await _courseDetailRepository.GetAllCourseDetailAsync();
 
-                if (!courseDetails.Any())
-                {
-                    return ApiResponse<List<CourseDetailResponseDto>>.FailResponse("Get All CourseDetail Fail", "CourseDetail Are Empty");
-                }
+            if (courseDetails == null || !courseDetails.Any())
+                throw new ApiException.NotFoundException("No course details found.");
 
-                var results = courseDetails.Select(MapToDto).ToList();
-
-                return ApiResponse<List<CourseDetailResponseDto>>.SuccessResponse(results, "Get All CourseDetail Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<CourseDetailResponseDto>>.FailResponse("Get All CourseDetail Fail", ex.Message);
-            }
+            return courseDetails.Select(MapToDto).ToList();
         }
 
-        public async Task<ApiResponse<CourseDetailResponseDto>> GetCourseDetailbyIdAsync(Guid id)
+   
+        public async Task<CourseDetailResponseDto> GetCourseDetailByIdAsync(Guid id)
         {
-            try
-            {
-                var existCourseDetail = await _courseDetailRepository.GetCourseDetailbyIdAsync(id);
+            var existCourseDetail = await _courseDetailRepository.GetCourseDetailbyIdAsync(id);
 
-                if (existCourseDetail == null)
-                {
-                    return ApiResponse<CourseDetailResponseDto>.FailResponse("Get CourseDetail By Id Fail", "CourseDetail Are Not Exist");
-                }
+            if (existCourseDetail == null)
+                throw new ApiException.NotFoundException($"CourseDetail with ID {id} not found.");
 
-                var result = MapToDto(existCourseDetail);
-
-                return ApiResponse<CourseDetailResponseDto>.SuccessResponse(result, "Get CourseDetail By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<CourseDetailResponseDto>.FailResponse("Get CourseDetail By Id Fail", ex.Message);
-            }
+            return MapToDto(existCourseDetail);
         }
 
-        public async Task<ApiResponse<CourseDetailResponseDto>> CreateNewCourseDetailAsync(CourseDetailRequestDto request)
+   
+        public async Task<CourseDetailResponseDto> CreateNewCourseDetailAsync(CourseDetailRequestDto request)
         {
-            try
-            {
-                if (request == null)
-                {
-                    return ApiResponse<CourseDetailResponseDto>.FailResponse("Create New CourseDetail Fail", "CourseDetail is Null");
-                }
+            if (request == null)
+                throw new ApiException.BadRequestException("CourseDetail request cannot be null.");
 
-                var newCourseDetail = MapToEntity(request);
+            var validationResult = await _courseDetailRequestValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                await _courseDetailRepository.AddAsync(newCourseDetail);
+            var newCourseDetail = MapToEntity(request);
 
-                var result = MapToDto(newCourseDetail);
+            await _courseDetailRepository.AddAsync(newCourseDetail);
 
-                return ApiResponse<CourseDetailResponseDto>.SuccessResponse(result, "Create New CourseDetail Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<CourseDetailResponseDto>.FailResponse("Create New CourseDetail Fail", ex.Message);
-            }
+            return MapToDto(newCourseDetail);
         }
 
-        public async Task<ApiResponse<CourseDetailResponseDto>> UpdateCourseDetailByIdAsync(Guid id, CourseDetailRequestDto newCourseDetail)
+        
+        public async Task<CourseDetailResponseDto> UpdateCourseDetailByIdAsync(Guid id, CourseDetailRequestDto newCourseDetail)
         {
-            try
-            {
-                var existCourseDetail = await _courseDetailRepository.GetCourseDetailbyIdAsync(id);
+            var existCourseDetail = await _courseDetailRepository.GetCourseDetailbyIdAsync(id);
+            if (existCourseDetail == null)
+                throw new ApiException.NotFoundException($"CourseDetail with ID {id} not found.");
 
-                if (existCourseDetail == null)
-                {
-                    return ApiResponse<CourseDetailResponseDto>.FailResponse("Update CourseDetail Fail", "CourseDetail Are Not Exist");
-                }
+            if (newCourseDetail == null)
+                throw new ApiException.BadRequestException("New CourseDetail data cannot be null.");
 
-                if (newCourseDetail == null)
-                {
-                    return ApiResponse<CourseDetailResponseDto>.FailResponse("Update CourseDetail Fail", "New CourseDetail is Null");
-                }
+            var validationResult = await _courseDetailRequestValidator.ValidateAsync(newCourseDetail);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                existCourseDetail.Duration = newCourseDetail.Duration;
-                existCourseDetail.Level = newCourseDetail.Level;
-                existCourseDetail.Students = newCourseDetail.Students;
-                existCourseDetail.Update = DateTime.UtcNow;
-                existCourseDetail.Reviews = newCourseDetail.Reviews;
-                existCourseDetail.Price = newCourseDetail.Price;
-                existCourseDetail.ResourceId = newCourseDetail.ResourceId;
+            existCourseDetail.Duration = newCourseDetail.Duration;
+            existCourseDetail.Level = newCourseDetail.Level;
+            existCourseDetail.Students = newCourseDetail.Students;
+            existCourseDetail.Update = DateTime.UtcNow;
+            existCourseDetail.Reviews = newCourseDetail.Reviews;
+            existCourseDetail.Price = newCourseDetail.Price;
+            existCourseDetail.ResourceId = newCourseDetail.ResourceId;
 
-                await _courseDetailRepository.UpdateAsync(existCourseDetail);
+            await _courseDetailRepository.UpdateAsync(existCourseDetail);
 
-                var result = MapToDto(existCourseDetail);
-
-                return ApiResponse<CourseDetailResponseDto>.SuccessResponse(result, "Update CourseDetail Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<CourseDetailResponseDto>.FailResponse("Update CourseDetail Fail", ex.Message);
-            }
+            return MapToDto(existCourseDetail);
         }
 
-        public async Task<ApiResponse<CourseDetailResponseDto>> DeleteCourseDetailByIdAsync(Guid id)
+       
+        public async Task<CourseDetailResponseDto> DeleteCourseDetailByIdAsync(Guid id)
         {
-            try
-            {
-                var existCourseDetail = await _courseDetailRepository.GetCourseDetailbyIdAsync(id);
+            var existCourseDetail = await _courseDetailRepository.GetCourseDetailbyIdAsync(id);
+            if (existCourseDetail == null)
+                throw new ApiException.NotFoundException($"CourseDetail with ID {id} not found.");
 
-                if (existCourseDetail == null)
-                {
-                    return ApiResponse<CourseDetailResponseDto>.FailResponse("Delete CourseDetail Fail", "CourseDetail Are Not Exist");
-                }
-                var result = MapToDto(existCourseDetail);
-                await _courseDetailRepository.DeleteAsync(existCourseDetail);
+            await _courseDetailRepository.DeleteAsync(existCourseDetail);
 
-                return ApiResponse<CourseDetailResponseDto>.SuccessResponse(result, "Delete CourseDetail Successfully");
-                
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<CourseDetailResponseDto>.FailResponse("Delete CourseDetail Fail",ex.Message);
-            }
+            return MapToDto(existCourseDetail);
         }
 
+      
         protected CourseDetail MapToEntity(CourseDetailRequestDto courseDetailRequest)
         {
             return new CourseDetail
@@ -158,7 +121,7 @@ namespace OneUron.BLL.Services
 
         public CourseDetailResponseDto MapToDto(CourseDetail courseDetail)
         {
-            if (courseDetail == null) return null; 
+            if (courseDetail == null) return null;
 
             return new CourseDetailResponseDto
             {
@@ -172,6 +135,5 @@ namespace OneUron.BLL.Services
                 ResourceId = courseDetail.ResourceId
             };
         }
-
     }
 }

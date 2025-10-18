@@ -1,9 +1,14 @@
 ﻿
+using FluentValidation;
+using OneUron.BLL.DTOs.AcknowledgeDTOs;
 using OneUron.BLL.DTOs.ChoiceDTOs;
+using OneUron.BLL.DTOs.EnRollDTOs;
+using OneUron.BLL.DTOs.EvaluationDTOs;
 using OneUron.BLL.DTOs.EvaluationQuestionDTOs;
 using OneUron.BLL.DTOs.MethodRuleConditionDTOs;
 using OneUron.BLL.DTOs.UserAnswerDTOs;
 using OneUron.BLL.ExceptionHandle;
+using OneUron.BLL.FluentValidation;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository.EvaluationQuestionRepo;
@@ -18,142 +23,100 @@ namespace OneUron.BLL.Services
     public class EvaluationQuestionService : IEvaluationQuestionService
     {
         private readonly IEvaluationQuestionRepository _evaluationQuestionRepository;
-
         private readonly IChoiceService _choiceService;
-
         private readonly IUserAnswerService _userAnswerService;
-
         private readonly IMethodRuleConditionService _methodRuleConditionService;
-        public EvaluationQuestionService(IEvaluationQuestionRepository evaluationQuestionRepository, IChoiceService choiceService, IUserAnswerService userAnswerService, IMethodRuleConditionService methodRuleConditionService)
+        private readonly IValidator<EvaluationQuestionRequestDto> _evaluationQuestionValidator;
+
+        public EvaluationQuestionService(
+            IEvaluationQuestionRepository evaluationQuestionRepository,
+            IChoiceService choiceService,
+            IUserAnswerService userAnswerService,
+            IMethodRuleConditionService methodRuleConditionService,
+            IValidator<EvaluationQuestionRequestDto> evaluationQuestionValidator)
         {
             _evaluationQuestionRepository = evaluationQuestionRepository;
             _choiceService = choiceService;
             _userAnswerService = userAnswerService;
             _methodRuleConditionService = methodRuleConditionService;
+            _evaluationQuestionValidator = evaluationQuestionValidator;
         }
 
-        public async Task<ApiResponse<List<EvaluationQuestionResponseDto>>> GetAllAsync()
+       
+        public async Task<List<EvaluationQuestionResponseDto>> GetAllAsync()
         {
-            try
-            {
-                var evaluationQuestions = await _evaluationQuestionRepository.GetAllAsync();
+            var evaluationQuestions = await _evaluationQuestionRepository.GetAllAsync();
 
-                if (!evaluationQuestions.Any())
-                {
-                    return ApiResponse<List<EvaluationQuestionResponseDto>>.FailResponse("Get All EvaluationQuestion Fail", "the EvaluationQuestion are empty");
-                }
-                var results = evaluationQuestions.Select(MapToDTO).ToList();
+            if (evaluationQuestions == null || !evaluationQuestions.Any())
+                throw new ApiException.NotFoundException("No EvaluationQuestions found.");
 
-                return ApiResponse<List<EvaluationQuestionResponseDto>>.SuccessResponse(results, "Get All EvaluationQuestion Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<List<EvaluationQuestionResponseDto>>.FailResponse("Get All EvaluationQuestion Fail", ex.Message);
-            }
+            return evaluationQuestions.Select(MapToDTO).ToList();
         }
 
-        public async Task<ApiResponse<EvaluationQuestionResponseDto>> GetEvaluationByIdAsync(Guid id)
+        
+        public async Task<EvaluationQuestionResponseDto> GetByIdAsync(Guid id)
         {
-            try
-            {
-                var existEvaluationQuestion = await _evaluationQuestionRepository.GetEvaluationQuestionByIdAsync(id);
+            var existEvaluationQuestion = await _evaluationQuestionRepository.GetEvaluationQuestionByIdAsync(id);
 
-                if (existEvaluationQuestion == null)
-                {
-                    return ApiResponse<EvaluationQuestionResponseDto>.FailResponse("Get EvaluationQuestion By Id Fail", "EvalutaionQuestion is not exist");
-                }
+            if (existEvaluationQuestion == null)
+                throw new ApiException.NotFoundException($"EvaluationQuestion with ID {id} not found.");
 
-                var result = MapToDTO(existEvaluationQuestion);
-
-                return ApiResponse<EvaluationQuestionResponseDto>.SuccessResponse(result, "Get All EvaluationQuestion Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<EvaluationQuestionResponseDto>.FailResponse("Get EvaluationQuestion By Id Fail", ex.Message);
-            }
+            return MapToDTO(existEvaluationQuestion);
         }
 
-
-        public async Task<ApiResponse<EvaluationQuestionResponseDto>> CreateNewEvaluationQuestionAsync(EvaluationQuestionRequestDto request)
+       
+        public async Task<EvaluationQuestionResponseDto> CreateNewEvaluationQuestionAsync(EvaluationQuestionRequestDto request)
         {
-            try
-            {
-                if (request == null)
-                {
-                    return ApiResponse<EvaluationQuestionResponseDto>.FailResponse("Create New EvaluationQuestion Fail", "New EvaluationQuestion Is Null");
-                }
+            if (request == null)
+                throw new ApiException.BadRequestException("EvaluationQuestion request cannot be null.");
 
-                var newEvaluationQuestion = MapToEntity(request);
+            var validationResult = await _evaluationQuestionValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                await _evaluationQuestionRepository.AddAsync(newEvaluationQuestion);
+            var newEvaluationQuestion = MapToEntity(request);
+            await _evaluationQuestionRepository.AddAsync(newEvaluationQuestion);
 
-                var result = MapToDTO(newEvaluationQuestion);
-
-                return ApiResponse<EvaluationQuestionResponseDto>.SuccessResponse(result, "Create New EvaluationQuestion Successfully");
-
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<EvaluationQuestionResponseDto>.FailResponse("Create New EvaluationQuestion Fail", ex.Message);
-            }
+            return MapToDTO(newEvaluationQuestion);
         }
 
-        public async Task<ApiResponse<EvaluationQuestionResponseDto>> UpdateEvaluationQuestionByIdAsync(Guid id, EvaluationQuestionRequestDto newEvaluation)
+        
+        public async Task<EvaluationQuestionResponseDto> UpdateEvaluationQuestionByIdAsync(Guid id, EvaluationQuestionRequestDto newEvaluation)
         {
-            try
-            {
-                var existEvaluationQuestion = await _evaluationQuestionRepository.GetEvaluationQuestionByIdAsync(id);
+            var existEvaluationQuestion = await _evaluationQuestionRepository.GetEvaluationQuestionByIdAsync(id);
+            if (existEvaluationQuestion == null)
+                throw new ApiException.NotFoundException($"EvaluationQuestion with ID {id} not found.");
 
-                if (existEvaluationQuestion == null)
-                {
-                    return ApiResponse<EvaluationQuestionResponseDto>.FailResponse("Update EvaluationQuestion By Id Fail", "EvalutaionQuestion is not exist");
-                }
+            if (newEvaluation == null)
+                throw new ApiException.BadRequestException("New EvaluationQuestion data cannot be null.");
 
-                if (newEvaluation == null)
-                {
-                    return ApiResponse<EvaluationQuestionResponseDto>.FailResponse("Update EvaluationQuestion By Id Fail", "New EvalutaionQuestion is Null");
-                }
+            var validationResult = await _evaluationQuestionValidator.ValidateAsync(newEvaluation);
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-                existEvaluationQuestion.Title = newEvaluation.Title;
-                existEvaluationQuestion.Description = newEvaluation.Description;
-                existEvaluationQuestion.Type = newEvaluation.Type;
-                existEvaluationQuestion.EvaluationId = newEvaluation.EvaluationId;
+            existEvaluationQuestion.Title = newEvaluation.Title;
+            existEvaluationQuestion.Description = newEvaluation.Description;
+            existEvaluationQuestion.Type = newEvaluation.Type;
+            existEvaluationQuestion.EvaluationId = newEvaluation.EvaluationId;
 
-                await _evaluationQuestionRepository.UpdateAsync(existEvaluationQuestion);
+            await _evaluationQuestionRepository.UpdateAsync(existEvaluationQuestion);
 
-                var result = MapToDTO(existEvaluationQuestion);
-
-                return ApiResponse<EvaluationQuestionResponseDto>.SuccessResponse(result, "Update EvaluationQuestion By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<EvaluationQuestionResponseDto>.FailResponse("Update EvaluationQuestion By Id Fail", ex.Message);
-            }
+            return MapToDTO(existEvaluationQuestion);
         }
 
-        public async Task<ApiResponse<EvaluationQuestionResponseDto>> DeleteEvaluationQuestionByIdAsync(Guid id)
+        
+        public async Task<EvaluationQuestionResponseDto> DeleteEvaluationQuestionByIdAsync(Guid id)
         {
-            try
-            {
-                var existEvaluationQuestion = await _evaluationQuestionRepository.GetEvaluationQuestionByIdAsync(id);
+            var existEvaluationQuestion = await _evaluationQuestionRepository.GetEvaluationQuestionByIdAsync(id);
+            if (existEvaluationQuestion == null)
+                throw new ApiException.NotFoundException($"EvaluationQuestion with ID {id} not found.");
 
-                if (existEvaluationQuestion == null)
-                {
-                    return ApiResponse<EvaluationQuestionResponseDto>.FailResponse("Delete EvaluationQuestion By Id Fail", "EvalutaionQuestion is not exist");
-                }
+            await _evaluationQuestionRepository.DeleteAsync(existEvaluationQuestion);
 
-                var result = MapToDTO(existEvaluationQuestion);
-
-                await _evaluationQuestionRepository.DeleteAsync(existEvaluationQuestion);
-
-                return ApiResponse<EvaluationQuestionResponseDto>.SuccessResponse(result, "Delete EvaluationQuestion By Id Successfully");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<EvaluationQuestionResponseDto>.FailResponse("Delete EvaluationQuestion By Id Fail", ex.Message);
-            }
+            return MapToDTO(existEvaluationQuestion);
         }
 
+       
         protected EvaluationQuestion MapToEntity(EvaluationQuestionRequestDto request)
         {
             return new EvaluationQuestion
@@ -161,7 +124,7 @@ namespace OneUron.BLL.Services
                 Title = request.Title,
                 Description = request.Description,
                 Type = request.Type,
-                EvaluationId = request.EvaluationId,
+                EvaluationId = request.EvaluationId
             };
         }
 
@@ -181,17 +144,15 @@ namespace OneUron.BLL.Services
                     .Select(c => _choiceService.MapToDTO(c))
                     .ToList() ?? new List<ChoiceResponseDto>(),
 
-                //userAnswers = evaluationQuestion.UserAnswers?
-                //    .Select(u => _userAnswerService.MaptoDTO(u))
-                //    .ToList() ?? new List<UserAnswerResponseDto>(),
+               
+                // UserAnswers = evaluationQuestion.UserAnswers?
+                //     .Select(u => _userAnswerService.MaptoDTO(u))
+                //     .ToList() ?? new List<UserAnswerResponseDto>(),
 
-                //MethodRuleConditions = evaluationQuestion.MethodRuleConditions?
-                //    .Select(mrc => _methodRuleConditionService.MapToDTO(mrc))
-                //    .ToList() ?? new List<MethodRuleConditionResponseDto>()
+                // MethodRuleConditions = evaluationQuestion.MethodRuleConditions?
+                //     .Select(mrc => _methodRuleConditionService.MapToDTO(mrc))
+                //     .ToList() ?? new List<MethodRuleConditionResponseDto>()
             };
         }
-
-
-
     }
 }
