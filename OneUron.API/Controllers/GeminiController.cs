@@ -41,10 +41,10 @@ namespace OneUron.API.Controllers
             return Ok(result);
         }
 
-        [HttpPost("schedule/{scheduleId:guid}/user/{userId:guid}/tasks/generate")]
-        public async Task<IActionResult> GenerateTasksForScheduleAsync(Guid scheduleId,Guid userId,[FromBody] ProcessTaskGenerateRequest request)
+        [HttpPost("processId/{processId:guid}/tasks/generate")]
+        public async Task<IActionResult> GenerateTasksForScheduleAsync(Guid processId,[FromBody] ProcessTaskGenerateRequest request)
         {
-            var result = await _geminiService.CreatProcessTaskForProcessAsync(scheduleId, userId, request);
+            var result = await _geminiService.CreatProcessTaskForProcessAsync(processId, request);
             return Ok(result);
         }
     }

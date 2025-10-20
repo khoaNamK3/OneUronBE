@@ -59,5 +59,11 @@ namespace OneUron.API.Controllers
             return Ok(ApiResponse<ScheduleWeekRespone>.SuccessResponse(result, "Schedule week information retrieved successfully."));
         }
 
+        [HttpGet("get-all-by/{userId:guid}")]
+        public async Task<IActionResult> GetScheduleByUserIdAsync(Guid userId)
+        {
+            var response = await _scheduleService.GetAllScheduleByUserIdAsync(userId);
+            return Ok(ApiResponse<List<ScheduleResponeDto>>.SuccessResponse(response,"Get All Schedule By userId Successfully"));
+        }
     }
 }

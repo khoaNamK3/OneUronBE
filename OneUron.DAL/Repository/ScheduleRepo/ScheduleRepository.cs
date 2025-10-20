@@ -25,5 +25,10 @@ namespace OneUron.DAL.Repository.ScheduleRepo
             return await _dbSet.Where(c => c.IsDeleted == false).Include(c => c.Processes).ThenInclude(p => p.ProcessTasks).Include(c => c.Subjects).FirstOrDefaultAsync(c => c.Id == id);
         }
 
+        public async Task<List<Schedule>> GetAllScheduleByUserIdAsync(Guid userId)
+        {
+            return await _dbSet.Where(c => c.IsDeleted == false && c.UserId == userId).Include(c => c.Processes).ThenInclude(p => p.ProcessTasks).Include(c => c.Subjects).ToListAsync();
+        }
+
     }
 }

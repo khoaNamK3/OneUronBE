@@ -52,6 +52,17 @@ namespace OneUron.BLL.Services
             return schedules.Select(MapToDTO).ToList();
         }
 
+        public async Task<List<ScheduleResponeDto>> GetAllScheduleByUserIdAsync(Guid userId)
+        {
+            var schedules = await _scheduleRepository.GetAllScheduleByUserIdAsync(userId);
+
+            if (!schedules.Any())
+                throw new ApiException.NotFoundException("No schudules found");
+
+            var result = schedules.Select(MapToDTO).ToList();
+
+            return result;
+        }
 
         public async Task<ScheduleResponeDto> GetByIdAsync(Guid id)
         {

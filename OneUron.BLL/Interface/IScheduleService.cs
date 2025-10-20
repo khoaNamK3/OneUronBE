@@ -25,5 +25,7 @@ namespace OneUron.BLL.Interface
 
         public  Task<ScheduleWeekRespone> GetScheduleWeekInFormationAsync(Guid id);
 
+        public Task<List<ScheduleResponeDto>> GetAllScheduleByUserIdAsync(Guid userId);
+
     }
 }

@@ -33,6 +33,7 @@ namespace OneUron.BLL.Services.Ai
         private readonly IProcessService _processService;
         private readonly IProcessTaskService _processTaskService;
         private readonly ISubjectService _subjectService;
+        private readonly IUserRepository _userRepository;
 
         private readonly IValidator<ScheduleSubjectRequestDto> _schedulerSubjectRequestValidator;
         private readonly IValidator<ProcessTaskGenerateRequest> _processTaskGenerateValidator;
@@ -52,6 +53,7 @@ namespace OneUron.BLL.Services.Ai
             IProcessTaskService processTaskService,
             ISubjectService subjectService,
             IConfiguration configuration,
+            IUserRepository userRepository,
             IValidator<ScheduleSubjectRequestDto> schedulerSubjectRequestValidator,
              IValidator<ProcessTaskGenerateRequest> processTaskGenerateValidator
             )
@@ -67,6 +69,7 @@ namespace OneUron.BLL.Services.Ai
             _subjectService = subjectService;
             _schedulerSubjectRequestValidator = schedulerSubjectRequestValidator;
             _processTaskGenerateValidator = processTaskGenerateValidator;
+            _userRepository = userRepository;
 
             var quizKeyConfig = configuration.GetSection("QuizKey");
             _apiKey = quizKeyConfig["ApiKey"] ?? throw new ArgumentNullException("Missing Gemini API key");
@@ -496,108 +499,198 @@ namespace OneUron.BLL.Services.Ai
             }
         }
 
-        public async Task<ScheduleResponeDto> CreatProcessTaskForProcessAsync(Guid scheduleId, Guid userId, ProcessTaskGenerateRequest taskGenerateRequest)
+        public async Task<ProcessResponseDto> CreatProcessTaskForProcessAsync(Guid processId, ProcessTaskGenerateRequest taskGenerateRequest)
         {
 
-            var existSchedule = await _scheduleService.GetByIdAsync(scheduleId)
-                ?? throw new ApiException.NotFoundException("Schedule does not exist.");
+            //var existSchedule = await _scheduleService.GetByIdAsync(scheduleId)
+            //    ?? throw new ApiException.NotFoundException("Schedule does not exist.");
 
-            var existStudyMethod = await _studyMethodService.GetStudyMethodByUserIdAsync(userId)
-                ?? throw new ApiException.NotFoundException("StudyMethod does not exist.");
+            //var existStudyMethod = await _studyMethodService.GetStudyMethodByUserIdAsync(userId)
+            //    ?? throw new ApiException.NotFoundException("StudyMethod does not exist.");
 
-            var existMethod = await _methodSerivce.GetByIdAsync(existStudyMethod.MethodId)
-                ?? throw new ApiException.NotFoundException("Method does not exist.");
+            //var existMethod = await _methodSerivce.GetByIdAsync(existStudyMethod.MethodId)
+            //    ?? throw new ApiException.NotFoundException("Method does not exist.");
 
 
-            var processes = await _processService.GetProcessesByScheduleId(scheduleId);
-            if (!processes.Any())
-                throw new ApiException.NotFoundException("Schedule has no processes.");
+            //var processes = await _processService.GetProcessesByScheduleId(scheduleId);
+            //if (!processes.Any())
+            //    throw new ApiException.NotFoundException("Schedule has no processes.");
 
-            string allDates = string.Join(", ", processes.Select(p => p.Date.ToString("yyyy-MM-dd")));
+            //string allDates = string.Join(", ", processes.Select(p => p.Date.ToString("yyyy-MM-dd")));
 
+
+            //var validationTaskGenerate = await _processTaskGenerateValidator.ValidateAsync(taskGenerateRequest);
+            //if (!validationTaskGenerate.IsValid)
+            //    throw new ApiException.ValidationException(validationTaskGenerate.Errors);
+
+
+            //string prompt = $@"
+            //    Hãy tạo danh sách task học tập theo phương pháp '{existMethod.Name}'.
+            //    Số lượng task: {taskGenerateRequest.Amount} cho mỗi ngày.
+            //    Chi tiết: {taskGenerateRequest.Description}
+            //    Ngày học: {allDates}
+
+            //    Yêu cầu:
+            //    - Thời gian bắt đầu của mỗi task phải lớn hơn hoặc bằng thời điểm hiện tại.
+            //    - Thời gian kết thúc phải sau thời gian bắt đầu.
+            //    - KHÔNG thêm ký tự ngoài JSON.
+            //    - KHÔNG trả lời dưới dạng text, chỉ trả JSON duy nhất.
+            //    - Chỉ trả về JSON duy nhất, định dạng:
+            //    [
+            //      {{
+            //        ""title"": ""string"",
+            //        ""description"": ""string"",
+            //        ""start_time"": ""yyyy-MM-ddTHH:mm:ss"",
+            //        ""end_time"": ""yyyy-MM-ddTHH:mm:ss""
+            //      }}
+            //    ]
+            //    ";
+
+
+            //foreach (var process in processes)
+            //{
+            //    string processContext = $@"
+            //        Context ngày học:
+            //        - Ngày: {process.Date:yyyy-MM-dd}
+            //        - Mô tả: {process.Description ?? "Không có mô tả"}";
+
+            //    string finalPrompt = $"{prompt}\n{processContext}";
+
+            //    var aiResponse = await CallGeminiAsync(finalPrompt);
+
+
+            //    var cleanJson = NormalizeAiJson(aiResponse);
+
+            //    List<ProcessTaskRequestDto> tasks;
+            //    try
+            //    {
+            //        tasks = JsonSerializer.Deserialize<List<ProcessTaskRequestDto>>(cleanJson,
+            //            new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
+            //            ?? new List<ProcessTaskRequestDto>();
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        throw new ApiException.BadRequestException(
+            //            $"Invalid AI JSON for process {process.Id} ({process.Date:yyyy-MM-dd}): {ex.Message}\nRaw JSON: {cleanJson}");
+            //    }
+
+            //    if (!tasks.Any()) continue;
+
+
+            //    foreach (var task in tasks)
+            //    {
+            //        task.ProcessId = process.Id;
+            //        task.IsCompleted = false;
+            //        task.Note ??= string.Empty;
+
+            //        task.StartTime = DateTime.SpecifyKind(task.StartTime, DateTimeKind.Utc);
+            //        task.EndTime = DateTime.SpecifyKind(task.EndTime, DateTimeKind.Utc);
+
+
+            //        if (task.StartTime < DateTime.UtcNow)
+            //            task.StartTime = DateTime.UtcNow.AddMinutes(1);
+
+
+            //        if (task.EndTime <= task.StartTime)
+            //            task.EndTime = task.StartTime.AddMinutes(30);
+
+            //        await _processTaskService.CreateProcessTaskAsync(task);
+            //    }
+            //}
+
+
+            //return await _scheduleService.GetByIdAsync(scheduleId)
+            //    ?? throw new ApiException.BadRequestException("Failed to retrieve schedule after creating tasks.");
+
+            // get process
+            var existProcess = await _processService.GetByIdAsync(processId);
+            if (existProcess == null)
+                throw new ApiException.NotFoundException("No Process Found");
+
+            // get Schedule
+            var existSchedule = await _scheduleService.GetByIdAsync(existProcess.ScheduleId);
+            if (existSchedule == null)
+                throw new ApiException.NotFoundException("No Schedule Found");
+
+            // get user
+            var existUser = await _userRepository.GetUserByUserIdAsync(existSchedule.UserId);
+            if (existUser == null)
+                throw new ApiException.NotFoundException("No User Found");
+
+
+            // get StudyMethod
+            var existStudyMethod = await _studyMethodService.GetByIdAsync(existUser.StudyMethod.Id);
+            if (existStudyMethod == null)
+                throw new ApiException.NotFoundException("No studyMethod Found");
+
+            // get method
+            var existMethod = await _methodSerivce.GetByIdAsync(existStudyMethod.MethodId);
+            if (existMethod == null)
+                throw new ApiException.NotFoundException("No Method Found");
 
             var validationTaskGenerate = await _processTaskGenerateValidator.ValidateAsync(taskGenerateRequest);
             if (!validationTaskGenerate.IsValid)
                 throw new ApiException.ValidationException(validationTaskGenerate.Errors);
 
-
-            string prompt = $@"
-                Hãy tạo danh sách task học tập theo phương pháp '{existMethod.Name}'.
-                Số lượng task: {taskGenerateRequest.Amount} cho mỗi ngày.
-                Chi tiết: {taskGenerateRequest.Description}
-                Ngày học: {allDates}
-
-                Yêu cầu:
-                - Thời gian bắt đầu của mỗi task phải lớn hơn hoặc bằng thời điểm hiện tại.
-                - Thời gian kết thúc phải sau thời gian bắt đầu.
-                - KHÔNG thêm ký tự ngoài JSON.
-                - KHÔNG trả lời dưới dạng text, chỉ trả JSON duy nhất.
-                - Chỉ trả về JSON duy nhất, định dạng:
+            string prompt = $@" Hãy tạo danh sách task học tập theo phương pháp '{existMethod.Name}'.
+                         Số lượng task: {taskGenerateRequest.Amount}
+                         Chi tiết: {taskGenerateRequest.Description}
+                          Ngày học {existProcess.Date:yyyy-MM-dd}
+                         Yêu cầu:
+                        - Mỗi task phải thuộc cùng ngày {existProcess.Date:yyyy-MM-dd}.
+                        - Thời gian bắt đầu (start_time) phải trước thời gian kết thúc (end_time).
+                        - Thời gian kết thúc (end_time) phải lớn hơn thời gian bắt đầu (start_time).
+                        - Thời gian định dạng: yyyy-MM-ddTHH:mm:ss (theo chuẩn ISO 8601).
+                        - KHÔNG thêm ký tự ngoài JSON.
+                        - KHÔNG trả lời dưới dạng text, chỉ trả JSON duy nhất.
+                        - Chỉ trả về JSON duy nhất, định dạng:
                 [
                   {{
-                    ""title"": ""string"",
-                    ""description"": ""string"",
-                    ""start_time"": ""yyyy-MM-ddTHH:mm:ss"",
-                    ""end_time"": ""yyyy-MM-ddTHH:mm:ss""
+                     ""title"": ""string"",
+                     ""description"": ""string"",
+                     ""start_time"": ""yyyy-MM-ddTHH:mm:ss"",
+                     ""end_time"": ""yyyy-MM-ddTHH:mm:ss""
                   }}
-                ]
-                ";
+                 ]
+            ";
 
 
-            foreach (var process in processes)
+            string aiResponse = await CallGeminiAsync(prompt);
+
+
+            string cleanJson = NormalizeAiJson(aiResponse);
+
+            var aiTasks = JsonSerializer.Deserialize<List<ProcessTaskResponseDto>>(
+              cleanJson,
+                 new JsonSerializerOptions
+                 {
+                     PropertyNameCaseInsensitive = true,
+                     AllowTrailingCommas = true,
+                     ReadCommentHandling = JsonCommentHandling.Skip
+                 }
+             );
+
+            var processTasks = aiTasks;
+
+            foreach (var task in processTasks)
             {
-                string processContext = $@"
-                    Context ngày học:
-                    - Ngày: {process.Date:yyyy-MM-dd}
-                    - Mô tả: {process.Description ?? "Không có mô tả"}";
-
-                string finalPrompt = $"{prompt}\n{processContext}";
-
-                var aiResponse = await CallGeminiAsync(finalPrompt);
-
-
-                var cleanJson = NormalizeAiJson(aiResponse);
-
-                List<ProcessTaskRequestDto> tasks;
-                try
+                var newTask = new ProcessTaskRequestDto
                 {
-                    tasks = JsonSerializer.Deserialize<List<ProcessTaskRequestDto>>(cleanJson,
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
-                        ?? new List<ProcessTaskRequestDto>();
-                }
-                catch (Exception ex)
-                {
-                    throw new ApiException.BadRequestException(
-                        $"Invalid AI JSON for process {process.Id} ({process.Date:yyyy-MM-dd}): {ex.Message}\nRaw JSON: {cleanJson}");
-                }
+                    Note = task.Note,
+                    Description = task.Description,
+                    StartTime = task.StartTime,
+                    EndTime = task.EndTime,
+                    IsCompleted = false,
+                    ProcessId = processId,
+                    Title = task.Title
+                };
 
-                if (!tasks.Any()) continue;
-
-
-                foreach (var task in tasks)
-                {
-                    task.ProcessId = process.Id;
-                    task.IsCompleted = false;
-                    task.Note ??= string.Empty;
-
-                    task.StartTime = DateTime.SpecifyKind(task.StartTime, DateTimeKind.Utc);
-                    task.EndTime = DateTime.SpecifyKind(task.EndTime, DateTimeKind.Utc);
-
-                 
-                    if (task.StartTime < DateTime.UtcNow)
-                        task.StartTime = DateTime.UtcNow.AddMinutes(1);
-
-           
-                    if (task.EndTime <= task.StartTime)
-                        task.EndTime = task.StartTime.AddMinutes(30);
-
-                    await _processTaskService.CreateProcessTaskAsync(task);
-                }
+                await _processTaskService.CreateProcessTaskAsync(newTask);
             }
 
+            var response = await _processService.GetByIdAsync(processId);
 
-            return await _scheduleService.GetByIdAsync(scheduleId)
-                ?? throw new ApiException.BadRequestException("Failed to retrieve schedule after creating tasks.");
+            return response;
         }
 
 
@@ -606,7 +699,7 @@ namespace OneUron.BLL.Services.Ai
             if (string.IsNullOrWhiteSpace(aiResponse))
                 return "[]";
 
-           
+
             var start = aiResponse.IndexOf('[');
             var end = aiResponse.LastIndexOf(']');
 
@@ -615,7 +708,7 @@ namespace OneUron.BLL.Services.Ai
 
             string json = aiResponse[start..(end + 1)];
 
-          
+
             json = Regex.Replace(json, @"\""start_time\"":\s*\""(.*?)\""", m =>
             {
                 if (DateTime.TryParse(m.Groups[1].Value, out var dt))

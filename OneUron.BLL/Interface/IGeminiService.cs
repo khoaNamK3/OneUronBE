@@ -1,4 +1,5 @@
-﻿using OneUron.BLL.DTOs.ProcessTaskTDOs;
+﻿using OneUron.BLL.DTOs.ProcessDTOs;
+using OneUron.BLL.DTOs.ProcessTaskTDOs;
 using OneUron.BLL.DTOs.QuizDTOs;
 using OneUron.BLL.DTOs.ScheduleDTOs;
 using OneUron.BLL.ExceptionHandle;
@@ -17,6 +18,6 @@ namespace OneUron.BLL.Interface
 
         public Task<ScheduleResponeDto> CreateScheduleWithListSubjectAsync(ScheduleSubjectRequestDto scheduleSubject, Guid userId);
 
-        public Task<ScheduleResponeDto> CreatProcessTaskForProcessAsync(Guid scheduleId, Guid userId, ProcessTaskGenerateRequest taskGenerateRequest);
+        public Task<ProcessResponseDto> CreatProcessTaskForProcessAsync(Guid processId, ProcessTaskGenerateRequest taskGenerateRequest);
     }
 }
