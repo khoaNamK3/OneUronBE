@@ -95,11 +95,15 @@ builder.Services.AddSingleton<IConfiguration>(configuration);
 // Add CORS services
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowSpecificOrigins",
+    options.AddPolicy("AllowFrontend",
         policy => policy
-            .AllowAnyOrigin()
+            .WithOrigins(
+                "http://localhost:5173", 
+                "https://oneuron.vercel.app" 
+            )
             .AllowAnyHeader()
-            .AllowAnyMethod());
+            .AllowAnyMethod()
+            .AllowCredentials()); 
 });
 
 // Add services
@@ -314,14 +318,16 @@ builder.Services.AddHostedService(sp => sp.GetRequiredService<DbInitializer>());
 var app = builder.Build();
 
 // Configure CORS
-app.UseCors("AllowSpecificOrigins");
+app.UseCors("AllowFrontend");
 
 // Middleware pipeline
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+//if (app.Environment.IsDevelopment())
+//{
+//    app.UseSwagger();
+//    app.UseSwaggerUI();
+//}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseMiddleware<ExceptionMiddleware>();
 
