@@ -21,6 +21,9 @@ namespace OneUron.BLL.FluentValidation
 
             RuleFor(x => x.Amount)
                 .GreaterThan(0).WithMessage("Giá trị Amount phải lớn hơn 0.");
+
+            RuleFor(x => x.StartTime)
+                  .NotEmpty().WithMessage("Time Start không được để trống.");
         }
     }
 }

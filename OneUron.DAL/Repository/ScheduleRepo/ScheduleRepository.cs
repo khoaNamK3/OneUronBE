@@ -17,17 +17,17 @@ namespace OneUron.DAL.Repository.ScheduleRepo
 
         public async Task<List<Schedule>> GetAllAsync()
         {
-            return await _dbSet.Where(c => c.IsDeleted == false).Include(c => c.Processes).ThenInclude(p => p.ProcessTasks).Include(c => c.Subjects).ToListAsync();
+            return await _dbSet.Where(c => c.IsDeleted == false).Include(c => c.Processes).ThenInclude(p => p.Subjects).Include(c => c.Subjects).ToListAsync();
         }
 
         public async Task<Schedule> GetByIdAsync(Guid id)
         {
-            return await _dbSet.Where(c => c.IsDeleted == false).Include(c => c.Processes).ThenInclude(p => p.ProcessTasks).Include(c => c.Subjects).FirstOrDefaultAsync(c => c.Id == id);
+            return await _dbSet.Where(c => c.IsDeleted == false).Include(c => c.Processes).ThenInclude(p => p.Subjects).Include(c => c.Subjects).FirstOrDefaultAsync(c => c.Id == id);
         }
 
         public async Task<List<Schedule>> GetAllScheduleByUserIdAsync(Guid userId)
         {
-            return await _dbSet.Where(c => c.IsDeleted == false && c.UserId == userId).Include(c => c.Processes).ThenInclude(p => p.ProcessTasks).Include(c => c.Subjects).ToListAsync();
+            return await _dbSet.Where(c => c.IsDeleted == false && c.UserId == userId).Include(c => c.Processes).ThenInclude(p => p.Subjects).Include(c => c.Subjects).ToListAsync();
         }
 
     }

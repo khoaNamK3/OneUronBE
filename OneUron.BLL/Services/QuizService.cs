@@ -80,14 +80,14 @@ namespace OneUron.BLL.Services
 
         public async Task<UserQuizInformationResponse> GetUserQuizInformation(Guid userId)
         {
-            var existQuizzes = await _quizRepository.GetAllQuizByUserIdAsync(userId);
+            var existQuizzes = await _quizRepository.GetAllQuizByUserId(userId);
 
             if (existQuizzes == null || !existQuizzes.Any())
                 throw new ApiException.NotFoundException("No quizzes found for this user.");
 
             int totalCompleteQuiz = 0;
             int totalQuizPassed = 0;
-            double totalHours = 0;
+            double totalMinute = 0;
             double totalPoints = 0;
             int totalAttempts = 0;
 
@@ -103,7 +103,7 @@ namespace OneUron.BLL.Services
                    
                     if (attempt.FinishAt > attempt.StartAt)
                     {
-                        totalHours += (attempt.FinishAt - attempt.StartAt).TotalHours;
+                        totalMinute += (attempt.FinishAt - attempt.StartAt).TotalMinutes;
                     }
 
                    
@@ -126,7 +126,7 @@ namespace OneUron.BLL.Services
             {
                 TotalCompleteQuiz = totalCompleteQuiz,
                 TotalQuizPassed = totalQuizPassed,
-                TotalTime =Math.Round(totalHours, 2),
+                TotalTime = Math.Round(totalMinute, 8),
                 AverageScore = Math.Round(averageScore, 2)
             };
         }
@@ -189,7 +189,7 @@ namespace OneUron.BLL.Services
         public async Task<UserScheduleInformationResponse> GetUserScheduleInformationAsync(Guid userId, Guid scheduleId)
         {
             // get all quiz of user
-            var quizzes = await _quizRepository.GetAllQuizByUserIdAsync(userId);
+            var quizzes = await _quizRepository.GetAllQuizByUserId(userId);
             if (quizzes == null || !quizzes.Any())
                 throw new ApiException.NotFoundException("No quizzes found for this user.");
 
@@ -317,5 +317,24 @@ namespace OneUron.BLL.Services
                 UserId = newQuiz.UserId
             };
         }
+
+        public async Task<PagedResult<QuizResponseDto>> GetAllQuizByUserIdAsync(int pageNumber, int pageSize, Guid userId)
+        {
+            var quizzes = await _quizRepository.GetAllQuizByUserIdAsync(pageNumber, pageSize, userId);
+
+            if (!quizzes.Items.Any())
+                throw new ApiException.NotFoundException("User has no quizzes found.");
+
+            var result = quizzes.Items.Select(MapToDTO).ToList();
+
+            return new PagedResult<QuizResponseDto>
+            {
+                CurrentPage = quizzes.CurrentPage,
+                PageSize = quizzes.PageSize,
+                TotalCount = quizzes.TotalCount,
+                Items = result
+            };
+        }
+
     }
 }

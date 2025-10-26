@@ -14,7 +14,7 @@ namespace OneUron.BLL.DTOs.SubjectDTOs
         public SubjectType Priority { get; set; }
 
         public Guid ScheduleId { get; set; }
-
-        public Guid? ProcessId { get; set; }
+        
+        //public Guid? ProcessId { get; set; }
     }
 }

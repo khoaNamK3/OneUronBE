@@ -9,6 +9,7 @@ using Net.payOS;
 using OneUron.BLL.DTOs.AcknowledgeDTOs;
 using OneUron.BLL.DTOs.AnswerDTOs;
 using OneUron.BLL.DTOs.ChoiceDTOs;
+using OneUron.BLL.DTOs.ContactDTO;
 using OneUron.BLL.DTOs.CourseDetailDTOs;
 using OneUron.BLL.DTOs.EnRollDTOs;
 using OneUron.BLL.DTOs.EvaluationDTOs;
@@ -49,6 +50,7 @@ using OneUron.DAL.Repository;
 using OneUron.DAL.Repository.AcknowledgeRepo;
 using OneUron.DAL.Repository.AnswerRepo;
 using OneUron.DAL.Repository.ChoiceRepo;
+using OneUron.DAL.Repository.contactRepo;
 using OneUron.DAL.Repository.CourseDetailRepo;
 using OneUron.DAL.Repository.EnRollRepo;
 using OneUron.DAL.Repository.EvaluationQuestionRepo;
@@ -99,7 +101,9 @@ builder.Services.AddCors(options =>
         policy => policy
             .WithOrigins(
                 "http://localhost:5173", 
-                "https://oneuron.vercel.app" 
+                "https://oneuron.vercel.app",
+                "https://studypath.vercel.app"
+
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
@@ -264,6 +268,9 @@ builder.Services.AddScoped<IMemberShipRepository, MemberShipRepository>();
 builder.Services.AddScoped<IMemberShipService, MemberShipService>();
 builder.Services.AddScoped<IFeatureRepository, FeatureRepository>();
 builder.Services.AddScoped<IfeatureService, featureService>();
+builder.Services.AddScoped<IContactRepository, ContactRepository>();
+builder.Services.AddScoped<IContactService, ContactService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<PayOsService>();
 // Register repositories and services
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
@@ -308,7 +315,7 @@ builder.Services.AddScoped<IValidator<PaymentRequestDto>, PaymentRequestDtoValid
 builder.Services.AddScoped<IValidator<MemberShipPlanRequestDto>, MemberShipPlanRequestValidator>();
 builder.Services.AddScoped<IValidator<MemberShipRequestDto>, MemberShipRequestValidator>();
 builder.Services.AddScoped<IValidator<FeatureRequestDto>, FeatureRequestValidator>();
-
+builder.Services.AddScoped<IValidator<ContactRequestDto>, ContactRequestValidator>();
 
 // Add database initialization service
 builder.Services.AddSingleton<DbInitializer>();

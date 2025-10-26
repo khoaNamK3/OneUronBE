@@ -13,5 +13,7 @@ namespace OneUron.BLL.DTOs.ProcessDTOs
         public string Description { get; set; }
 
         public Guid? ScheduleId { get; set; }
+
+        public List<Guid>? SubjectIds { get; set; }
     }
 }

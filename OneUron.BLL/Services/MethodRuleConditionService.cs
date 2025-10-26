@@ -105,10 +105,14 @@ namespace OneUron.BLL.Services
         }
 
         
-        public async Task<MethodRuleConditionResponseDto?> GetMethodRuleConditionByChoiceId(Guid choiceId)
+        public async Task<List<MethodRuleConditionResponseDto>> GetMethodRuleConditionByChoiceId(Guid choiceId)
         {
             var methodRuleCondition = await _methodRuleConditionRepository.GetMethodRuleConditionByChoiceId(choiceId);
-            return methodRuleCondition != null ? MapToDTO(methodRuleCondition) : null;
+            if (!methodRuleCondition.Any())
+                throw new ApiException.NotFoundException("No method rulecondition found");
+
+            var result  = methodRuleCondition.Select(MapToDTO).ToList();
+            return result;
         }
 
         

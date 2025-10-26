@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using OneUron.BLL.DTOs.MemberShipPlanDTOs;
 using OneUron.BLL.DTOs.MethodConDTOs;
 using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
@@ -17,6 +18,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-all")]
+        [ProducesResponseType(typeof(ApiResponse<List<MethodConResponseDto>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
         {
             var result = await _methodConService.GetAllAsync();
@@ -24,6 +26,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<MethodConResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetById(Guid id)
         {
             var result = await _methodConService.GetByIdAsync(id);
@@ -31,20 +34,23 @@ namespace OneUron.API.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> Create(MethodConRequestDto request)
+        [ProducesResponseType(typeof(ApiResponse<MethodConResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Create([FromBody] MethodConRequestDto request)
         {
             var result = await _methodConService.CreateNewMethodConAsync(request);
             return Ok(ApiResponse<MethodConResponseDto>.SuccessResponse(result, "Create MethodCon successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> Update(Guid id, MethodConRequestDto request)
+        [ProducesResponseType(typeof(ApiResponse<MethodConResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Update(Guid id,[FromBody] MethodConRequestDto request)
         {
             var result = await _methodConService.UpdateMethodConByIdAsync(id, request);
             return Ok(ApiResponse<MethodConResponseDto>.SuccessResponse(result, "Update MethodCon successfully"));
         }
 
         [HttpDelete("delete-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<MethodConResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _methodConService.DeleteMethodConByIdAsync(id);

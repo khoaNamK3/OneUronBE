@@ -14,5 +14,7 @@ namespace OneUron.DAL.Repository.SubjectRepo
         public Task<Subject> GetByIdAsyn(Guid id);
 
         public  Task<List<Subject>> GetAllSubjectbyScheduleIdAsync(Guid scheduleId);
+
+        public  Task<List<Subject>> GetSubjectByProcessIdAsync(Guid processId);
     }
 }

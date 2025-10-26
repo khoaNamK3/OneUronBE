@@ -8,7 +8,7 @@ namespace OneUron.BLL.DTOs.StudyMethodDTOs
 {
     public class StudyMethodRequestDto
     {      
-        public bool IsDeleted { get; set; }
+        //public bool IsDeleted { get; set; }
 
         public Guid MethodId { get; set; }
 

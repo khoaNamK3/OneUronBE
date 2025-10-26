@@ -18,5 +18,7 @@ namespace OneUron.BLL.Interface
         Task<ProcessTaskResponseDto> DeleteProcessTaskByIdAsync(Guid id);
         ProcessTaskResponseDto MapToDTO(ProcessTask processTask);
         Task<ProcessTaskResponseDto> CompleteProcessTaskAsync(Guid processTaskId);
+
+        public  Task<List<ProcessTaskResponseDto>> GetAllProcessTaskByProcessIdAsync(Guid processId);
     }
 }

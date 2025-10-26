@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using OneUron.BLL.DTOs.FeatureDTOs;
+using OneUron.BLL.DTOs.ProcessDTOs;
 using OneUron.BLL.DTOs.ProcessTaskTDOs;
 using OneUron.BLL.DTOs.QuizDTOs;
 using OneUron.BLL.DTOs.ScheduleDTOs;
@@ -21,6 +23,7 @@ namespace OneUron.API.Controllers
 
 
         [HttpPost("quiz/generate")]
+        [ProducesResponseType(typeof(ApiResponse<QuizResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GenerateQuestions([FromBody] QuizRequestDto quiz)
         {
             var result = await _geminiService.GenerateQuestionsByQuizAsync(quiz);
@@ -35,17 +38,19 @@ namespace OneUron.API.Controllers
         //}
 
         [HttpPost("{userId:guid}/create-schedule")]
+        [ProducesResponseType(typeof(ApiResponse<ScheduleResponeDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> CreateScheduleWithListSubjectAsync(Guid userId, [FromBody] ScheduleSubjectRequestDto scheduleSubject)
         {
             var result = await _geminiService.CreateScheduleWithListSubjectAsync(scheduleSubject, userId);
-            return Ok(result);
+            return Ok(ApiResponse<ScheduleResponeDto>.SuccessResponse(result, "Create Schedule SuccessFully"));
         }
 
         [HttpPost("processId/{processId:guid}/tasks/generate")]
+        [ProducesResponseType(typeof(ApiResponse<ProcessResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GenerateTasksForScheduleAsync(Guid processId,[FromBody] ProcessTaskGenerateRequest request)
         {
             var result = await _geminiService.CreatProcessTaskForProcessAsync(processId, request);
-            return Ok(result);
+            return Ok(ApiResponse<ProcessResponseDto>.SuccessResponse(result,"Generate Task Successfully"));
         }
     }
 }

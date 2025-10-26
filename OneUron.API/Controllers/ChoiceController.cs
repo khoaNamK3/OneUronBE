@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using OneUron.BLL.DTOs.AnswerDTOs;
 using OneUron.BLL.DTOs.ChoiceDTOs;
 using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
@@ -17,6 +18,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-all")]
+        [ProducesResponseType(typeof(ApiResponse<List<ChoiceResponseDto>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
         {
             var result = await _choiceService.GetAllAsync();
@@ -24,6 +26,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<ChoiceResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetById(Guid id)
         {
             var result = await _choiceService.GetByIdAsync(id);
@@ -31,20 +34,23 @@ namespace OneUron.API.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> Create(ChoiceRequestDto request)
+        [ProducesResponseType(typeof(ApiResponse<ChoiceResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Create([FromBody] ChoiceRequestDto request)
         {
             var result = await _choiceService.CreateNewChoiceAsync(request);
             return Ok(ApiResponse<ChoiceResponseDto>.SuccessResponse(result, "Create choice successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> Update(Guid id, ChoiceRequestDto request)
+        [ProducesResponseType(typeof(ApiResponse<ChoiceResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Update(Guid id, [FromBody] ChoiceRequestDto request)
         {
             var result = await _choiceService.UpdateChoiceByIdAsync(id, request);
             return Ok(ApiResponse<ChoiceResponseDto>.SuccessResponse(result, "Update choice successfully"));
         }
 
         [HttpDelete("delete-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<ChoiceResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _choiceService.DeleteChoiceByIdAsync(id);

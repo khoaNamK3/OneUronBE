@@ -29,5 +29,7 @@ namespace OneUron.BLL.Interface
         public Task<PagedResult<QuizResponseDto>> GetPagedQuizzesAsync(int pageNumber, int pageSize, string? name);
 
         public  Task<UserQuizInformationResponse> GetUserQuizInformation(Guid userId);
+
+        public Task<PagedResult<QuizResponseDto>> GetAllQuizByUserIdAsync(int pageNumber, int pageSize, Guid userId);
     }
 }

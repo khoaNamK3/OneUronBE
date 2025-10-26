@@ -22,6 +22,16 @@ namespace OneUron.BLL.DTOs.UserQuizAttemptDTOs
 
         public double Accuracy { get; set; }
 
+        public int TotalQuestion { get; set; }
+
+        public string QuizName { get; set; }
+
+        public bool IsPassed { get; set; }
+
+        public double TotalPoints { get; set; }
+
+        public double PassScore { get; set; }
+
         public List<AnswerResponseDto>? Answers { get; set; } = new List<AnswerResponseDto>();
     }
 }

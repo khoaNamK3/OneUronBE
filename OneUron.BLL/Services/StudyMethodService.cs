@@ -68,6 +68,10 @@ namespace OneUron.BLL.Services
             if (!validationResult.IsValid)
                 throw new ApiException.ValidationException(validationResult.Errors);
 
+            var existStudyMethod = await GetStudyMethodByUserIdAsync(request.UserId);
+            if (existStudyMethod != null)
+                throw new ApiException.BadRequestException("User early have studyMethod");
+
             var newStudyMethod = MapToEntity(request);
             newStudyMethod.UpdateDate = DateTime.UtcNow;
 
@@ -91,7 +95,6 @@ namespace OneUron.BLL.Services
                 throw new ApiException.ValidationException(validationResult.Errors);
 
             existingStudyMethod.UpdateDate = DateTime.UtcNow;
-            existingStudyMethod.IsDeleted = request.IsDeleted;
             existingStudyMethod.MethodId = request.MethodId;
             existingStudyMethod.UserId = request.UserId;
 
@@ -120,7 +123,7 @@ namespace OneUron.BLL.Services
         {
             return new StudyMethod
             {
-                IsDeleted = request.IsDeleted,
+                IsDeleted = false,
                 MethodId = request.MethodId,
                 UserId = request.UserId
             };

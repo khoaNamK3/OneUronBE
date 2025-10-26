@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using OneUron.BLL.DTOs.EvaluationQuestionDTOs;
 using OneUron.BLL.DTOs.FeatureDTOs;
 using OneUron.BLL.DTOs.PaymentDTOs;
 using OneUron.BLL.ExceptionHandle;
@@ -18,6 +19,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-all")]
+        [ProducesResponseType(typeof(ApiResponse<List<FeatureResponseDto>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllAsync()
         {
             var response = await _featureService.GetAllAsync();
@@ -26,6 +28,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-by/{id:guid}")]
+        [ProducesResponseType(typeof(ApiResponse<FeatureResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetByIdAsync(Guid id)
         {
             var resposne = await _featureService.GetByIdAsync(id);
@@ -33,6 +36,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpPost("create")]
+        [ProducesResponseType(typeof(ApiResponse<FeatureResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> CreateNewFeatureAsync([FromBody] FeatureRequestDto requestDto)
         {
             var response = await _featureService.CreateFeatureAsync(requestDto);
@@ -42,6 +46,7 @@ namespace OneUron.API.Controllers
 
 
         [HttpPut("update-by/{id:guid}")]
+        [ProducesResponseType(typeof(ApiResponse<FeatureResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateFeatureByIdAsync(Guid id, [FromBody]FeatureRequestDto requestDto)
         {
             var response = await _featureService.UpdateFeatureByIdAsync(id, requestDto);
@@ -50,6 +55,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpDelete("delete-by/{id:guid}")]
+        [ProducesResponseType(typeof(ApiResponse<FeatureResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> DeleteFeatureByIdAsync(Guid id)
         {
             var response = await _featureService.DeleteFuatureByIdAsync(id);

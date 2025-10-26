@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using OneUron.BLL.DTOs.ProcessTaskTDOs;
 using OneUron.BLL.DTOs.QuestionChoiceDTOs;
 using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
@@ -17,6 +18,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-all")]
+        [ProducesResponseType(typeof(ApiResponse<List<QuestionChoiceReponseDto>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
         {
             var result = await _questionChoiceService.GetAllQuestionChoiceAsync();
@@ -24,6 +26,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<QuestionChoiceReponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetById(Guid id)
         {
             var result = await _questionChoiceService.GetQuestionChoiceByIdAsync(id);
@@ -31,20 +34,23 @@ namespace OneUron.API.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> Create(QuestionChoiceRequestDto request)
+        [ProducesResponseType(typeof(ApiResponse<QuestionChoiceReponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Create([FromBody]QuestionChoiceRequestDto request)
         {
             var result = await _questionChoiceService.CreateNewQuestionChoiceAsync(request);
             return Ok(ApiResponse<QuestionChoiceReponseDto>.SuccessResponse(result, "Create QuestionChoice successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> Update(Guid id, QuestionChoiceRequestDto request)
+        [ProducesResponseType(typeof(ApiResponse<QuestionChoiceReponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Update(Guid id,[FromBody] QuestionChoiceRequestDto request)
         {
             var result = await _questionChoiceService.UpdateQuestionChoiceByIdAsync(id, request);
             return Ok(ApiResponse<QuestionChoiceReponseDto>.SuccessResponse(result, "Update QuestionChoice successfully"));
         }
 
         [HttpDelete("delete-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<QuestionChoiceReponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _questionChoiceService.DeleteQuestionChoiceByIdAsync(id);

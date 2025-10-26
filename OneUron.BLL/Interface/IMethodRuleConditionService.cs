@@ -16,7 +16,7 @@ namespace OneUron.BLL.Interface
         Task<MethodRuleConditionResponseDto> CreateNewMethodRuleConditionAsync(MethodRuleConditionRequestDto request);
         Task<MethodRuleConditionResponseDto> UpdateMethodRuleConditionByIdAsync(Guid id, MethodRuleConditionRequestDto newMethodRuleCondition);
         Task<MethodRuleConditionResponseDto> DeleteMethodRuleConditionByIdAsync(Guid id);
-        Task<MethodRuleConditionResponseDto?> GetMethodRuleConditionByChoiceId(Guid choiceId);
+        Task<List<MethodRuleConditionResponseDto>> GetMethodRuleConditionByChoiceId(Guid choiceId);
 
         public MethodRuleConditionResponseDto MapToDTO(MethodRuleCondition methodRuleCondition);
 

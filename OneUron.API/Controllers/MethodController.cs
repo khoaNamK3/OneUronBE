@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using OneUron.BLL.DTOs.MethodConDTOs;
 using OneUron.BLL.DTOs.MethodDTOs;
 using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
@@ -18,6 +19,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-all")]
+        [ProducesResponseType(typeof(ApiResponse<List<MethodResponseDto>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
         {
             var result = await _methodService.GetAllAsync();
@@ -25,6 +27,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<MethodResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetById(Guid id)
         {
             var result = await _methodService.GetByIdAsync(id);
@@ -32,20 +35,23 @@ namespace OneUron.API.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> Create(MethodRequestDto request)
+        [ProducesResponseType(typeof(ApiResponse<MethodResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Create([FromBody] MethodRequestDto request)
         {
             var result = await _methodService.CreateNewMethodAsync(request);
             return Ok(ApiResponse<MethodResponseDto>.SuccessResponse(result, "Create method successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> Update(Guid id, MethodRequestDto request)
+        [ProducesResponseType(typeof(ApiResponse<MethodResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Update(Guid id, [FromBody] MethodRequestDto request)
         {
             var result = await _methodService.UpdateMethodByIdAsync(id, request);
             return Ok(ApiResponse<MethodResponseDto>.SuccessResponse(result, "Update method successfully"));
         }
 
         [HttpDelete("delete-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<MethodResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _methodService.DeleteMethodByIdAsync(id);
@@ -53,6 +59,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("top3/{userId}")]
+        [ProducesResponseType(typeof(ApiResponse<List<MethodSuggestionRespone>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetTop3(Guid userId)
         {
             var result = await _methodService.GetTop3MethodForUserAsync(userId);

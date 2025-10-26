@@ -107,6 +107,32 @@ namespace OneUron.DAL.Migrations
                     b.ToTable("Choices");
                 });
 
+            modelBuilder.Entity("OneUron.DAL.Data.Entity.Contact", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("createAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("contacts");
+                });
+
             modelBuilder.Entity("OneUron.DAL.Data.Entity.CourseDetail", b =>
                 {
                     b.Property<Guid>("Id")
@@ -820,15 +846,10 @@ namespace OneUron.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("ProcessId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("ScheduleId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ProcessId");
 
                     b.HasIndex("ScheduleId");
 
@@ -957,6 +978,21 @@ namespace OneUron.DAL.Migrations
                     b.HasIndex("QuizId");
 
                     b.ToTable("UserQuizAttempts");
+                });
+
+            modelBuilder.Entity("ProcessSubject", b =>
+                {
+                    b.Property<Guid>("ProcessesId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SubjectsId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("ProcessesId", "SubjectsId");
+
+                    b.HasIndex("SubjectsId");
+
+                    b.ToTable("ProcessSubject");
                 });
 
             modelBuilder.Entity("RoleUser", b =>
@@ -1300,18 +1336,11 @@ namespace OneUron.DAL.Migrations
 
             modelBuilder.Entity("OneUron.DAL.Data.Entity.Subject", b =>
                 {
-                    b.HasOne("OneUron.DAL.Data.Entity.Process", "Process")
-                        .WithMany("Subjects")
-                        .HasForeignKey("ProcessId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("OneUron.DAL.Data.Entity.Schedule", "Schedule")
                         .WithMany("Subjects")
                         .HasForeignKey("ScheduleId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Process");
 
                     b.Navigation("Schedule");
                 });
@@ -1374,6 +1403,21 @@ namespace OneUron.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("Quiz");
+                });
+
+            modelBuilder.Entity("ProcessSubject", b =>
+                {
+                    b.HasOne("OneUron.DAL.Data.Entity.Process", null)
+                        .WithMany()
+                        .HasForeignKey("ProcessesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OneUron.DAL.Data.Entity.Subject", null)
+                        .WithMany()
+                        .HasForeignKey("SubjectsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("RoleUser", b =>
@@ -1444,8 +1488,6 @@ namespace OneUron.DAL.Migrations
             modelBuilder.Entity("OneUron.DAL.Data.Entity.Process", b =>
                 {
                     b.Navigation("ProcessTasks");
-
-                    b.Navigation("Subjects");
                 });
 
             modelBuilder.Entity("OneUron.DAL.Data.Entity.Question", b =>

@@ -50,6 +50,15 @@ namespace OneUron.BLL.Services
             return MapToDTO(subject);
         }
 
+        public async Task<List<SubjectResponseDto>> GetSubjectByProcessIdAsync(Guid processId)
+        {
+            var subjects = await _subjectRepository.GetSubjectByProcessIdAsync(processId);
+            if (!subjects.Any())
+                throw new ApiException.NotFoundException("No subject Found");
+
+            return subjects.Select(MapToDTO).ToList();
+        }
+
         public async Task<SubjectResponseDto> CreateAsync(SubjectRequestDto request)
         {
             if (request == null)
@@ -80,7 +89,7 @@ namespace OneUron.BLL.Services
 
             existingSubject.Name = request.Name;
             existingSubject.Priority = request.Priority;
-            existingSubject.ProcessId = request.ProcessId;
+            //existingSubject.ProcessId = request.ProcessId;
             existingSubject.ScheduleId = request.ScheduleId;
 
             await _subjectRepository.UpdateAsync(existingSubject);
@@ -116,7 +125,7 @@ namespace OneUron.BLL.Services
             {
                 Name = request.Name,
                 Priority = request.Priority,
-                ProcessId = request.ProcessId == Guid.Empty ? null : request.ProcessId,
+                //ProcessId = request.ProcessId == Guid.Empty ? null : request.ProcessId,
                 ScheduleId = request.ScheduleId
             };
         }
@@ -130,7 +139,7 @@ namespace OneUron.BLL.Services
                 Id = subject.Id,
                 Name = subject.Name,
                 Priority = subject.Priority,
-                ProcessId = subject.ProcessId ?? Guid.Empty,
+                //ProcessId = subject.ProcessId ?? Guid.Empty,
                 ScheduleId = subject.ScheduleId
             };
         }

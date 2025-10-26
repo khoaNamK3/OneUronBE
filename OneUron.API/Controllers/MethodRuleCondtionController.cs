@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using OneUron.BLL.DTOs.MethodProDTOs;
 using OneUron.BLL.DTOs.MethodRuleConditionDTOs;
 using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
@@ -17,6 +18,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-all")]
+        [ProducesResponseType(typeof(ApiResponse<List<MethodRuleConditionResponseDto>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
         {
             var result = await _service.GetAllAsync();
@@ -24,6 +26,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<MethodRuleConditionResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetById(Guid id)
         {
             var result = await _service.GetByIdAsync(id);
@@ -31,27 +34,31 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-by-choice/{choiceId}")]
+        [ProducesResponseType(typeof(ApiResponse<List<MethodRuleConditionResponseDto>?>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetByChoiceId(Guid choiceId)
         {
             var result = await _service.GetMethodRuleConditionByChoiceId(choiceId);
-            return Ok(ApiResponse<MethodRuleConditionResponseDto?>.SuccessResponse(result, "Get MethodRuleCondition by choice ID successfully"));
+            return Ok(ApiResponse<List<MethodRuleConditionResponseDto>?>.SuccessResponse(result, "Get MethodRuleCondition by choice ID successfully"));
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> Create(MethodRuleConditionRequestDto request)
+        [ProducesResponseType(typeof(ApiResponse<MethodRuleConditionResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Create([FromBody] MethodRuleConditionRequestDto request)
         {
             var result = await _service.CreateNewMethodRuleConditionAsync(request);
             return Ok(ApiResponse<MethodRuleConditionResponseDto>.SuccessResponse(result, "Create MethodRuleCondition successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> Update(Guid id, MethodRuleConditionRequestDto request)
+        [ProducesResponseType(typeof(ApiResponse<MethodRuleConditionResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Update(Guid id, [FromBody] MethodRuleConditionRequestDto request)
         {
             var result = await _service.UpdateMethodRuleConditionByIdAsync(id, request);
             return Ok(ApiResponse<MethodRuleConditionResponseDto>.SuccessResponse(result, "Update MethodRuleCondition successfully"));
         }
 
         [HttpDelete("delete-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<MethodRuleConditionResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _service.DeleteMethodRuleConditionByIdAsync(id);

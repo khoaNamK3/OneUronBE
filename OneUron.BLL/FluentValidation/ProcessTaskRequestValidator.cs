@@ -23,15 +23,15 @@ namespace OneUron.BLL.FluentValidation
             RuleFor(x => x.Note)
                 .MaximumLength(500).WithMessage("Ghi chú không được vượt quá 500 ký tự.");
 
-            RuleFor(x => x.StartTime)
-                .NotEmpty().WithMessage("Thời gian bắt đầu không được để trống.")
-                .Must(start => start >= DateTime.UtcNow)
-                .WithMessage("Thời gian bắt đầu phải lớn hơn hoặc bằng thời điểm hiện tại.");
+            //RuleFor(x => x.StartTime)
+            //    .NotEmpty().WithMessage("Thời gian bắt đầu không được để trống.")
+            //    .Must(start => start >= DateTime.UtcNow)
+            //    .WithMessage("Thời gian bắt đầu phải lớn hơn hoặc bằng thời điểm hiện tại.");
 
-            RuleFor(x => x.EndTime)
-                .NotEmpty().WithMessage("Thời gian kết thúc không được để trống.")
-                .GreaterThan(x => x.StartTime)
-                .WithMessage("Thời gian kết thúc phải sau thời gian bắt đầu.");
+            //RuleFor(x => x.EndTime)
+            //    .NotEmpty().WithMessage("Thời gian kết thúc không được để trống.")
+            //    .GreaterThan(x => x.StartTime)
+            //    .WithMessage("Thời gian kết thúc phải sau thời gian bắt đầu.");
 
             RuleFor(x => x.ProcessId)
                 .NotEmpty().WithMessage("ProcessId là bắt buộc.");

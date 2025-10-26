@@ -19,5 +19,7 @@ namespace OneUron.BLL.Interface
         Task<SubjectResponseDto> DeleteByIdAsync(Guid id);
         SubjectResponseDto MapToDTO(Subject subject);
         Task<List<SubjectResponseDto>> GetAllSubjectbyScheduleIdAsync(Guid scheduleId);
+
+        public  Task<List<SubjectResponseDto>> GetSubjectByProcessIdAsync(Guid processId);
     }
 }

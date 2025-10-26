@@ -314,14 +314,23 @@ namespace OneUron.BLL.Services.Ai
             if (!validationResult.IsValid)
                 throw new ApiException.ValidationException(validationResult.Errors);
 
+            // calculate totalTime
+            var totalDays = (scheduleSubject.EndDate - scheduleSubject.StartDate).TotalDays + 1;
+
+            var  totalTime = $"{totalDays} ngày";
+
+            // Count total AmountSubject
+
+            var amountSubject = scheduleSubject.subjectListRequest?.Count ?? 0;
+
             var scheduleRequest = new ScheduleRequestDto
             {
                 Title = scheduleSubject.Title,
                 StartDate = scheduleSubject.StartDate,
                 EndDate = scheduleSubject.EndDate,
-                TotalTime = scheduleSubject.TotalTime,
-                AmountSubject = scheduleSubject.AmountSubject,
-                CreateAt = scheduleSubject.CreateAt,
+                TotalTime = totalTime,
+                AmountSubject = amountSubject,
+                CreateAt = DateTime.UtcNow,
                 UserId = userId
             };
 
@@ -335,8 +344,7 @@ namespace OneUron.BLL.Services.Ai
                 {
                     Name = subjectRequest.Name,
                     Priority = subjectRequest.Priority,
-                    ScheduleId = schedule.Id,
-                    ProcessId = Guid.Empty
+                    ScheduleId = schedule.Id
                 };
 
                 await _subjectService.CreateAsync(subject);
@@ -457,222 +465,141 @@ namespace OneUron.BLL.Services.Ai
         private async Task AssignSubjectToProcessAsync(Guid scheduleId)
         {
             var schedule = await _scheduleService.GetByIdAsync(scheduleId);
-            var subjects = await _subjectService.GetAllSubjectbyScheduleIdAsync(scheduleId);
-            var processes = await _processService.GetProcessesByScheduleId(scheduleId);
+            var subjects = (await _subjectService.GetAllSubjectbyScheduleIdAsync(scheduleId)).ToList();
+            var processes = (await _processService.GetProcessesByScheduleId(scheduleId)).ToList();
 
             if (!subjects.Any() || !processes.Any())
                 return;
 
             var random = new Random();
 
-            foreach (var subject in subjects)
+            foreach (var processResponse in processes)
             {
-                double chance = subject.Priority switch
-                {
-                    SubjectType.High => 0.8,
-                    SubjectType.Medium => 0.5,
-                    SubjectType.Low => 0.25,
-                    _ => 0.5
-                };
+                var processRequest = MapResponseToRequest(processResponse);
 
-                var orderedProcesses = processes
-                    .OrderBy(p => random.NextDouble() + (subject.Priority == SubjectType.High ? -0.1 : 0.1))
-                    .ToList();
 
-                foreach (var process in orderedProcesses)
+                var selectedSubjects = new List<SubjectResponseDto>();
+
+
+                var baseSubject = subjects[random.Next(subjects.Count)];
+                selectedSubjects.Add(baseSubject);
+
+
+                foreach (var subject in subjects)
                 {
+                    if (selectedSubjects.Any(s => s.Id == subject.Id))
+                        continue; // tránh duplicate
+
+                    double chance = subject.Priority switch
+                    {
+                        SubjectType.High => 0.8,
+                        SubjectType.Medium => 0.5,
+                        SubjectType.Low => 0.25,
+                        _ => 0.5
+                    };
+
                     if (random.NextDouble() <= chance)
                     {
-
-                        var updateRequest = new SubjectRequestDto
-                        {
-                            Name = subject.Name,
-                            Priority = subject.Priority,
-                            ProcessId = process.Id,
-                            ScheduleId = subject.ScheduleId
-                        };
-
-                        await _subjectService.UpdateByIdAsync(subject.Id, updateRequest);
-                        break;
+                        selectedSubjects.Add(subject);
                     }
                 }
+
+
+                processRequest.SubjectIds = selectedSubjects.Select(s => s.Id).ToList();
+
+
+                await _processService.UpdateProcessByIdAsync(processResponse.Id, processRequest);
             }
+        }
+
+        private ProcessRequestDto MapResponseToRequest(ProcessResponseDto response)
+        {
+            return new ProcessRequestDto
+            {
+                Date = response.Date,
+                Description = response.Description,
+                ScheduleId = response.ScheduleId,
+                SubjectIds = response.Subjects?.Select(s => s.Id).ToList() ?? new List<Guid>()
+            };
         }
 
         public async Task<ProcessResponseDto> CreatProcessTaskForProcessAsync(Guid processId, ProcessTaskGenerateRequest taskGenerateRequest)
         {
+            // ====== LẤY DỮ LIỆU ======
+            var existProcess = await _processService.GetByIdAsync(processId)
+                ?? throw new ApiException.NotFoundException("No Process Found");
 
-            //var existSchedule = await _scheduleService.GetByIdAsync(scheduleId)
-            //    ?? throw new ApiException.NotFoundException("Schedule does not exist.");
+            var existSchedule = await _scheduleService.GetByIdAsync(existProcess.ScheduleId)
+                ?? throw new ApiException.NotFoundException("No Schedule Found");
 
-            //var existStudyMethod = await _studyMethodService.GetStudyMethodByUserIdAsync(userId)
-            //    ?? throw new ApiException.NotFoundException("StudyMethod does not exist.");
+            var existUser = await _userRepository.GetUserByUserIdAsync(existSchedule.UserId)
+                ?? throw new ApiException.NotFoundException("No User Found");
 
-            //var existMethod = await _methodSerivce.GetByIdAsync(existStudyMethod.MethodId)
-            //    ?? throw new ApiException.NotFoundException("Method does not exist.");
+            var existSubjects = await _subjectService.GetSubjectByProcessIdAsync(processId)
+                ?? throw new ApiException.NotFoundException($"{processId} not found");
 
+            var existStudyMethod = await _studyMethodService.GetByIdAsync(existUser.StudyMethod.Id)
+                ?? throw new ApiException.NotFoundException("No studyMethod Found");
 
-            //var processes = await _processService.GetProcessesByScheduleId(scheduleId);
-            //if (!processes.Any())
-            //    throw new ApiException.NotFoundException("Schedule has no processes.");
+            var existMethod = await _methodSerivce.GetByIdAsync(existStudyMethod.MethodId)
+                ?? throw new ApiException.NotFoundException("No Method Found");
 
-            //string allDates = string.Join(", ", processes.Select(p => p.Date.ToString("yyyy-MM-dd")));
+            string listStringSubject = string.Join(", ", existSubjects.Select(s => s.Name));
 
-
-            //var validationTaskGenerate = await _processTaskGenerateValidator.ValidateAsync(taskGenerateRequest);
-            //if (!validationTaskGenerate.IsValid)
-            //    throw new ApiException.ValidationException(validationTaskGenerate.Errors);
-
-
-            //string prompt = $@"
-            //    Hãy tạo danh sách task học tập theo phương pháp '{existMethod.Name}'.
-            //    Số lượng task: {taskGenerateRequest.Amount} cho mỗi ngày.
-            //    Chi tiết: {taskGenerateRequest.Description}
-            //    Ngày học: {allDates}
-
-            //    Yêu cầu:
-            //    - Thời gian bắt đầu của mỗi task phải lớn hơn hoặc bằng thời điểm hiện tại.
-            //    - Thời gian kết thúc phải sau thời gian bắt đầu.
-            //    - KHÔNG thêm ký tự ngoài JSON.
-            //    - KHÔNG trả lời dưới dạng text, chỉ trả JSON duy nhất.
-            //    - Chỉ trả về JSON duy nhất, định dạng:
-            //    [
-            //      {{
-            //        ""title"": ""string"",
-            //        ""description"": ""string"",
-            //        ""start_time"": ""yyyy-MM-ddTHH:mm:ss"",
-            //        ""end_time"": ""yyyy-MM-ddTHH:mm:ss""
-            //      }}
-            //    ]
-            //    ";
-
-
-            //foreach (var process in processes)
-            //{
-            //    string processContext = $@"
-            //        Context ngày học:
-            //        - Ngày: {process.Date:yyyy-MM-dd}
-            //        - Mô tả: {process.Description ?? "Không có mô tả"}";
-
-            //    string finalPrompt = $"{prompt}\n{processContext}";
-
-            //    var aiResponse = await CallGeminiAsync(finalPrompt);
-
-
-            //    var cleanJson = NormalizeAiJson(aiResponse);
-
-            //    List<ProcessTaskRequestDto> tasks;
-            //    try
-            //    {
-            //        tasks = JsonSerializer.Deserialize<List<ProcessTaskRequestDto>>(cleanJson,
-            //            new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
-            //            ?? new List<ProcessTaskRequestDto>();
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        throw new ApiException.BadRequestException(
-            //            $"Invalid AI JSON for process {process.Id} ({process.Date:yyyy-MM-dd}): {ex.Message}\nRaw JSON: {cleanJson}");
-            //    }
-
-            //    if (!tasks.Any()) continue;
-
-
-            //    foreach (var task in tasks)
-            //    {
-            //        task.ProcessId = process.Id;
-            //        task.IsCompleted = false;
-            //        task.Note ??= string.Empty;
-
-            //        task.StartTime = DateTime.SpecifyKind(task.StartTime, DateTimeKind.Utc);
-            //        task.EndTime = DateTime.SpecifyKind(task.EndTime, DateTimeKind.Utc);
-
-
-            //        if (task.StartTime < DateTime.UtcNow)
-            //            task.StartTime = DateTime.UtcNow.AddMinutes(1);
-
-
-            //        if (task.EndTime <= task.StartTime)
-            //            task.EndTime = task.StartTime.AddMinutes(30);
-
-            //        await _processTaskService.CreateProcessTaskAsync(task);
-            //    }
-            //}
-
-
-            //return await _scheduleService.GetByIdAsync(scheduleId)
-            //    ?? throw new ApiException.BadRequestException("Failed to retrieve schedule after creating tasks.");
-
-            // get process
-            var existProcess = await _processService.GetByIdAsync(processId);
-            if (existProcess == null)
-                throw new ApiException.NotFoundException("No Process Found");
-
-            // get Schedule
-            var existSchedule = await _scheduleService.GetByIdAsync(existProcess.ScheduleId);
-            if (existSchedule == null)
-                throw new ApiException.NotFoundException("No Schedule Found");
-
-            // get user
-            var existUser = await _userRepository.GetUserByUserIdAsync(existSchedule.UserId);
-            if (existUser == null)
-                throw new ApiException.NotFoundException("No User Found");
-
-
-            // get StudyMethod
-            var existStudyMethod = await _studyMethodService.GetByIdAsync(existUser.StudyMethod.Id);
-            if (existStudyMethod == null)
-                throw new ApiException.NotFoundException("No studyMethod Found");
-
-            // get method
-            var existMethod = await _methodSerivce.GetByIdAsync(existStudyMethod.MethodId);
-            if (existMethod == null)
-                throw new ApiException.NotFoundException("No Method Found");
-
+            // ====== VALIDATION ======
             var validationTaskGenerate = await _processTaskGenerateValidator.ValidateAsync(taskGenerateRequest);
             if (!validationTaskGenerate.IsValid)
                 throw new ApiException.ValidationException(validationTaskGenerate.Errors);
 
-            string prompt = $@" Hãy tạo danh sách task học tập theo phương pháp '{existMethod.Name}'.
-                         Số lượng task: {taskGenerateRequest.Amount}
-                         Chi tiết: {taskGenerateRequest.Description}
-                          Ngày học {existProcess.Date:yyyy-MM-dd}
-                         Yêu cầu:
-                        - Mỗi task phải thuộc cùng ngày {existProcess.Date:yyyy-MM-dd}.
-                        - Thời gian bắt đầu (start_time) phải trước thời gian kết thúc (end_time).
-                        - Thời gian kết thúc (end_time) phải lớn hơn thời gian bắt đầu (start_time).
-                        - Thời gian định dạng: yyyy-MM-ddTHH:mm:ss (theo chuẩn ISO 8601).
-                        - KHÔNG thêm ký tự ngoài JSON.
-                        - KHÔNG trả lời dưới dạng text, chỉ trả JSON duy nhất.
-                        - Chỉ trả về JSON duy nhất, định dạng:
-                [
-                  {{
-                     ""title"": ""string"",
-                     ""description"": ""string"",
-                     ""start_time"": ""yyyy-MM-ddTHH:mm:ss"",
-                     ""end_time"": ""yyyy-MM-ddTHH:mm:ss""
-                  }}
-                 ]
-            ";
+            // ====== PROMPT GỬI AI ======
+            string prompt = $@"
+        Bạn là hệ thống lập kế hoạch học tập thông minh.
 
+        Hãy tạo danh sách task học tập theo phương pháp '{existMethod.Name}'.
+        Thông tin:
+        - Số lượng task cần tạo: {taskGenerateRequest.Amount}
+        - Mô tả chi tiết: {taskGenerateRequest.Description}
+        - Ngày học: {existProcess.Date:yyyy-MM-dd}
+        - Danh sách môn học: {listStringSubject}
 
+        Quy tắc thời gian:
+        - Các task phải nối tiếp nhau trong cùng ngày {existProcess.Date:yyyy-MM-dd}.
+        - Không được trùng hoặc chồng thời gian.
+        - Toàn bộ thời gian phải nằm trong khoảng 06:00 → 22:00 cùng ngày.
+
+        Định dạng bắt buộc:
+        - Mỗi phần tử gồm: title, description, note, start_time, end_time.
+        - Thời gian định dạng theo date của database postGreSQL
+        - KHÔNG thêm mô tả, lời giải thích, ký tự lạ, hoặc văn bản ngoài JSON.
+
+        Kết quả trả về DUY NHẤT:
+        [
+          {{
+            ""title"": ""string"",
+            ""description"": ""string"",
+            ""note"": ""string"",
+            ""start_time"": ""yyyy-MM-ddTHH:mm:ss"",
+            ""end_time"": ""yyyy-MM-ddTHH:mm:ss""
+          }}
+        ]
+    ";
+
+          
             string aiResponse = await CallGeminiAsync(prompt);
-
-
             string cleanJson = NormalizeAiJson(aiResponse);
 
-            var aiTasks = JsonSerializer.Deserialize<List<ProcessTaskResponseDto>>(
-              cleanJson,
-                 new JsonSerializerOptions
-                 {
-                     PropertyNameCaseInsensitive = true,
-                     AllowTrailingCommas = true,
-                     ReadCommentHandling = JsonCommentHandling.Skip
-                 }
-             );
+            var aiTasks = JsonSerializer.Deserialize<List<ProcessTaskResponseDto>>(cleanJson,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    AllowTrailingCommas = true,
+                    ReadCommentHandling = JsonCommentHandling.Skip
+                }) ?? new List<ProcessTaskResponseDto>();
 
-            var processTasks = aiTasks;
+            
+            var processTasks = new List<ProcessTaskResponseDto>();
 
-            foreach (var task in processTasks)
+            foreach (var task in aiTasks)
             {
                 var newTask = new ProcessTaskRequestDto
                 {
@@ -685,13 +612,20 @@ namespace OneUron.BLL.Services.Ai
                     Title = task.Title
                 };
 
-                await _processTaskService.CreateProcessTaskAsync(newTask);
+                var created = await _processTaskService.CreateProcessTaskAsync(newTask);
+                processTasks.Add(created);
             }
 
-            var response = await _processService.GetByIdAsync(processId);
+          
+            await FixProcessTaskTimeIfMissingAsync(processId, taskGenerateRequest.StartTime);
 
-            return response;
+          
+            await AdjustProcessTaskTimeByMethodAsync(processId, taskGenerateRequest.StartTime);
+
+            
+            return await _processService.GetByIdAsync(processId);
         }
+
 
 
         private string NormalizeAiJson(string aiResponse)
@@ -724,6 +658,99 @@ namespace OneUron.BLL.Services.Ai
             });
 
             return json;
+        }
+
+        private async Task FixProcessTaskTimeIfMissingAsync(Guid processId, TimeOnly? startTime)
+        {
+            var process = await _processService.GetByIdAsync(processId)
+                ?? throw new ApiException.NotFoundException("No Process Found");
+
+            var processTasks = (await _processTaskService.GetAllProcessTaskByProcessIdAsync(processId)).ToList();
+            if (!processTasks.Any()) return;
+
+            var studyDuration = TimeSpan.FromMinutes(30);
+            var breakDuration = TimeSpan.FromMinutes(10);
+
+            var baseTime = process.Date.AddHours(startTime?.Hour ?? 8).AddMinutes(startTime?.Minute ?? 30);
+
+            foreach (var task in processTasks.OrderBy(t => t.Title))
+            {
+                if (task.StartTime == DateTime.MinValue || task.EndTime == DateTime.MinValue)
+                {
+                    task.StartTime = baseTime;
+                    task.EndTime = baseTime.Add(studyDuration);
+                    baseTime = task.EndTime.Add(breakDuration);
+
+                    await _processTaskService.UpdateProcessTaskByIdAsync(task.Id, MapResponseToRequest(task));
+                }
+            }
+        }
+        public async Task AdjustProcessTaskTimeByMethodAsync(Guid processId, TimeOnly startTime)
+        {
+            var process = await _processService.GetByIdAsync(processId)
+                ?? throw new ApiException.NotFoundException("No Process Found");
+
+            var schedule = await _scheduleService.GetByIdAsync(process.ScheduleId)
+                ?? throw new ApiException.NotFoundException("No Schedule Found");
+
+            var user = await _userRepository.GetUserByUserIdAsync(schedule.UserId)
+                ?? throw new ApiException.NotFoundException("No User Found");
+
+            var studyMethod = await _studyMethodService.GetByIdAsync(user.StudyMethod.Id)
+                ?? throw new ApiException.NotFoundException("No StudyMethod Found");
+
+            var method = await _methodSerivce.GetByIdAsync(studyMethod.MethodId)
+                ?? throw new ApiException.NotFoundException("No Method Found");
+
+            var processTasks = (await _processTaskService.GetAllProcessTaskByProcessIdAsync(processId)).ToList();
+            if (!processTasks.Any())
+                throw new ApiException.NotFoundException("No Process Tasks Found");
+
+            int studyMinutes, breakMinutes;
+
+            switch (method.Name.Trim().ToLower())
+            {
+                case "pomodoro": studyMinutes = 25; breakMinutes = 5; break;
+                case "spaced repeation": studyMinutes = 20; breakMinutes = 10; break;
+                case "active recall": studyMinutes = 30; breakMinutes = 10; break;
+                case "mind mapping": studyMinutes = 45; breakMinutes = 15; break;
+                case "feyman":
+                case "feynman": studyMinutes = 60; breakMinutes = 10; break;
+                default: studyMinutes = 30; breakMinutes = 5; break;
+            }
+
+            var currentStart = process.Date.AddHours(startTime.Hour).AddMinutes(startTime.Minute);
+
+            foreach (var task in processTasks.OrderBy(t => t.StartTime))
+            {
+                var newStart = currentStart;
+                var newEnd = newStart.AddMinutes(studyMinutes);
+
+                if (newEnd.TimeOfDay > new TimeSpan(22, 0, 0))
+                    break;
+
+                task.StartTime = newStart;
+                task.EndTime = newEnd;
+
+                await _processTaskService.UpdateProcessTaskByIdAsync(task.Id, MapResponseToRequest(task));
+
+                currentStart = newEnd.AddMinutes(breakMinutes);
+            }
+        }
+
+
+        public ProcessTaskRequestDto MapResponseToRequest(ProcessTaskResponseDto response)
+        {
+            return new ProcessTaskRequestDto
+            {
+                Title = response.Title,
+                Description = response.Description,
+                Note = response.Note,
+                StartTime = response.StartTime,
+                EndTime = response.EndTime,
+                IsCompleted = response.IsCompleted,
+                ProcessId = response.ProcessId
+            };
         }
 
     }

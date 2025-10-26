@@ -129,14 +129,14 @@ namespace OneUron.BLL.Services
                 Description = choice.Description,
                 EvaluationQuestionId = choice.EvaluationQuestionId,
                 Title = choice.Title,
-             
+
                 // UserAnswers = choice.UserAnswers?
                 //     .Select(c => _userAnswerService.MaptoDTO(c))
                 //     .ToList() ?? new List<UserAnswerResponseDto>(),
                 //
-                // MethodRuleConditions = choice.MethodRuleConditions?
-                //     .Select(c => _methodRuleConditionService.MapToDTO(c))
-                //     .ToList() ?? new List<MethodRuleConditionResponseDto>()
+                MethodRuleConditions = choice.MethodRuleConditions?
+                     .Select(c => _methodRuleConditionService.MapToDTO(c))
+                     .ToList() ?? new List<MethodRuleConditionResponseDto>()
             };
         }
     }

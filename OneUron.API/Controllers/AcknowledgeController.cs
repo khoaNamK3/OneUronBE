@@ -17,6 +17,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-all")]
+        [ProducesResponseType(typeof(ApiResponse<List<AcknowledgeResponseDto>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
         {
             var result = await _acknowledgeService.GetAllAcknowledgeAsync();
@@ -24,6 +25,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<AcknowledgeResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetById(Guid id)
         {
             var result = await _acknowledgeService.GetAcknowledgeByIdAsync(id);
@@ -31,20 +33,23 @@ namespace OneUron.API.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> Create(AcknowledgeRequestDto request)
+        [ProducesResponseType(typeof(ApiResponse<AcknowledgeResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Create([FromBody] AcknowledgeRequestDto request)
         {
             var result = await _acknowledgeService.CreateNewAcknowledgeAsync(request);
             return Ok(ApiResponse<AcknowledgeResponseDto>.SuccessResponse(result, "Create acknowledge successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> Update(Guid id, AcknowledgeRequestDto request)
+        [ProducesResponseType(typeof(ApiResponse<AcknowledgeResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Update(Guid id, [FromBody] AcknowledgeRequestDto request)
         {
             var result = await _acknowledgeService.UpdateAcknowLedgeByIdAsync(id, request);
             return Ok(ApiResponse<AcknowledgeResponseDto>.SuccessResponse(result, "Update acknowledge successfully"));
         }
 
         [HttpDelete("delete-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<AcknowledgeResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _acknowledgeService.DeleteAcknowledgeByIdAsync(id);

@@ -16,17 +16,17 @@ namespace OneUron.DAL.Repository.UserQuizAttemptRepo
 
         public async Task<List<UserQuizAttempt>> GetAllUserQuizAttemptAsync()
         {
-            return await _dbSet.Include(ua => ua.Answers).ToListAsync();
+            return await _dbSet.Include(ua => ua.Quiz).ToListAsync();
         }
 
         public async Task<UserQuizAttempt> GetUserQuizAttemptsByIdAsync(Guid id)
         {
-            return await _dbSet.Include(ua => ua.Answers).FirstOrDefaultAsync(a => a.Id == id);
+            return await _dbSet.Include(ua =>ua.Quiz).FirstOrDefaultAsync(a => a.Id == id);
         }
 
         public async Task<List<UserQuizAttempt>> GetAllUserQuizAttemptByQuizIdAsync(Guid quizId)
         {
-            return await _dbSet.Where(q => q.QuizId == quizId).ToListAsync();
+            return await _dbSet.Where(q => q.QuizId == quizId).Include(ua => ua.Quiz).ToListAsync();
         }
     }
 }

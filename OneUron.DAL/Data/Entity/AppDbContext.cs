@@ -14,6 +14,7 @@ namespace OneUron.DAL.Data.Entity
         {
         }
 
+        public DbSet<Contact> contacts { get; set; }
 
         public DbSet<User> Users { get; set; }
 
@@ -410,12 +411,13 @@ namespace OneUron.DAL.Data.Entity
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // one to many Process Subject
-            modelBuilder.Entity<Subject>()
-                .HasOne(s => s.Process)
-                .WithMany(p => p.Subjects)
-                .HasForeignKey(s => s.ProcessId)
-                .OnDelete(DeleteBehavior.Restrict);
+            // change to Many to Many 
+            //// one to many Process Subject
+            //modelBuilder.Entity<Subject>()
+            //    .HasOne(s => s.Process)
+            //    .WithMany(p => p.Subjects)
+            //    .HasForeignKey(s => s.ProcessId)
+            //    .OnDelete(DeleteBehavior.Restrict);
 
 
             // one to many Process Task

@@ -28,5 +28,6 @@ namespace OneUron.DAL.Repository.MemberShipRepo
         {
             return await _dbSet.FirstOrDefaultAsync(ms => ms.UserId == userId);
         }
+
     }
 }

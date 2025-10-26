@@ -13,7 +13,9 @@ namespace OneUron.DAL.Repository.QuizRepo
 
         public  Task<Quiz> GetQuizByIdAsync(Guid id);
 
-        public  Task<List<Quiz>> GetAllQuizByUserIdAsync(Guid userId);
+        public  Task<List<Quiz>> GetAllQuizByUserId(Guid userId);
+
+        public  Task<PagedResult<Quiz>> GetAllQuizByUserIdAsync(int pageNumber, int pageSize, Guid userId);
 
         public  Task<PagedResult<Quiz>> GetPagedQuizzesAsync(int pageNumber, int pageSize, string? name);
     }

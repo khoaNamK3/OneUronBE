@@ -17,6 +17,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-all")]
+        [ProducesResponseType(typeof(ApiResponse<List<EvaluationResponseDto>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
         {
             var result = await _evaluationService.GetAllAsync();
@@ -24,6 +25,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<EvaluationResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetById(Guid id)
         {
             var result = await _evaluationService.GetByIdAsync(id);
@@ -31,20 +33,23 @@ namespace OneUron.API.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> Create(EvaluationRequestDto request)
+        [ProducesResponseType(typeof(ApiResponse<EvaluationResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Create([FromBody] EvaluationRequestDto request)
         {
             var result = await _evaluationService.CreateNewEvaluationAsync(request);
             return Ok(ApiResponse<EvaluationResponseDto>.SuccessResponse(result, "Create evaluation successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> Update(Guid id, EvaluationRequestDto request)
+        [ProducesResponseType(typeof(ApiResponse<EvaluationResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Update(Guid id, [FromBody] EvaluationRequestDto request)
         {
             var result = await _evaluationService.UpdateEvaluationByIdAsync(id, request);
             return Ok(ApiResponse<EvaluationResponseDto>.SuccessResponse(result, "Update evaluation successfully"));
         }
 
         [HttpDelete("delete-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<EvaluationResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _evaluationService.DeleteEvaluationByIdAsync(id);

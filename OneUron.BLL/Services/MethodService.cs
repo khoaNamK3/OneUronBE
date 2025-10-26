@@ -127,25 +127,28 @@ namespace OneUron.BLL.Services
      
         public async Task<List<MethodSuggestionRespone>> GetTop3MethodForUserAsync(Guid userId)
         {
+            // get user Ansser 
             var userAnswersResponse = await _userAnswerService.GetAllByUserIdAsync(userId);
             if ( userAnswersResponse == null || !userAnswersResponse.Any())
                 throw new ApiException.NotFoundException("User has not answered any evaluation questions yet.");
 
+            // get choice
             var userAnswers = userAnswersResponse;
             var choiceIds = userAnswers.Select(ua => ua.ChoiceId).Distinct().ToList();
 
+            // get all Contion
             var allConditions = new List<MethodRuleConditionResponseDto>();
             foreach (var choiceId in choiceIds)
             {
-                var condition = await _methodRuleConditionService.GetMethodRuleConditionByChoiceId(choiceId);
-                if (condition != null)
-                    allConditions.Add(condition);
+                var conditions = await _methodRuleConditionService.GetMethodRuleConditionByChoiceId(choiceId);
+                if (conditions != null && conditions.Any())
+                    allConditions.AddRange(conditions);
             }
+
 
             if (!allConditions.Any())
                 throw new ApiException.NotFoundException("No method rule condition found for user's choices.");
 
-           
             var userScores = allConditions
                 .Where(c => c.MethodRules != null && c.MethodRules.Any())
                 .SelectMany(c => c.MethodRules.Select(mr => new
@@ -163,7 +166,19 @@ namespace OneUron.BLL.Services
                 })
                 .ToList();
 
-         
+            Console.WriteLine("===== DEBUG: USER SCORES (Phát sinh từ câu trả lời người dùng) =====");
+            if (!userScores.Any())
+            {
+                Console.WriteLine(" Không có method nào được tính trong userScores.");
+            }
+            else
+            {
+                foreach (var s in userScores)
+                {
+                    Console.WriteLine($"MethodId: {s.MethodId} | TotalWeight: {s.TotalWeight:F2} | TotalEffectiveness: {s.TotalEffectiveness:F2}");
+                }
+            }
+
             var allMethodConditions = await _methodRuleConditionService.GetAllAsync();
             if (allMethodConditions == null || !allMethodConditions.Any())
                 throw new ApiException.NotFoundException("No method rule conditions found in system.");
@@ -184,6 +199,19 @@ namespace OneUron.BLL.Services
                     TotalEffectiveness = g.Sum(x => x.Effectiveness)
                 })
                 .ToList();
+
+            Console.WriteLine("\n===== DEBUG: METHOD TOTALS (Tổng điểm toàn hệ thống) =====");
+            if (!methodTotals.Any())
+            {
+                Console.WriteLine(" Không có method nào trong hệ thống.");
+            }
+            else
+            {
+                foreach (var t in methodTotals)
+                {
+                    Console.WriteLine($"MethodId: {t.MethodId} | TotalWeight: {t.TotalWeight:F2} | TotalEffectiveness: {t.TotalEffectiveness:F2}");
+                }
+            }
 
             var results = new List<(Guid MethodId, double WeightPercent, double EffectPercent, double FinalScore)>();
 
@@ -222,7 +250,7 @@ namespace OneUron.BLL.Services
                     Pros = m.MethodPros?.Select(p => _proService.MapToDTO(p)).ToList() ?? new List<MethodProResponseDto>(),
                     Cons = m.MethodCons?.Select(c => _conService.MapToDTO(c)).ToList() ?? new List<MethodConResponseDto>(),
                     Techniques = m.Techniques?.Select(t => _techniqueService.MapToDTO(t)).ToList() ?? new List<TechniqueResponseDto>(),
-                    MethodRules = m.MethodRules?.Select(rm => _methodRuleService.MapToDTO(rm)).ToList() ?? new List<MethodRuleResponseDto>(),
+                    //MethodRules = m.MethodRules?.Select(rm => _methodRuleService.MapToDTO(rm)).ToList() ?? new List<MethodRuleResponseDto>(),
                     WeightPercent = Math.Round(r.WeightPercent, 2),
                     EffectivenessPercent = Math.Round(r.EffectPercent, 2),
                     FinalScore = Math.Round(r.FinalScore, 2)
@@ -258,7 +286,7 @@ namespace OneUron.BLL.Services
                 Pros = method.MethodPros?.Select(p => _proService.MapToDTO(p)).ToList() ?? new List<MethodProResponseDto>(),
                 Cons = method.MethodCons?.Select(c => _conService.MapToDTO(c)).ToList() ?? new List<MethodConResponseDto>(),
                 Techniques = method.Techniques?.Select(t => _techniqueService.MapToDTO(t)).ToList() ?? new List<TechniqueResponseDto>(),
-                MethodRules = method.MethodRules?.Select(mr => _methodRuleService.MapToDTO(mr)).ToList() ?? new List<MethodRuleResponseDto>()
+                //MethodRules = method.MethodRules?.Select(mr => _methodRuleService.MapToDTO(mr)).ToList() ?? new List<MethodRuleResponseDto>()
             };
         }
     }

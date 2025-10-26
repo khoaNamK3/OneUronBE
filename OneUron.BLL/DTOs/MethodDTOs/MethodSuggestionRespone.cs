@@ -33,7 +33,7 @@ namespace OneUron.BLL.DTOs.MethodDTOs
 
         public List<TechniqueResponseDto> Techniques { get; set; }
 
-        public List<MethodRuleResponseDto> MethodRules { get; set; }
+        //public List<MethodRuleResponseDto> MethodRules { get; set; }
         
     }
 }

@@ -21,12 +21,12 @@ namespace OneUron.DAL.Repository.MethodRuleConditionRepo
 
         public async Task<MethodRuleCondition> GetByIdAsync(Guid id)
         {
-            return await _dbSet.Include(mrc => mrc.MethodRules).FirstOrDefaultAsync(mrc => mrc.Id == id);
+            return await _dbSet.Include(mrc => mrc.MethodRules).ThenInclude(mrc => mrc.Method).FirstOrDefaultAsync(mrc => mrc.Id == id);
         }
 
-        public async Task<MethodRuleCondition> GetMethodRuleConditionByChoiceId(Guid choiceId)
+        public async Task<List<MethodRuleCondition>> GetMethodRuleConditionByChoiceId(Guid choiceId)
         {
-            return await _dbSet.Include(mrc => mrc.MethodRules).FirstOrDefaultAsync(mrc => mrc.ChoiceId == choiceId);
+            return await _dbSet.Include(mrc => mrc.MethodRules).ThenInclude(mrc => mrc.Method).Where(mrc => mrc.ChoiceId == choiceId).ToListAsync();
         }
     }
 }

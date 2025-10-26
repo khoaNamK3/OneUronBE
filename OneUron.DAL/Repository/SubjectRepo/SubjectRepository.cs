@@ -29,5 +29,10 @@ namespace OneUron.DAL.Repository.SubjectRepo
             return await _dbSet.Where(s => s.ScheduleId == scheduleId).ToListAsync();
         }
 
+        public async Task<List<Subject>> GetSubjectByProcessIdAsync(Guid processId)
+        {
+            return await _dbSet.Where(p => p.Processes.Any(p => p.Id == processId)).ToListAsync();
+        }
+
     }
 }

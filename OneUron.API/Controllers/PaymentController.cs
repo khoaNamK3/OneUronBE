@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
 using Net.payOS.Types;
+using OneUron.BLL.DTOs.MethodRuleDTOs;
 using OneUron.BLL.DTOs.PaymentDTOs;
 using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
@@ -19,6 +20,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-all")]
+        [ProducesResponseType(typeof(ApiResponse<List<PaymentResponseDto>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllPayments()
         {
             var response = await _paymentService.GetAllPaymentAsync();
@@ -26,7 +28,8 @@ namespace OneUron.API.Controllers
             return Ok(ApiResponse<List<PaymentResponseDto>>.SuccessResponse(response, "Get All Payment Successfully"));
         }
 
-        [HttpGet("get-by/{id:guid}")]
+        [HttpGet("get-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<PaymentResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetbyIdAsync(Guid id)
         {
             var response = await _paymentService.GetPaymentbyIdAsync(id);
@@ -34,7 +37,8 @@ namespace OneUron.API.Controllers
             return Ok(ApiResponse<PaymentResponseDto>.SuccessResponse(response, "Get By Id Successfully"));
         }
 
-        [HttpGet("get-all-by/{userId:guid}")]
+        [HttpGet("get-all-by/{userId}")]
+        [ProducesResponseType(typeof(ApiResponse<List<PaymentResponseDto>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetPaymentsByUserId(Guid userId)
         {
             var response = await _paymentService.GetPaymentByUserIdAsync(userId);
@@ -43,6 +47,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpPost("create")]
+        [ProducesResponseType(typeof(ApiResponse<PaymentResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> CreatePayment([FromBody] PaymentRequestDto request)
         {
             var response = await _paymentService.CreateNewPayment(request);
@@ -50,7 +55,8 @@ namespace OneUron.API.Controllers
             return Ok(ApiResponse<PaymentResponseDto>.SuccessResponse(response, "Create new Payment Successfully"));
         }
 
-        [HttpPut("update-by/{id:guid}")]
+        [HttpPut("update-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<PaymentResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdatePaymentAsync(Guid id, [FromBody] PaymentRequestDto request)
         {
             var response = await _paymentService.UpdatePaymentByIdAsyn(id, request);
@@ -58,7 +64,8 @@ namespace OneUron.API.Controllers
             return Ok(ApiResponse<PaymentResponseDto>.SuccessResponse(response, "Update Payment By Id Successfully"));
         }
 
-        [HttpDelete("delete-by/{id:guid}")]
+        [HttpDelete("delete-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<PaymentResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> DeletePaymentByIdAsync(Guid id)
         {
             var response = await _paymentService.DeletePaymentByidAsync(id);
@@ -66,7 +73,7 @@ namespace OneUron.API.Controllers
             return Ok(ApiResponse<PaymentResponseDto>.SuccessResponse(response, "Delete Paymentt By Id Successfully"));
         }
 
-        [HttpGet("create-payment-link-by/{memberShipPlanId:guid}/{userId:guid}")]
+        [HttpGet("create-payment-link-by/{memberShipPlanId}/{userId}")]
         public async Task<IActionResult> CreatePaymentLink(Guid memberShipPlanId, Guid userId)
         {
             var checkoutUrl = await _paymentService.CreatePaymentLinkAsync(memberShipPlanId, userId);

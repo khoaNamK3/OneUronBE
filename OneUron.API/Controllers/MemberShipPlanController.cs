@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using OneUron.BLL.DTOs.MemberShipDTOs;
 using OneUron.BLL.DTOs.MemberShipPlanDTOs;
 using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
@@ -16,6 +17,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-all")]
+        [ProducesResponseType(typeof(ApiResponse<List<MemberShipPlanResponseDto>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAllAsync()
         {
             var response = await _memberShipPlanService.GetAllMembertShipPlanAsync();
@@ -23,7 +25,8 @@ namespace OneUron.API.Controllers
             return Ok(ApiResponse<List<MemberShipPlanResponseDto>>.SuccessResponse(response, "Get All MemberShipPlan Successfully"));
         }
 
-        [HttpGet("get-by/{id:guid}")]
+        [HttpGet("get-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<MemberShipPlanResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetMemberShipPlanByIdAsync(Guid id)
         {
             var response = await _memberShipPlanService.GetMemberShipPlanByIdAsync(id);
@@ -32,6 +35,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpPost("create")]
+        [ProducesResponseType(typeof(ApiResponse<MemberShipPlanResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> CreateNewMemberShipPlanAsync([FromBody] MemberShipPlanRequestDto requestDto)
         {
             var response = await  _memberShipPlanService.CreateMemberShipPlanAsync(requestDto);
@@ -39,7 +43,8 @@ namespace OneUron.API.Controllers
             return Ok(ApiResponse<MemberShipPlanResponseDto>.SuccessResponse(response, "Create MemberShipPlan Successfully"));
         }
 
-        [HttpPut("update-by/{id:guid}")]
+        [HttpPut("update-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<MemberShipPlanResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateMemberShipPlanByIdAsync(Guid id, [FromBody] MemberShipPlanRequestDto requestDto)
         {
             var response = await _memberShipPlanService.UpdateMemberShipPlanByIdAsync(id, requestDto);
@@ -47,7 +52,8 @@ namespace OneUron.API.Controllers
             return Ok(ApiResponse<MemberShipPlanResponseDto>.SuccessResponse(response, "Update MemberShipPlan By Id Successfully"));
         }
 
-        [HttpDelete("delete-by/{id:guid}")]
+        [HttpDelete("delete-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<MemberShipPlanResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> DeleteMemberShipByDAsync(Guid id)
         {
             var response = await _memberShipPlanService.DeleteMemberShipPlanByIdAsync(id);

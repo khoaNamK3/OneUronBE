@@ -16,12 +16,12 @@ namespace OneUron.DAL.Repository.ChoiceRepo
 
         public async Task<List<Choice>> GetAllAsync()
         {
-            return await _dbSet.ToListAsync();
+            return await _dbSet.Include(c => c.MethodRuleConditions).ThenInclude(c => c.MethodRules).ToListAsync();
         }
 
         public async Task<Choice> GetByIdAsync(Guid id)
         {
-            return await _dbSet.FirstOrDefaultAsync(c => c.Id == id);
+            return await _dbSet.Include(c => c.MethodRuleConditions).ThenInclude(c => c.MethodRules).FirstOrDefaultAsync(c => c.Id == id);
         }
     }
 }

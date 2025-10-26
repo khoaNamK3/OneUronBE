@@ -16,12 +16,12 @@ namespace OneUron.DAL.Repository.MethodRepo
 
         public async Task<List<Method>> GetAllAsync()
         {
-            return await _dbSet.Include(m => m.MethodPros).Include(m => m.MethodCons).Include(m => m.Techniques).Include(m => m.MethodRules).ToListAsync();
+            return await _dbSet.Include(m => m.MethodPros).Include(m => m.MethodCons).Include(m => m.Techniques).ToListAsync();
         }
 
         public async Task<Method> GetByIdAsync(Guid id)
         {
-            return await _dbSet.Include(m => m.MethodPros).Include(m => m.MethodCons).Include(m => m.Techniques).Include(m => m.MethodRules).FirstOrDefaultAsync(m => m.Id == id);
+            return await _dbSet.Include(m => m.MethodPros).Include(m => m.MethodCons).Include(m => m.Techniques).FirstOrDefaultAsync(m => m.Id == id);
         }
 
     }

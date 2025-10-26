@@ -60,7 +60,13 @@ namespace OneUron.DAL.Repository.UserRepo
 
         public async Task<User> GetUserByUserIdAsync(Guid userId)
         {
-            return await _dbSet.FirstOrDefaultAsync(u => u.Id == userId);
+            return await _dbSet.Include(u => u.StudyMethod).FirstOrDefaultAsync(u => u.Id == userId);
         }
+
+        public async Task<List<User>> GetAllUserAsync()
+        {
+            return await _dbSet.ToListAsync();
+        }
+
     }
 }

@@ -17,5 +17,8 @@ namespace OneUron.DAL.Repository.PaymentRepo
 
         public  Task<Payment> GetByOrderCodeAsync(long orderCode);
 
+        public  Task<List<Payment>> GetAllPaymentSucessfullyAsync();
+
+        public  Task<List<Payment>> GetAllPaymentFaidAsync();
     }
 }

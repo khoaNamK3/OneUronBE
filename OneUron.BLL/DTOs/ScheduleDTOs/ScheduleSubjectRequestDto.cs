@@ -16,11 +16,9 @@ namespace OneUron.BLL.DTOs.ScheduleDTOs
 
         public DateTime EndDate { get; set; }
 
-        public string TotalTime { get; set; }
+        //public string TotalTime { get; set; }
 
-        public double AmountSubject { get; set; }
-
-        public DateTime CreateAt { get; set; }
+        //public double AmountSubject { get; set; }
 
         public List<SubjectListRequest>? subjectListRequest { get; set; }
     }

@@ -12,8 +12,8 @@ namespace OneUron.BLL.FluentValidation
     {
         public StudyMethodRequestValidator()
         {
-            RuleFor(x => x.IsDeleted)
-                .NotNull().WithMessage("Trạng thái xóa (IsDeleted) là bắt buộc.");
+            //RuleFor(x => x.IsDeleted)
+            //    .NotNull().WithMessage("Trạng thái xóa (IsDeleted) là bắt buộc.");
 
             RuleFor(x => x.MethodId)
                 .NotEmpty().WithMessage("MethodId là bắt buộc.");

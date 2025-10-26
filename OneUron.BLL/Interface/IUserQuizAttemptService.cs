@@ -1,6 +1,7 @@
 ﻿using OneUron.BLL.DTOs.UserQuizAttemptDTOs;
 using OneUron.BLL.ExceptionHandle;
 using OneUron.DAL.Data.Entity;
+using OneUron.DAL.Repository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,10 +17,12 @@ namespace OneUron.BLL.Interface
         Task<UserQuizAttemptResponseDto> CreateAsync(UserQuizAttemptRequestDto request);
         Task<UserQuizAttemptResponseDto> UpdateByIdAsync(Guid id, UserQuizAttemptRequestDto request);
         Task<UserQuizAttemptResponseDto> DeleteByIdAsync(Guid id);
-        UserQuizAttemptResponseDto MapToDTO(UserQuizAttempt attempt);
+        Task<UserQuizAttemptResponseDto> MapToDTO(UserQuizAttempt attempt);
 
         Task<List<UserQuizAttemptResponseDto>> GetAllUserQuizAttemptByQuizIdAsync(Guid quizId);
 
         Task<UserQuizAttemptResponseDto> SubmitAnswerAsync(SubmitAnswerRequest newSubmit);
+
+        public  Task<PagedResult<UserQuizAttemptResponseDto>> GetAllUserQuizAttempByUserIdAsync(int pageNumber, int pageSize, Guid userId);
     }
 }

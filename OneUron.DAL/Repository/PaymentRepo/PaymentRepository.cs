@@ -35,5 +35,15 @@ namespace OneUron.DAL.Repository.PaymentRepo
         {
             return await _dbSet.FirstOrDefaultAsync(p => p.OrderCode == orderCode);
         }
+
+        public async Task<List<Payment>> GetAllPaymentSucessfullyAsync()
+        {
+            return await _dbSet.Where(p => p.Status == PaymentStatus.Paid).ToListAsync();   
+        }
+
+        public async Task<List<Payment>> GetAllPaymentFaidAsync()
+        {
+            return await _dbSet.Where(p => p.Status == PaymentStatus.Failed).ToListAsync();
+        }
     }
 }

@@ -23,5 +23,10 @@ namespace OneUron.DAL.Repository.ProcessTaskRepo
         {
             return await _dbSet.FirstOrDefaultAsync(pt => pt.Id == id);
         }
+
+        public async Task<List<ProcessTask>> GetAllProcessTaskByProcessIdAsync(Guid processId)
+        {
+            return await _dbSet.Where(pk => pk.ProcessId == processId).ToListAsync();
+        }
     }
 }

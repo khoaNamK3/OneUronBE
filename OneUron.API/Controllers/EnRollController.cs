@@ -18,6 +18,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-all")]
+        [ProducesResponseType(typeof(ApiResponse<List<EnRollResponseDto>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
         {
             var result = await _enRollService.GetAllEnRollAsync();
@@ -25,6 +26,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<EnRollResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetById(Guid id)
         {
             var result = await _enRollService.GetEnRollByIdAsync(id);
@@ -32,20 +34,23 @@ namespace OneUron.API.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> Create(EnRollRequestDto request)
+        [ProducesResponseType(typeof(ApiResponse<EnRollResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Create([FromBody] EnRollRequestDto request)
         {
             var result = await _enRollService.CreateNewEnRollAsync(request);
             return Ok(ApiResponse<EnRollResponseDto>.SuccessResponse(result, "Create enrollment successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> Update(Guid id, EnRollRequestDto request)
+        [ProducesResponseType(typeof(ApiResponse<EnRollResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Update(Guid id, [FromBody] EnRollRequestDto request)
         {
             var result = await _enRollService.UpdateEnRollByIdAsync(id, request);
             return Ok(ApiResponse<EnRollResponseDto>.SuccessResponse(result, "Update enrollment successfully"));
         }
 
         [HttpDelete("delete-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<EnRollResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _enRollService.DeleteEnRollByIdAsync(id);

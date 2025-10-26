@@ -17,6 +17,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-all")]
+        [ProducesResponseType(typeof(ApiResponse<List<CourseDetailResponseDto>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
         {
             var result = await _courseDetailService.GetAllCourseDetailAsync();
@@ -24,6 +25,7 @@ namespace OneUron.API.Controllers
         }
 
         [HttpGet("get-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<CourseDetailResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetById(Guid id)
         {
             var result = await _courseDetailService.GetCourseDetailByIdAsync(id);
@@ -31,20 +33,23 @@ namespace OneUron.API.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> Create(CourseDetailRequestDto request)
+        [ProducesResponseType(typeof(ApiResponse<CourseDetailResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Create([FromBody] CourseDetailRequestDto request)
         {
             var result = await _courseDetailService.CreateNewCourseDetailAsync(request);
             return Ok(ApiResponse<CourseDetailResponseDto>.SuccessResponse(result, "Create course detail successfully"));
         }
 
         [HttpPut("update-by/{id}")]
-        public async Task<IActionResult> Update(Guid id, CourseDetailRequestDto request)
+        [ProducesResponseType(typeof(ApiResponse<CourseDetailResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Update(Guid id, [FromBody] CourseDetailRequestDto request)
         {
             var result = await _courseDetailService.UpdateCourseDetailByIdAsync(id, request);
             return Ok(ApiResponse<CourseDetailResponseDto>.SuccessResponse(result, "Update course detail successfully"));
         }
 
         [HttpDelete("delete-by/{id}")]
+        [ProducesResponseType(typeof(ApiResponse<CourseDetailResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _courseDetailService.DeleteCourseDetailByIdAsync(id);

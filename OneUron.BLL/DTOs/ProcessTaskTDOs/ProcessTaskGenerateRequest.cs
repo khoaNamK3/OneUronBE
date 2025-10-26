@@ -14,5 +14,6 @@ namespace OneUron.BLL.DTOs.ProcessTaskTDOs
 
         public double Amount { get; set; }
 
+        public TimeOnly StartTime { get; set; }
     }
 }

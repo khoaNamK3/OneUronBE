@@ -7,6 +7,7 @@ using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.FluentValidation;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
+using OneUron.DAL.Repository;
 using OneUron.DAL.Repository.QuizRepo;
 using OneUron.DAL.Repository.UserQuizAttemptRepo;
 using System;
@@ -53,7 +54,8 @@ namespace OneUron.BLL.Services
             if (attempts == null || !attempts.Any())
                 throw new ApiException.NotFoundException("No quiz attempts found.");
 
-            return attempts.Select(MapToDTO).ToList();
+            var result = await Task.WhenAll(attempts.Select(a => MapToDTO(a)));
+            return result.ToList();
         }
 
 
@@ -63,7 +65,7 @@ namespace OneUron.BLL.Services
             if (attempt == null)
                 throw new ApiException.NotFoundException($"Quiz attempt with ID {id} not found.");
 
-            return MapToDTO(attempt);
+            return await MapToDTO(attempt);
         }
 
         public async Task<List<UserQuizAttemptResponseDto>> GetAllUserQuizAttemptByQuizIdAsync(Guid quizId)
@@ -73,9 +75,95 @@ namespace OneUron.BLL.Services
             if (!quizAttempts.Any())
                 throw new ApiException.NotFoundException("No quiz attempts found.");
 
-            var result = quizAttempts.Select(MapToDTO).ToList();
+
+            var result = await Task.WhenAll(quizAttempts.Select(a => MapToDTO(a)));
+            return result.ToList();
+        }
+
+        public async Task<List<UserQuizAttemptResponseDto>> GetUserQuizAtempByQuizId(Guid quizId)
+        {
+            var quizAttempts = await _userQuizAttemptRepository.GetAllUserQuizAttemptByQuizIdAsync(quizId);
+
+            if (quizAttempts == null || !quizAttempts.Any())
+            {
+                Console.WriteLine($"[INFO] Quiz {quizId} has 0 attempts, returning empty list.");
+                return new List<UserQuizAttemptResponseDto>();
+            }
+
+            var result = new List<UserQuizAttemptResponseDto>();
+            foreach (var attempt in quizAttempts)
+            {
+             
+                var dto = await MapToDTO(attempt);
+                if (dto != null)
+                {
+                    result.Add(dto);
+                }
+            }
+
+            Console.WriteLine($"[INFO] Quiz {quizId} attempts mapped: {result.Count}");
             return result;
         }
+
+        public async Task<PagedResult<UserQuizAttemptResponseDto>> GetAllUserQuizAttempByUserIdAsync(int pageNumber, int pageSize, Guid userId)
+        {
+            Console.WriteLine($"[INFO] GetAllUserQuizAttempByUserIdAsync called for UserId: {userId}, Page: {pageNumber}, PageSize: {pageSize}");
+
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            var existQuiz = await _quizRepository.GetAllQuizByUserId(userId);
+            Console.WriteLine($"[INFO] Found {existQuiz.Count} quizzes for user {userId}");
+
+            if (!existQuiz.Any())
+            {
+                Console.WriteLine($"[WARN] User {userId} has not done any quiz yet");
+                throw new ApiException.NotFoundException("User has not done any quiz yet.");
+            }
+
+            var allAttempts = new List<UserQuizAttemptResponseDto>();
+
+            foreach (var quiz in existQuiz)
+            {
+                var attempts = await GetUserQuizAtempByQuizId(quiz.Id);
+
+                if (attempts.Any())
+                {
+                    Console.WriteLine($"[INFO] Adding {attempts.Count} attempts for quiz {quiz.Id}");
+                    allAttempts.AddRange(attempts);
+                }
+                else
+                {
+                    Console.WriteLine($"[INFO] Quiz {quiz.Id} skipped because it has 0 attempts");
+                }
+            }
+
+            if (!allAttempts.Any())
+            {
+                Console.WriteLine($"[WARN] No attempts found for user {userId}");
+                throw new ApiException.NotFoundException("No attempts found for this user.");
+            }
+
+            int totalCount = allAttempts.Count;
+            Console.WriteLine($"[INFO] Total attempts collected: {totalCount}");
+
+            var pagedAttempts = allAttempts
+                .OrderByDescending(a => a.Point)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            Console.WriteLine($"[INFO] Returning {pagedAttempts.Count} attempts for page {pageNumber}");
+
+            return new PagedResult<UserQuizAttemptResponseDto>
+            {
+                CurrentPage = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                Items = pagedAttempts
+            };
+        }
+
 
 
         public async Task<UserQuizAttemptResponseDto> SubmitAnswerAsync(SubmitAnswerRequest newSubmit)
@@ -100,7 +188,7 @@ namespace OneUron.BLL.Services
 
             var userAttempt = await CreateAsync(newAttempt);
 
-     
+
             foreach (var answer in newSubmit.AnswerList)
             {
                 var newAnswer = new AnswerRequestDto
@@ -113,10 +201,10 @@ namespace OneUron.BLL.Services
                 await _answerService.CreateNewAnswerAsync(newAnswer);
             }
 
-       
+
             var newUserAttempt = await GetByIdAsync(userAttempt.Id);
 
-   
+
             var quiz = await _quizRepository.GetQuizByIdAsync(newSubmit.QuizId);
             var questions = quiz.Questions.ToList();
 
@@ -124,7 +212,7 @@ namespace OneUron.BLL.Services
             double earnedPoints = 0;
             int correctCount = 0;
 
-     
+
             foreach (var ans in newUserAttempt.Answers)
             {
                 var choice = await _questionChoiceService.GetQuestionChoiceByIdAsync(ans.QuestionChoiceId);
@@ -139,13 +227,13 @@ namespace OneUron.BLL.Services
                 }
             }
 
-  
+
             int totalQuestion = questions.Count;
-            double accuracy = totalQuestion > 0? Math.Round((double)correctCount / totalQuestion * 100, 2) : 0;
+            double accuracy = totalQuestion > 0 ? Math.Round((double)correctCount / totalQuestion * 100, 2) : 0;
             if (earnedPoints > totalPoints)
                 earnedPoints = totalPoints;
 
-        
+
             var updateRequest = new UserQuizAttemptRequestDto
             {
                 QuizId = newUserAttempt.QuizId,
@@ -172,7 +260,7 @@ namespace OneUron.BLL.Services
             var newAttempt = MapToEntity(request);
             await _userQuizAttemptRepository.AddAsync(newAttempt);
 
-            return MapToDTO(newAttempt);
+            return await MapToDTO(newAttempt);
         }
 
 
@@ -197,7 +285,7 @@ namespace OneUron.BLL.Services
 
             await _userQuizAttemptRepository.UpdateAsync(existing);
 
-            return MapToDTO(existing);
+            return await MapToDTO(existing);
         }
 
 
@@ -209,25 +297,44 @@ namespace OneUron.BLL.Services
 
             await _userQuizAttemptRepository.DeleteAsync(existing);
 
-            return MapToDTO(existing);
+            return await MapToDTO(existing);
         }
 
-        public UserQuizAttemptResponseDto MapToDTO(UserQuizAttempt attempt)
+        public async Task<UserQuizAttemptResponseDto> MapToDTO(UserQuizAttempt attempt)
         {
             if (attempt == null) return null;
 
-            return new UserQuizAttemptResponseDto
+            var existQuiz = await _quizRepository.GetQuizByIdAsync(attempt.QuizId);
+            if (existQuiz == null)
             {
-                Id = attempt.Id,
-                QuizId = attempt.QuizId,
-                StartAt = attempt.StartAt,
-                FinishAt = attempt.FinishAt,
-                Point = attempt.Point,
-                Accuracy = attempt.Accuracy,
-                Answers = attempt.Answers != null
-                    ? attempt.Answers.Select(a => _answerService.MapToDTO(a)).ToList()
-                    : new List<AnswerResponseDto>()
-            };
+                Console.WriteLine($"[WARN] Quiz {attempt.QuizId} not found for attempt {attempt.Id}");
+                return null;
+            }
+
+            bool passed = false;
+
+            if (attempt.Point >= existQuiz.PassScore)
+            {
+                passed = true;
+            }
+
+                return new UserQuizAttemptResponseDto
+                {
+                    Id = attempt.Id,
+                    QuizId = attempt.QuizId,
+                    StartAt = attempt.StartAt,
+                    FinishAt = attempt.FinishAt,
+                    TotalPoints = existQuiz.TotalPoints,
+                    PassScore = existQuiz.PassScore,
+                    QuizName = existQuiz.Name,
+                    TotalQuestion = existQuiz.TotalQuestion,
+                    IsPassed = passed,
+                    Point = attempt.Point,
+                    Accuracy = attempt.Accuracy,
+                    Answers = attempt.Answers != null
+                        ? attempt.Answers.Select(a => _answerService.MapToDTO(a)).ToList()
+                        : new List<AnswerResponseDto>()
+                };
         }
 
         protected UserQuizAttempt MapToEntity(UserQuizAttemptRequestDto request)

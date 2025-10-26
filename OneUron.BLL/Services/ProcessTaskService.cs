@@ -38,6 +38,16 @@ namespace OneUron.BLL.Services
             return processTasks.Select(MapToDTO).ToList();
         }
 
+        public async Task<List<ProcessTaskResponseDto>> GetAllProcessTaskByProcessIdAsync(Guid processId)
+        {
+            var existProcessTask = await _processTaskRepository.GetAllProcessTaskByProcessIdAsync(processId);
+
+            if (!existProcessTask.Any())
+                throw new ApiException.NotFoundException("No ProcessTask Found");
+
+            var result = existProcessTask.Select(MapToDTO).ToList();
+            return result;
+        }
 
         public async Task<ProcessTaskResponseDto> GetByIdAsync(Guid id)
         {
@@ -99,11 +109,19 @@ namespace OneUron.BLL.Services
             if (existProcessTask == null)
                 throw new ApiException.NotFoundException($"ProcessTask with ID {processTaskId} not found.");
 
-            if (existProcessTask.IsCompleted == true)
-                throw new ApiException.BadRequestException("this ProcessTask Has already been complete");
+            if (existProcessTask.IsCompleted)
+                throw new ApiException.BadRequestException("This ProcessTask has already been completed.");
 
+            if (existProcessTask.StartTime.Date > DateTime.Now.Date)
+                throw new ApiException.BadRequestException("You cannot complete a task scheduled for a future date.");
+
+        
             existProcessTask.IsCompleted = true;
-            existProcessTask.EndTime = DateTime.UtcNow;
+
+          
+            if (DateTime.Now < existProcessTask.EndTime)
+                existProcessTask.EndTime = DateTime.UtcNow;
+
             await _processTaskRepository.UpdateAsync(existProcessTask);
 
             return MapToDTO(existProcessTask);
@@ -150,5 +168,7 @@ namespace OneUron.BLL.Services
                 ProcessId = request.ProcessId
             };
         }
+
+        
     }
 }
