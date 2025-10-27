@@ -25,7 +25,7 @@ namespace OneUron.BLL.FluentValidation
                 .LessThanOrEqualTo(100).WithMessage("Điểm số không được vượt quá 100.");
 
             RuleFor(x => x.QuizId)
-                .NotEmpty().WithMessage("QuizId là bắt buộc.");
+                .NotEmpty().WithMessage("câu hỏi là bắt buộc.");
         }
     }
 }

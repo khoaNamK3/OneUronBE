@@ -14,17 +14,17 @@ namespace OneUron.BLL.FluentValidation
         {
             RuleFor(x => x.Title)
                 .NotEmpty()
-                .WithMessage("Title không được để trống.")
+                .WithMessage("Tựa đề không được để trống.")
                 .MaximumLength(200)
-                .WithMessage("Title không được vượt quá 200 ký tự.");
+                .WithMessage("Tựa đề không được vượt quá 200 ký tự.");
 
             RuleFor(x => x.Description)
                 .MaximumLength(500)
-                .WithMessage("Description không được vượt quá 500 ký tự.");
+                .WithMessage("Mô tả không được vượt quá 500 ký tự.");
 
             RuleFor(x => x.EvaluationQuestionId)
                 .NotEmpty()
-                .WithMessage("EvaluationQuestionId không được để trống.");
+                .WithMessage("Câu hỏi đánh giá không được để trống.");
         }
     }
 }

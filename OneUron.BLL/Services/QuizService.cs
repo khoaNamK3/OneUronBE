@@ -47,7 +47,7 @@ namespace OneUron.BLL.Services
             var quizzes = await _quizRepository.GetAllQuizAsync();
 
             if (quizzes == null || !quizzes.Any())
-                throw new ApiException.NotFoundException("No quizzes found.");
+                throw new ApiException.NotFoundException("Không tìm thấy bài kiểm tra ");
 
             return quizzes.Select(MapToDTO).ToList();
         }
@@ -58,7 +58,7 @@ namespace OneUron.BLL.Services
             var quiz = await _quizRepository.GetQuizByIdAsync(id);
 
             if (quiz == null)
-                throw new ApiException.NotFoundException($"Quiz with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Bài kiểm tra của ID {id} không tìm thấy.");
 
             return MapToDTO(quiz);
         }
@@ -83,19 +83,23 @@ namespace OneUron.BLL.Services
             var existQuizzes = await _quizRepository.GetAllQuizByUserId(userId);
 
             if (existQuizzes == null || !existQuizzes.Any())
-                throw new ApiException.NotFoundException("No quizzes found for this user.");
+                throw new ApiException.NotFoundException("Người dùng không có bài kiểm tra ");
 
             int totalCompleteQuiz = 0;
             int totalQuizPassed = 0;
             double totalMinute = 0;
             double totalPoints = 0;
             int totalAttempts = 0;
+            int totalQuizWatting = 0;
 
             foreach (var quiz in existQuizzes)
             {
                 var attempts = quiz.UserQuizAttempts?.ToList() ?? new List<UserQuizAttempt>();
-                if (!attempts.Any()) continue;
-
+                if (!attempts.Any())
+                {
+                    totalQuizWatting++;
+                    continue; // bỏ qua quiz nếu ko có attemp
+                }
                 totalCompleteQuiz++;
 
                 foreach (var attempt in attempts)
@@ -126,6 +130,7 @@ namespace OneUron.BLL.Services
             {
                 TotalCompleteQuiz = totalCompleteQuiz,
                 TotalQuizPassed = totalQuizPassed,
+                NumberQuizWaitting = totalQuizWatting,
                 TotalTime = Math.Round(totalMinute, 8),
                 AverageScore = Math.Round(averageScore, 2)
             };
@@ -135,7 +140,7 @@ namespace OneUron.BLL.Services
         public async Task<QuizResponseDto> CreateNewQuizAsync(QuizRequestDto request)
         {
             if (request == null)
-                throw new ApiException.BadRequestException("Quiz request cannot be null.");
+                throw new ApiException.BadRequestException("Bài kiểm tra mới không được để trống.");
 
             var validationResult = await _quizRequestValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -152,10 +157,10 @@ namespace OneUron.BLL.Services
         {
             var existingQuiz = await _quizRepository.GetQuizByIdAsync(id);
             if (existingQuiz == null)
-                throw new ApiException.NotFoundException($"Quiz with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Bài kiểm tra của  ID {id} Không tìm thấy.");
 
             if (request == null)
-                throw new ApiException.BadRequestException("New quiz data cannot be null.");
+                throw new ApiException.BadRequestException("Bài kiểm tra mới không được để trống");
 
             var validationResult = await _quizRequestValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -180,7 +185,7 @@ namespace OneUron.BLL.Services
         {
             var existingQuiz = await _quizRepository.GetByIdAsync(id);
             if (existingQuiz == null)
-                throw new ApiException.NotFoundException($"Quiz with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Bài kiểm tra của  ID {id} Không tìm thấy.");
 
             await _quizRepository.DeleteAsync(existingQuiz);
             return MapToDTO(existingQuiz);
@@ -191,14 +196,14 @@ namespace OneUron.BLL.Services
             // get all quiz of user
             var quizzes = await _quizRepository.GetAllQuizByUserId(userId);
             if (quizzes == null || !quizzes.Any())
-                throw new ApiException.NotFoundException("No quizzes found for this user.");
+                throw new ApiException.NotFoundException("Người dùng không có bài kiểm tra");
 
             double totalUserAttemp = quizzes.Sum(q => q.UserQuizAttempts?.Count ?? 0);
 
             // get all  process
             var processes = await _processService.GetProcessesByScheduleId(scheduleId);
             if (processes == null || !processes.Any())
-                throw new ApiException.NotFoundException("No processes found for this schedule.");
+                throw new ApiException.NotFoundException("Không tìm thấy quá trình của lịch học này .");
 
             var allTasks = processes
                 .SelectMany(p => p.ProcessTasks ?? Enumerable.Empty<ProcessTaskResponseDto>())
@@ -323,7 +328,7 @@ namespace OneUron.BLL.Services
             var quizzes = await _quizRepository.GetAllQuizByUserIdAsync(pageNumber, pageSize, userId);
 
             if (!quizzes.Items.Any())
-                throw new ApiException.NotFoundException("User has no quizzes found.");
+                throw new ApiException.NotFoundException("Không tìm thấy bài kiểm tra của người dùng này.");
 
             var result = quizzes.Items.Select(MapToDTO).ToList();
 

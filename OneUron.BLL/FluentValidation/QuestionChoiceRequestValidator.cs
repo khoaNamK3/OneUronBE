@@ -20,7 +20,7 @@ namespace OneUron.BLL.FluentValidation
                 .NotNull().WithMessage("Trạng thái đúng/sai (IsCorrect) là bắt buộc.");
 
             RuleFor(x => x.QuestionId)
-                .NotEmpty().WithMessage("QuestionId là bắt buộc.");
+                .NotEmpty().WithMessage("Câu hỏi không được để trống");
         }
     }
 }

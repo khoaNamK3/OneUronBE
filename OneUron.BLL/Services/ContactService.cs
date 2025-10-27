@@ -28,7 +28,7 @@ namespace OneUron.BLL.Services
             var contactlist = await _contactRepository.GetAllContactAsync();
 
             if (!contactlist.Any())
-                throw new ApiException.NotFoundException("No Contact Found");
+                throw new ApiException.NotFoundException("Không tìm thấy liên hệ nào");
 
             var result = contactlist.Select(MapToDTO).ToList();
             return result;
@@ -39,7 +39,7 @@ namespace OneUron.BLL.Services
             var contact =  await _contactRepository.GetByIdAsync(id);
 
             if (contact == null)
-                throw new ApiException.NotFoundException("contact does not exist");
+                throw new ApiException.NotFoundException("Liên hệ không tồn tại");
 
             var result  = MapToDTO(contact);
             return result;
@@ -67,7 +67,7 @@ namespace OneUron.BLL.Services
             var existContact = await _contactRepository.GetByIdAsync(id);
 
             if (existContact == null)
-                throw new ApiException.NotFoundException("contact does not exist");
+                throw new ApiException.NotFoundException("Liên hệ không tồn tại");
 
             var result = MapToDTO(existContact);
 

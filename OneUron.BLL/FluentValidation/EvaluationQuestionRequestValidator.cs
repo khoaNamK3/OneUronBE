@@ -13,18 +13,18 @@ namespace OneUron.BLL.FluentValidation
         public EvaluationQuestionRequestValidator()
         {
             RuleFor(x => x.Title)
-                .NotEmpty().WithMessage("Title không được để trống.")
-                .MaximumLength(255).WithMessage("Title không được vượt quá 255 ký tự.");
+                .NotEmpty().WithMessage("Tiêu đề không được để trống.")
+                .MaximumLength(255).WithMessage("Tiêu đề không được vượt quá 255 ký tự.");
 
             RuleFor(x => x.Description)
-                .NotEmpty().WithMessage("Description không được để trống.")
-                .MaximumLength(1000).WithMessage("Description không được vượt quá 1000 ký tự.");
+                .NotEmpty().WithMessage("Mô tả không được để trống.")
+                .MaximumLength(1000).WithMessage("Mô tả không được vượt quá 1000 ký tự.");
 
             RuleFor(x => x.Type)
-                .IsInEnum().WithMessage("Type phải thuộc enum EvaluationQuestionType hợp lệ.");
+                .IsInEnum().WithMessage("kiểu phải thuộc kiểu của câu hỏi hợp lệ.");
 
             RuleFor(x => x.EvaluationId)
-                .NotEmpty().WithMessage("EvaluationId là bắt buộc.");
+                .NotEmpty().WithMessage("Đánh giá không được để trống ");
         }
     }
 }

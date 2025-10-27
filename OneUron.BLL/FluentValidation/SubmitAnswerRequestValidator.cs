@@ -15,14 +15,14 @@ namespace OneUron.BLL.FluentValidation
           
             RuleFor(x => x.QuizId)
                 .NotEmpty()
-                .WithMessage("QuizId is required.");
+                .WithMessage("Tên Quiz là bắt buộc .");
 
       
             RuleFor(x => x.AnswerList)
                 .NotNull()
-                .WithMessage("AnswerList cannot be null.")
+                .WithMessage("Danh sách câu trả lời không được để trống .")
                 .Must(list => list.Any())
-                .WithMessage("AnswerList must contain at least one answer.");
+                .WithMessage("Danh sách câu trả lời ít nhất phải có 1 câu trả lời.");
 
           
             RuleForEach(x => x.AnswerList)

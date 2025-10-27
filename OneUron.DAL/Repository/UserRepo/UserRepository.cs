@@ -3,6 +3,7 @@ using OneUron.DAL.Data.Entity;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace OneUron.DAL.Repository.UserRepo
 {
@@ -66,6 +67,42 @@ namespace OneUron.DAL.Repository.UserRepo
         public async Task<List<User>> GetAllUserAsync()
         {
             return await _dbSet.ToListAsync();
+        }
+
+        public async Task<PagedResult<User>> GetUserPagingAsync(int pageNumber, int pageSize, string userName)
+        {
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            var query = _dbSet.AsNoTracking().AsQueryable();
+
+
+            if (!string.IsNullOrWhiteSpace(userName))
+            {
+                query = query.Where(q => q.UserName.Contains(userName));
+            }
+
+            int totalCount = await query.CountAsync();
+
+
+            if ((pageNumber - 1) * pageSize >= totalCount && totalCount > 0)
+            {
+                pageNumber = (int)Math.Ceiling((double)totalCount / pageSize);
+            }
+
+            var users = await query
+             .OrderBy(u => u.CreatedDate)
+             .Skip((pageNumber - 1) * pageSize)
+             .Take(pageSize)
+             .ToListAsync();
+
+            return new PagedResult<User>
+            {
+                CurrentPage = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                Items = users
+            };
         }
 
     }

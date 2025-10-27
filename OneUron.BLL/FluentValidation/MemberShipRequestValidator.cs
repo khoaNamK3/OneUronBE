@@ -26,11 +26,11 @@ namespace OneUron.BLL.FluentValidation
 
      
             RuleFor(x => x.UserId)
-                .NotEmpty().WithMessage("UserId không được để trống.");
+                .NotEmpty().WithMessage("người dùng không được để trống.");
 
          
             RuleFor(x => x.MemberShipPlanId)
-                .NotEmpty().WithMessage("MemberShipPlanId không được để trống.");
+                .NotEmpty().WithMessage("gói thành viên không được để trống.");
         }
     }
 }

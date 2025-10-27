@@ -13,13 +13,13 @@ namespace OneUron.BLL.FluentValidation
         public UserAnswerRequestValidator()
         {
             RuleFor(x => x.UserId)
-                .NotEmpty().WithMessage("UserId là bắt buộc.");
+                .NotEmpty().WithMessage("Tên người dùng là bắt buộc.");
 
             RuleFor(x => x.ChoiceId)
-                .NotEmpty().WithMessage("ChoiceId là bắt buộc.");
+                .NotEmpty().WithMessage("Câu trả lời là bắt buộc.");
 
             RuleFor(x => x.EvaluationQuestionId)
-                .NotEmpty().WithMessage("EvaluationQuestionId là bắt buộc.");
+                .NotEmpty().WithMessage("Câu hỏi đánh giá là bắt buộc.");
         }
     }
 }

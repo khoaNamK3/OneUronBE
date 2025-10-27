@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace OneUron.DAL.Repository.PaymentRepo
 {
@@ -45,5 +46,20 @@ namespace OneUron.DAL.Repository.PaymentRepo
         {
             return await _dbSet.Where(p => p.Status == PaymentStatus.Failed).ToListAsync();
         }
+
+        public async Task<List<Payment>> CalculateTotalPaymentEachMonthOfYearAsync(int year)
+        {
+            var payments = await _dbSet.Where(p => p.CreateAt.Year == year && p.Status == PaymentStatus.Paid).ToListAsync();
+
+            var result = payments.GroupBy(p => p.CreateAt.Month).Select(
+                g => new Payment
+                {
+                    CreateAt = new DateTime(year, g.Key, 1),
+                    Amount = g.Sum(p => p.Amount)
+                }).OrderBy(x => x.CreateAt.Month).ToList();
+            
+            return result;
+        }
+
     }
 }

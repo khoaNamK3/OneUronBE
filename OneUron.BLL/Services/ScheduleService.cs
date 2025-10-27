@@ -47,7 +47,7 @@ namespace OneUron.BLL.Services
             var schedules = await _scheduleRepository.GetAllAsync();
 
             if (schedules == null || !schedules.Any())
-                throw new ApiException.NotFoundException("No schedules found.");
+                throw new ApiException.NotFoundException("Không tìm thấy lịch học nào.");
 
             return schedules.Select(MapToDTO).ToList();
         }
@@ -57,7 +57,7 @@ namespace OneUron.BLL.Services
             var schedules = await _scheduleRepository.GetAllScheduleByUserIdAsync(userId);
 
             if (!schedules.Any())
-                throw new ApiException.NotFoundException("No schudules found");
+                throw new ApiException.NotFoundException("Không tìm thấy lịch học nào");
 
             var result = schedules.Select(MapToDTO).ToList();
 
@@ -68,7 +68,7 @@ namespace OneUron.BLL.Services
         {
             var schedule = await _scheduleRepository.GetByIdAsync(id);
             if (schedule == null)
-                throw new ApiException.NotFoundException($"Schedule with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Lịch học của  ID {id} Không tìm thấy.");
 
             return MapToDTO(schedule);
         }
@@ -76,7 +76,7 @@ namespace OneUron.BLL.Services
         public async Task<ScheduleResponeDto> CreateScheduleAsync(ScheduleRequestDto request)
         {
             if (request == null)
-                throw new ApiException.BadRequestException("Schedule request cannot be null.");
+                throw new ApiException.BadRequestException("Lịch học mới không được trống");
 
 
             var validationResult = await _scheduleRequestValidator.ValidateAsync(request);
@@ -96,10 +96,10 @@ namespace OneUron.BLL.Services
         {
             var existingSchedule = await _scheduleRepository.GetByIdAsync(id);
             if (existingSchedule == null)
-                throw new ApiException.NotFoundException($"Schedule with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Lịch học của  ID {id} Không tìm thấy.");
 
             if (newSchedule == null)
-                throw new ApiException.BadRequestException("New schedule data cannot be null.");
+                throw new ApiException.BadRequestException("Lịch học mới không được trống");
 
             var validationResult = await _scheduleRequestValidator.ValidateAsync(newSchedule);
             if (!validationResult.IsValid)
@@ -124,11 +124,11 @@ namespace OneUron.BLL.Services
             var existSchedule = await _scheduleRepository.GetByIdAsync(id);
 
             if (existSchedule == null)
-                throw new ApiException.NotFoundException($"Schedule with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Lịch học của  ID {id} Không tìm thấy.");
 
             var processes = existSchedule.Processes?.ToList() ?? new List<Process>();
             if (!processes.Any())
-                throw new ApiException.NotFoundException("Schedule has no processes.");
+                throw new ApiException.NotFoundException("Lịch học này không có bất kì quá trình nào.");
 
           
             DateTime today = DateTime.UtcNow.Date;
@@ -186,10 +186,10 @@ namespace OneUron.BLL.Services
         {
             var schedule = await _scheduleRepository.GetByIdAsync(id);
             if (schedule == null)
-                throw new ApiException.NotFoundException($"Schedule with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Lịch học của ID {id} Không tìm thấy.");
 
             if (schedule.IsDeleted)
-                throw new ApiException.BussinessException("Schedule is already deleted.");
+                throw new ApiException.BussinessException("Lịch học đã xóa từ trước.");
 
             schedule.IsDeleted = true;
             await _scheduleRepository.UpdateAsync(schedule);

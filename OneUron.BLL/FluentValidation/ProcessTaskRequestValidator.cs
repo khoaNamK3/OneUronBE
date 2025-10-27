@@ -34,7 +34,7 @@ namespace OneUron.BLL.FluentValidation
             //    .WithMessage("Thời gian kết thúc phải sau thời gian bắt đầu.");
 
             RuleFor(x => x.ProcessId)
-                .NotEmpty().WithMessage("ProcessId là bắt buộc.");
+                .NotEmpty().WithMessage("Quá trình là bắt buộc.");
         }
     }
 }

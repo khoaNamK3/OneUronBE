@@ -33,7 +33,7 @@ namespace OneUron.BLL.Services
             var courseDetails = await _courseDetailRepository.GetAllCourseDetailAsync();
 
             if (courseDetails == null || !courseDetails.Any())
-                throw new ApiException.NotFoundException("No course details found.");
+                throw new ApiException.NotFoundException("Không có thông tin khóa học tìm thấy.");
 
             return courseDetails.Select(MapToDto).ToList();
         }
@@ -44,7 +44,7 @@ namespace OneUron.BLL.Services
             var existCourseDetail = await _courseDetailRepository.GetCourseDetailbyIdAsync(id);
 
             if (existCourseDetail == null)
-                throw new ApiException.NotFoundException($"CourseDetail with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Thông tin khóa học của ID {id} không tìm thấy .");
 
             return MapToDto(existCourseDetail);
         }
@@ -53,7 +53,7 @@ namespace OneUron.BLL.Services
         public async Task<CourseDetailResponseDto> CreateNewCourseDetailAsync(CourseDetailRequestDto request)
         {
             if (request == null)
-                throw new ApiException.BadRequestException("CourseDetail request cannot be null.");
+                throw new ApiException.BadRequestException("Thông tin khóa học mới không được để trống.");
 
             var validationResult = await _courseDetailRequestValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -71,10 +71,10 @@ namespace OneUron.BLL.Services
         {
             var existCourseDetail = await _courseDetailRepository.GetCourseDetailbyIdAsync(id);
             if (existCourseDetail == null)
-                throw new ApiException.NotFoundException($"CourseDetail with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Thông tin khóa học của ID {id} không tìm thấy.");
 
             if (newCourseDetail == null)
-                throw new ApiException.BadRequestException("New CourseDetail data cannot be null.");
+                throw new ApiException.BadRequestException("Thông tin khóa học mới ko được để trống.");
 
             var validationResult = await _courseDetailRequestValidator.ValidateAsync(newCourseDetail);
             if (!validationResult.IsValid)
@@ -98,7 +98,7 @@ namespace OneUron.BLL.Services
         {
             var existCourseDetail = await _courseDetailRepository.GetCourseDetailbyIdAsync(id);
             if (existCourseDetail == null)
-                throw new ApiException.NotFoundException($"CourseDetail with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Thông tin khóa học của  ID {id} không tìm thấy.");
 
             await _courseDetailRepository.DeleteAsync(existCourseDetail);
 

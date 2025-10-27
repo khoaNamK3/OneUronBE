@@ -20,14 +20,14 @@ namespace OneUron.BLL.FluentValidation
                 .GreaterThanOrEqualTo(0).WithMessage("Hiệu quả (Effectiveness) phải lớn hơn hoặc bằng 0.")
                 .LessThanOrEqualTo(1).WithMessage("Hiệu quả (Effectiveness) không được vượt quá 1.");
 
-            RuleFor(x => x.EvaluationId)
-                .NotEmpty().WithMessage("EvaluationId là bắt buộc.");
+            //RuleFor(x => x.EvaluationId)
+            //    .NotEmpty().WithMessage("Đánh giá là bắt buộc.");
 
-            RuleFor(x => x.EvaluationQuestionId)
-                .NotEmpty().WithMessage("EvaluationQuestionId là bắt buộc.");
+            //RuleFor(x => x.EvaluationQuestionId)
+            //    .NotEmpty().WithMessage("Câu hỏi đánh giá là bắt buộc.");
 
             RuleFor(x => x.ChoiceId)
-                .NotEmpty().WithMessage("ChoiceId là bắt buộc.");
+                .NotEmpty().WithMessage("Không được để trống lựa chọn");
         }
     }
 }

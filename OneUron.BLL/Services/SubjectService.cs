@@ -35,7 +35,7 @@ namespace OneUron.BLL.Services
             var subjects = await _subjectRepository.GetAllAsync();
 
             if (subjects == null || !subjects.Any())
-                throw new ApiException.NotFoundException("No subjects found.");
+                throw new ApiException.NotFoundException("Không Tìm thấy môn học.");
 
             return subjects.Select(MapToDTO).ToList();
         }
@@ -45,7 +45,7 @@ namespace OneUron.BLL.Services
         {
             var subject = await _subjectRepository.GetByIdAsync(id);
             if (subject == null)
-                throw new ApiException.NotFoundException($"Subject with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Môn học của ID {id} Không tìm thấy.");
 
             return MapToDTO(subject);
         }
@@ -54,7 +54,7 @@ namespace OneUron.BLL.Services
         {
             var subjects = await _subjectRepository.GetSubjectByProcessIdAsync(processId);
             if (!subjects.Any())
-                throw new ApiException.NotFoundException("No subject Found");
+                throw new ApiException.NotFoundException("Không tìm thấy môn học ");
 
             return subjects.Select(MapToDTO).ToList();
         }
@@ -62,7 +62,7 @@ namespace OneUron.BLL.Services
         public async Task<SubjectResponseDto> CreateAsync(SubjectRequestDto request)
         {
             if (request == null)
-                throw new ApiException.BadRequestException("Subject request cannot be null.");
+                throw new ApiException.BadRequestException("Môn học mới không được để trống ");
 
             var validationResult = await _subjectRequestValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -78,10 +78,10 @@ namespace OneUron.BLL.Services
         {
             var existingSubject = await _subjectRepository.GetByIdAsync(id);
             if (existingSubject == null)
-                throw new ApiException.NotFoundException($"Subject with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Môn học của  ID {id} Không tìm thấy.");
 
             if (request == null)
-                throw new ApiException.BadRequestException("Request data cannot be null.");
+                throw new ApiException.BadRequestException("Môn học mới không được để trống.");
 
             var validationResult = await _subjectRequestValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -102,7 +102,7 @@ namespace OneUron.BLL.Services
         {
             var existingSubject = await _subjectRepository.GetByIdAsync(id);
             if (existingSubject == null)
-                throw new ApiException.NotFoundException($"Subject with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Môn học của  ID {id} Không tìm thấy.");
 
             await _subjectRepository.DeleteAsync(existingSubject);
             return MapToDTO(existingSubject);
@@ -112,7 +112,7 @@ namespace OneUron.BLL.Services
         {
             var existSubjects = await _subjectRepository.GetAllSubjectbyScheduleIdAsync(scheduleId);
             if (!existSubjects.Any())
-                throw new ApiException.NotFoundException("Schedule have empty subject");
+                throw new ApiException.NotFoundException("lịch học này không có môn học");
 
             var result = existSubjects.Select(MapToDTO).ToList();
 

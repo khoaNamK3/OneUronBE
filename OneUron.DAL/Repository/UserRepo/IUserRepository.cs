@@ -14,7 +14,6 @@ namespace OneUron.DAL.Repository.UserRepo
         Task AssignRoleToUserAsync(Guid userId, string roleName);
         public  Task<User> GetUserByUserIdAsync(Guid userId);
         public  Task<List<User>> GetAllUserAsync();
-
-
+        public  Task<PagedResult<User>> GetUserPagingAsync(int pageNumber, int pageSize, string userName);
     }
 }

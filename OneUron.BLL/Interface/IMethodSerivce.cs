@@ -1,6 +1,7 @@
 ﻿using OneUron.BLL.DTOs.MethodDTOs;
 using OneUron.BLL.ExceptionHandle;
 using OneUron.DAL.Data.Entity;
+using OneUron.DAL.Repository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace OneUron.BLL.Interface
     public interface IMethodSerivce
     {
         Task<List<MethodResponseDto>> GetAllAsync();
+       Task<PagedResult<MethodPagingResponse>> GetMethodPagingAsync(int pageNumber, int pageSize, string? name);
         Task<MethodResponseDto> GetByIdAsync(Guid id);
         Task<MethodResponseDto> CreateNewMethodAsync(MethodRequestDto request);
         Task<MethodResponseDto> UpdateMethodByIdAsync(Guid id, MethodRequestDto newMethod);

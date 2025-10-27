@@ -41,7 +41,7 @@ namespace OneUron.BLL.Services
             var existChoices = await _choiceRepository.GetAllAsync();
 
             if (existChoices == null || !existChoices.Any())
-                throw new ApiException.NotFoundException("No choices found.");
+                throw new ApiException.NotFoundException("Không tìm thấy lựa chọn.");
 
             return existChoices.Select(MapToDTO).ToList();
         }
@@ -51,7 +51,7 @@ namespace OneUron.BLL.Services
         {
             var existChoice = await _choiceRepository.GetByIdAsync(id);
             if (existChoice == null)
-                throw new ApiException.NotFoundException($"Choice with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Lựa chọn của ID {id} Không tìm thấy.");
 
             return MapToDTO(existChoice);
         }
@@ -60,7 +60,7 @@ namespace OneUron.BLL.Services
         public async Task<ChoiceResponseDto> CreateNewChoiceAsync(ChoiceRequestDto request)
         {
             if (request == null)
-                throw new ApiException.BadRequestException("Choice request cannot be null.");
+                throw new ApiException.BadRequestException("Lựa chọn mới không được để trống.");
 
             var validationResult = await _choiceRequestValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -78,10 +78,10 @@ namespace OneUron.BLL.Services
         {
             var existChoice = await _choiceRepository.GetByIdAsync(id);
             if (existChoice == null)
-                throw new ApiException.NotFoundException($"Choice with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Lựa chọn của  ID {id} Không tìm thấy.");
 
             if (newChoice == null)
-                throw new ApiException.BadRequestException("New choice data cannot be null.");
+                throw new ApiException.BadRequestException("Dữ liệu của lựa chọn mới không được để trống.");
 
             var validationResult = await _choiceRequestValidator.ValidateAsync(newChoice);
             if (!validationResult.IsValid)
@@ -101,7 +101,7 @@ namespace OneUron.BLL.Services
         {
             var existChoice = await _choiceRepository.GetByIdAsync(id);
             if (existChoice == null)
-                throw new ApiException.NotFoundException($"Choice with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Lựa chọn của ID {id} Không tìm thấy.");
 
             await _choiceRepository.DeleteAsync(existChoice);
 

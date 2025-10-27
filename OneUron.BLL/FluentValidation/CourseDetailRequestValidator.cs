@@ -14,27 +14,27 @@ namespace OneUron.BLL.FluentValidation
         {
             RuleFor(x => x.Duration)
                 .NotEmpty()
-                .WithMessage("Duration không được để trống.");
+                .WithMessage("Thời gian kéo dài  không được để trống.");
 
             RuleFor(x => x.Level)
                 .NotEmpty()
-                .WithMessage("Level không được để trống.");
+                .WithMessage("Mức độ  không được để trống.");
 
             RuleFor(x => x.Students)
                 .NotEmpty()
-                .WithMessage("Students không được để trống.");
+                .WithMessage("Số lượng học sinh không được để trống.");
 
             RuleFor(x => x.Reviews)
                 .GreaterThanOrEqualTo(0)
-                .WithMessage("Reviews phải lớn hơn hoặc bằng 0.");
+                .WithMessage("Số lượng Reviews phải lớn hơn hoặc bằng 0.");
 
             RuleFor(x => x.Price)
                 .GreaterThan(0)
-                .WithMessage("Price phải lớn hơn 0.");
+                .WithMessage("Giá tiền phải lớn hơn 0.");
 
             RuleFor(x => x.ResourceId)
                 .NotEmpty()
-                .WithMessage("ResourceId không được để trống.");
+                .WithMessage("Khóa học không được để trống.");
         }
     }
 }

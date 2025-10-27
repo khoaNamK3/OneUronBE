@@ -14,15 +14,15 @@ namespace OneUron.BLL.FluentValidation
         {
             RuleFor(x => x.QuestionId)
            .NotEmpty()
-           .WithMessage("QuestionId not null.");
+           .WithMessage("Câu hỏi không được để trống.");
 
             RuleFor(x => x.QuestionChoiceId)
                 .NotEmpty()
-                .WithMessage("QuestionChoiceId not null.");
+                .WithMessage("Lựa chọn của câu hỏi không được để trống.");
 
             RuleFor(x => x.UserQuizAttemptId)
                 .NotEmpty()
-                .WithMessage("UserQuizAttemptId not null.");
+                .WithMessage("Câu trả lời quiz không được để trống.");
         }
     }
 }

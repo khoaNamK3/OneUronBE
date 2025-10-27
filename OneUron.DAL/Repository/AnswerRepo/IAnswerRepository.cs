@@ -12,5 +12,7 @@ namespace OneUron.DAL.Repository.AnswerRepo
         public  Task<List<Answer>> GetAllAnswerAsync();
 
         public  Task<Answer> GetAnswerByIdAsyc(Guid id);
+
+        public Task CreateListUserAnswerAsync(IEnumerable<Answer> entities);
     }
 }

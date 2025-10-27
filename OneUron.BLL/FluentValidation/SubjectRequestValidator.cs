@@ -21,7 +21,7 @@ namespace OneUron.BLL.FluentValidation
                 .IsInEnum().WithMessage("Độ ưu tiên (Priority) phải thuộc enum SubjectType hợp lệ.");
 
             RuleFor(x => x.ScheduleId)
-                .NotEmpty().WithMessage("ScheduleId là bắt buộc.");
+                .NotEmpty().WithMessage("Tên lịch học là bắt buộc.");
 
      
             //When(x => x.ProcessId.HasValue, () =>

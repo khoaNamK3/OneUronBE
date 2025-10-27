@@ -8,6 +8,7 @@ using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.FluentValidation;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
+using OneUron.DAL.Repository;
 using OneUron.DAL.Repository.EvaluationRepo;
 using System;
 using System.Collections.Generic;
@@ -42,18 +43,35 @@ namespace OneUron.BLL.Services
             var evaluations = await _evaluationRepository.GetAllAsync();
 
             if (evaluations == null || !evaluations.Any())
-                throw new ApiException.NotFoundException("No evaluations found.");
+                throw new ApiException.NotFoundException("Không tìm thấy đánh giá.");
 
             return evaluations.Select(MapToDTO).ToList();
         }
 
+        public async Task<PagedResult<EvaluationPagingResponse>> GetAllPaging(int pageNumber, int pageSize, string? name)
+        {
+            var existEvalutions = await _evaluationRepository.GetPagingEvalutionAsync(pageNumber, pageSize, name);
+
+            if(!existEvalutions.Items.Any())
+                throw new ApiException.NotFoundException("Không tìm thấy đánh giá nào ");
+
+            var result = existEvalutions.Items.Select(MapToPaging).ToList();
+
+            return new PagedResult<EvaluationPagingResponse>
+            {
+                CurrentPage = pageNumber,
+                PageSize = pageSize,
+                TotalCount = result.Count,  
+                Items = result
+            };
+        }
         
         public async Task<EvaluationResponseDto> GetByIdAsync(Guid id)
         {
             var evaluation = await _evaluationRepository.GetbyIdAsync(id);
 
             if (evaluation == null)
-                throw new ApiException.NotFoundException($"Evaluation with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Đánh giá của  ID {id} không tìm thấy.");
 
             return MapToDTO(evaluation);
         }
@@ -62,7 +80,7 @@ namespace OneUron.BLL.Services
         public async Task<EvaluationResponseDto> CreateNewEvaluationAsync(EvaluationRequestDto request)
         {
             if (request == null)
-                throw new ApiException.BadRequestException("Evaluation request cannot be null.");
+                throw new ApiException.BadRequestException("Đánh giá mới không được để trống.");
 
             var validationResult = await _evaluationRequestValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -79,10 +97,10 @@ namespace OneUron.BLL.Services
         {
             var existEvaluation = await _evaluationRepository.GetbyIdAsync(id);
             if (existEvaluation == null)
-                throw new ApiException.NotFoundException($"Evaluation with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Đánh giá của ID {id} không tìm thấy.");
 
             if (newEvaluation == null)
-                throw new ApiException.BadRequestException("New evaluation data cannot be null.");
+                throw new ApiException.BadRequestException("Đánh giá mới không được để trống.");
 
             var validationResult = await _evaluationRequestValidator.ValidateAsync(newEvaluation);
             if (!validationResult.IsValid)
@@ -102,7 +120,7 @@ namespace OneUron.BLL.Services
         {
             var existEvaluation = await _evaluationRepository.GetbyIdAsync(id);
             if (existEvaluation == null)
-                throw new ApiException.NotFoundException($"Evaluation with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Đánh giá của ID {id} không tìm thấy.");
 
             existEvaluation.IsDeleted = true;
             await _evaluationRepository.UpdateAsync(existEvaluation);
@@ -110,6 +128,19 @@ namespace OneUron.BLL.Services
             return MapToDTO(existEvaluation);
         }
 
+        public EvaluationPagingResponse MapToPaging(Evaluation evaluation)
+        {
+            var totalQuestion = evaluation.EvaluationQuestions.Count();
+            
+            return new EvaluationPagingResponse
+            {
+                Id = evaluation.Id,
+                Name = evaluation.Name,
+                Description = evaluation.Description,
+                IsDeleted = evaluation.IsDeleted,
+                TotalQuestion = totalQuestion
+            };
+        }
         
         protected Evaluation MapToEntity(EvaluationRequestDto request)
         {

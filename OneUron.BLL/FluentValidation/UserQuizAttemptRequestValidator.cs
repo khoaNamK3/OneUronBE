@@ -13,7 +13,7 @@ namespace OneUron.BLL.FluentValidation
         public UserQuizAttemptRequestValidator()
         {
             RuleFor(x => x.QuizId)
-                .NotEmpty().WithMessage("QuizId là bắt buộc.");
+                .NotEmpty().WithMessage("Bài kiểm tra là bắt buộc.");
 
             //RuleFor(x => x.StartAt)
             //     .NotEmpty().WithMessage("Thời gian bắt đầu không được để trống.");

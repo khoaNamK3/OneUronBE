@@ -35,7 +35,7 @@ namespace OneUron.BLL.Services
             var questions = await _questionRepository.GetAllAsync();
 
             if (questions == null || !questions.Any())
-                throw new ApiException.NotFoundException("No questions found.");
+                throw new ApiException.NotFoundException("Không tìm thấy câu hỏi.");
 
             return questions.Select(MapToDTO).ToList();
         }
@@ -46,7 +46,7 @@ namespace OneUron.BLL.Services
             var question = await _questionRepository.GetByIdAsync(id);
 
             if (question == null)
-                throw new ApiException.NotFoundException($"Question with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Câu hỏi của  ID {id} Không tìm thấy.");
 
             return MapToDTO(question);
         }
@@ -55,7 +55,7 @@ namespace OneUron.BLL.Services
         public async Task<QuestionResponseDto> CreateNewQuestionAsync(QuestionRequestDto request)
         {
             if (request == null)
-                throw new ApiException.BadRequestException("Question request cannot be null.");
+                throw new ApiException.BadRequestException("Câu hỏi mới không được để trống.");
 
             var validationResult = await _questionRequestValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -72,10 +72,10 @@ namespace OneUron.BLL.Services
         {
             var existQuestion = await _questionRepository.GetByIdAsync(id);
             if (existQuestion == null)
-                throw new ApiException.NotFoundException($"Question with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Câu hỏi của  ID {id} Không tìm thấy.");
 
             if (newQuestion == null)
-                throw new ApiException.BadRequestException("New question data cannot be null.");
+                throw new ApiException.BadRequestException("Câu hỏi mới không được để trống.");
 
             var validationResult = await _questionRequestValidator.ValidateAsync(newQuestion);
             if (!validationResult.IsValid)
@@ -96,7 +96,7 @@ namespace OneUron.BLL.Services
         {
             var existQuestion = await _questionRepository.GetByIdAsync(id);
             if (existQuestion == null)
-                throw new ApiException.NotFoundException($"Question with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Câu hỏi của  ID {id} Không tìm thấy.");
 
             await _questionRepository.DeleteAsync(existQuestion);
 

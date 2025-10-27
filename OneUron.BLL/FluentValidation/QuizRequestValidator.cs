@@ -40,7 +40,7 @@ namespace OneUron.BLL.FluentValidation
                 .WithMessage("Điểm đạt không được vượt quá tổng điểm.");
 
             RuleFor(x => x.UserId)
-                .NotEmpty().WithMessage("UserId là bắt buộc.");
+                .NotEmpty().WithMessage("Người dùng là bắt buộc.");
         }
     }
 }

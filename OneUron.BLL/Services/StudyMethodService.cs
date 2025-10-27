@@ -33,7 +33,7 @@ namespace OneUron.BLL.Services
             var studyMethods = await _studyMethodRepository.GetALlAsync();
 
             if (studyMethods == null || !studyMethods.Any())
-                throw new ApiException.NotFoundException("No study methods found.");
+                throw new ApiException.NotFoundException("Không tìm thấy phương pháp đã được chọn.");
 
             return studyMethods.Select(MapToDTO).ToList();
         }
@@ -44,7 +44,7 @@ namespace OneUron.BLL.Services
             var studyMethod = await _studyMethodRepository.GetByIdAsync(id);
 
             if (studyMethod == null)
-                throw new ApiException.NotFoundException($"Study method with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Phương pháp đã được chọn của  ID {id} Không tìm thấy.");
 
             return MapToDTO(studyMethod);
         }
@@ -54,7 +54,7 @@ namespace OneUron.BLL.Services
             var existStudyMethod = await _studyMethodRepository.GetStudyMethodByUserIdAsync(userId);
 
             if (existStudyMethod == null)
-                throw new ApiException.NotFoundException($"Study method with ID {userId} not found.");
+                throw new ApiException.NotFoundException($"Phương pháp học người dùng đã chọn {userId} Không có.");
 
             return MapToDTO(existStudyMethod);
         }
@@ -62,7 +62,7 @@ namespace OneUron.BLL.Services
         public async Task<StudyMethodResponseDto> CreateAsync(StudyMethodRequestDto request)
         {
             if (request == null)
-                throw new ApiException.BadRequestException("Study method request cannot be null.");
+                throw new ApiException.BadRequestException("Phương pháp học đã chọn không được để trống");
 
             var validationResult = await _studyMethodRequestValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -70,7 +70,7 @@ namespace OneUron.BLL.Services
 
             var existStudyMethod = await GetStudyMethodByUserIdAsync(request.UserId);
             if (existStudyMethod != null)
-                throw new ApiException.BadRequestException("User early have studyMethod");
+                throw new ApiException.BadRequestException("Người dùng đã chọn phương pháp học rồi.");
 
             var newStudyMethod = MapToEntity(request);
             newStudyMethod.UpdateDate = DateTime.UtcNow;
@@ -85,10 +85,10 @@ namespace OneUron.BLL.Services
         {
             var existingStudyMethod = await _studyMethodRepository.GetByIdAsync(id);
             if (existingStudyMethod == null)
-                throw new ApiException.NotFoundException($"Study method with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Phương pháp học đã chọn của  ID {id} Không tìm thấy.");
 
             if (request == null)
-                throw new ApiException.BadRequestException("Request data cannot be null.");
+                throw new ApiException.BadRequestException("Phương pháp học mới không được để trống.");
 
             var validationResult = await _studyMethodRequestValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -108,13 +108,9 @@ namespace OneUron.BLL.Services
         {
             var existingStudyMethod = await _studyMethodRepository.GetByIdAsync(id);
             if (existingStudyMethod == null)
-                throw new ApiException.NotFoundException($"Study method with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Phương pháp học đã chọn của  ID {id} Không tìm thấy.");
 
-            existingStudyMethod.IsDeleted = true;
-            existingStudyMethod.UpdateDate = DateTime.UtcNow;
-
-            await _studyMethodRepository.UpdateAsync(existingStudyMethod);
-
+           await _studyMethodRepository.DeleteAsync(existingStudyMethod);
             return MapToDTO(existingStudyMethod);
         }
 

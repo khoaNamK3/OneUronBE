@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Net.payOS.Types;
 using OneUron.BLL.DTOs.MethodRuleDTOs;
@@ -9,7 +10,7 @@ using OneUron.BLL.Interface;
 namespace OneUron.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/payment")]
     public class PaymentController : Controller
     {
         private readonly IPaymentService _paymentService;
@@ -84,12 +85,22 @@ namespace OneUron.API.Controllers
                 checkoutUrl
             });
         }
-        
+
         [HttpPost("webhook")]
+        [AllowAnonymous]
         public async Task<IActionResult> HandleWebhook([FromBody] WebhookType webhookData)
         {
             await _paymentService.HandleWebhookAsync(webhookData);
+
             return Ok(new { message = "Webhook processed successfully." });
+        }
+
+        [HttpGet("get-payment-of-year")]
+        [ProducesResponseType(typeof(ApiResponse<List<MonthlyPaymentSummary>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> CalculatePaymentEachMonthOfYearAsync([FromQuery] int year)
+        {
+            var response = await _paymentService.CalculateTotalPaymentEachMonthOfYearAsync(year);
+            return Ok(ApiResponse<List<MonthlyPaymentSummary>>.SuccessResponse(response, "Calculate Payment of Year Successfully"));
         }
     }
 }

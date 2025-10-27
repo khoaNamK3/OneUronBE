@@ -51,12 +51,12 @@ namespace OneUron.BLL.Services
             // Check if user exists
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
-                throw new ArgumentException("User not found");
+                throw new ArgumentException("user No exist  ");
 
             // Check if user already has a profile
             var existingProfile = await _profileRepository.GetByUserIdAsync(userId);
             if (existingProfile != null)
-                throw new InvalidOperationException("User already has a profile");
+                throw new InvalidOperationException("user earldy have profile");
 
             // Create new profile
             var profile = new Profile
@@ -77,7 +77,7 @@ namespace OneUron.BLL.Services
         {
             var profile = await _profileRepository.GetByIdAsync(profileId);
             if (profile == null)
-                throw new ArgumentException("Profile not found");
+                throw new ArgumentException("cv No exist");
 
             // Update profile fields
             profile.FullName = dto.FullName;

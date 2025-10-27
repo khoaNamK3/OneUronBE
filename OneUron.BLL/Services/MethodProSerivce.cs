@@ -32,7 +32,7 @@ namespace OneUron.BLL.Services
             var methodPros = await _methodProRepository.GetAllAsync();
 
             if (methodPros == null || !methodPros.Any())
-                throw new ApiException.NotFoundException("No MethodPro records found.");
+                throw new ApiException.NotFoundException("Không tìm thấy lợi ích của phương pháp.");
 
             return methodPros.Select(MapToDTO).ToList();
         }
@@ -42,7 +42,7 @@ namespace OneUron.BLL.Services
         {
             var existMethodPro = await _methodProRepository.GetByIdAsync(id);
             if (existMethodPro == null)
-                throw new ApiException.NotFoundException($"MethodPro with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Lợi ích phượng pháp của ID {id} không tìm thấy.");
 
             return MapToDTO(existMethodPro);
         }
@@ -51,7 +51,7 @@ namespace OneUron.BLL.Services
         public async Task<MethodProResponseDto> CreateNewMethodProAsync(MethodProRequestDto request)
         {
             if (request == null)
-                throw new ApiException.BadRequestException("MethodPro request cannot be null.");
+                throw new ApiException.BadRequestException("Lợi ích mới của phương pháp không được để trống ");
 
             var validationResult = await _methodProValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -69,10 +69,10 @@ namespace OneUron.BLL.Services
         {
             var existMethodPro = await _methodProRepository.GetByIdAsync(id);
             if (existMethodPro == null)
-                throw new ApiException.NotFoundException($"MethodPro with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Lợi ích Phương pháp của  ID {id} Không tìm thấy.");
 
             if (newMethodPro == null)
-                throw new ApiException.BadRequestException("New MethodPro data cannot be null.");
+                throw new ApiException.BadRequestException("Lợi ích mới của phương pháp không được để trống.");
 
             var validationResult = await _methodProValidator.ValidateAsync(newMethodPro);
             if (!validationResult.IsValid)
@@ -90,7 +90,7 @@ namespace OneUron.BLL.Services
         {
             var existMethodPro = await _methodProRepository.GetByIdAsync(id);
             if (existMethodPro == null)
-                throw new ApiException.NotFoundException($"MethodPro with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Lợi ích phương pháp của  ID {id} không tìm thấy.");
 
             await _methodProRepository.DeleteAsync(existMethodPro);
 

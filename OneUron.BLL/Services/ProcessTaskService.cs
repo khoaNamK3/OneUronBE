@@ -33,7 +33,7 @@ namespace OneUron.BLL.Services
             var processTasks = await _processTaskRepository.GetAllAsync();
 
             if (processTasks == null || !processTasks.Any())
-                throw new ApiException.NotFoundException("No process tasks found.");
+                throw new ApiException.NotFoundException("Không tìm thấy công việc của quá trình.");
 
             return processTasks.Select(MapToDTO).ToList();
         }
@@ -43,7 +43,7 @@ namespace OneUron.BLL.Services
             var existProcessTask = await _processTaskRepository.GetAllProcessTaskByProcessIdAsync(processId);
 
             if (!existProcessTask.Any())
-                throw new ApiException.NotFoundException("No ProcessTask Found");
+                throw new ApiException.NotFoundException("Không tìm thấy công việc của quá trình này");
 
             var result = existProcessTask.Select(MapToDTO).ToList();
             return result;
@@ -54,7 +54,7 @@ namespace OneUron.BLL.Services
             var processTask = await _processTaskRepository.GetByIdAsync(id);
 
             if (processTask == null)
-                throw new ApiException.NotFoundException($"ProcessTask with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Công việc của  ID {id} Không tìm thấy.");
 
             return MapToDTO(processTask);
         }
@@ -63,7 +63,7 @@ namespace OneUron.BLL.Services
         public async Task<ProcessTaskResponseDto> CreateProcessTaskAsync(ProcessTaskRequestDto request)
         {
             if (request == null)
-                throw new ApiException.BadRequestException("ProcessTask request cannot be null.");
+                throw new ApiException.BadRequestException("Công Việc mới Không để trống.");
 
             var validationResult = await _processTaskRequestValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -80,10 +80,10 @@ namespace OneUron.BLL.Services
         {
             var existProcessTask = await _processTaskRepository.GetByIdAsync(id);
             if (existProcessTask == null)
-                throw new ApiException.NotFoundException($"ProcessTask with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Công việc của  ID {id} Không tìm thấy.");
 
             if (request == null)
-                throw new ApiException.BadRequestException("New ProcessTask data cannot be null.");
+                throw new ApiException.BadRequestException("Công việc mới Không được để trống.");
 
             var validationResult = await _processTaskRequestValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -107,13 +107,13 @@ namespace OneUron.BLL.Services
             var existProcessTask = await _processTaskRepository.GetByIdAsync(processTaskId);
 
             if (existProcessTask == null)
-                throw new ApiException.NotFoundException($"ProcessTask with ID {processTaskId} not found.");
+                throw new ApiException.NotFoundException($"Công việc của  ID {processTaskId} Không tìm thấy.");
 
             if (existProcessTask.IsCompleted)
-                throw new ApiException.BadRequestException("This ProcessTask has already been completed.");
+                throw new ApiException.BadRequestException("Công việc này đã được hoành thành rồi.");
 
             if (existProcessTask.StartTime.Date > DateTime.Now.Date)
-                throw new ApiException.BadRequestException("You cannot complete a task scheduled for a future date.");
+                throw new ApiException.BadRequestException("Bạn không thể hoành thành công việc ở các ngày tương lai.");
 
         
             existProcessTask.IsCompleted = true;
@@ -130,7 +130,7 @@ namespace OneUron.BLL.Services
         {
             var existProcessTask = await _processTaskRepository.GetByIdAsync(id);
             if (existProcessTask == null)
-                throw new ApiException.NotFoundException($"ProcessTask with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Công việc của  ID {id} Không tìm thấy.");
 
             await _processTaskRepository.DeleteAsync(existProcessTask);
 

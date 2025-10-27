@@ -17,7 +17,7 @@ namespace OneUron.BLL.FluentValidation
                 .MaximumLength(500).WithMessage("Ưu điểm không được vượt quá 500 ký tự.");
 
             RuleFor(x => x.MethodId)
-                .NotEmpty().WithMessage("MethodId là bắt buộc.");
+                .NotEmpty().WithMessage("phương pháp học là bắt buộc.");
         }
     }
 }

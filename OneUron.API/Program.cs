@@ -115,14 +115,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(configuration.GetConnectionString("PostgresConnection")));
 
 builder.Services.Configure<PayOsSettings>(
-    builder.Configuration.GetSection("PayOs"));
+    builder.Configuration.GetSection("PayOS"));
 
 builder.Services.AddSingleton(sp =>
 {
     var config = sp.GetRequiredService<IConfiguration>();
-    var clientId = config["PayOs:ClientId"];
-    var apiKey = config["PayOs:ApiKey"];
-    var checksum = config["PayOs:CheckSum"];
+    var clientId = config["PayOS:ClientId"];
+    var apiKey = config["PayOS:ApiKey"];
+    var checksum = config["PayOS:ChecksumKey"];
     return new PayOS(clientId, apiKey, checksum);
 });
 

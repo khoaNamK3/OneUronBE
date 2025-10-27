@@ -33,7 +33,7 @@ namespace OneUron.BLL.Services
             var techniques = await _techniqueRepository.GetAllAsync();
 
             if (techniques == null || !techniques.Any())
-                throw new ApiException.NotFoundException("No techniques found.");
+                throw new ApiException.NotFoundException("Không tìm thấy kĩ thuật.");
 
             return techniques.Select(MapToDTO).ToList();
         }
@@ -43,7 +43,7 @@ namespace OneUron.BLL.Services
         {
             var technique = await _techniqueRepository.GetByIdAsync(id);
             if (technique == null)
-                throw new ApiException.NotFoundException($"Technique with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Kĩ thuật của  ID {id} Không tìm thấy.");
 
             return MapToDTO(technique);
         }
@@ -52,7 +52,7 @@ namespace OneUron.BLL.Services
         public async Task<TechniqueResponseDto> CreateAsync(TechniqueRequestDto request)
         {
             if (request == null)
-                throw new ApiException.BadRequestException("Technique request cannot be null.");
+                throw new ApiException.BadRequestException("Kĩ thuật mới không được để trống.");
 
             var validationResult = await _techniqueRequestValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -69,10 +69,10 @@ namespace OneUron.BLL.Services
         {
             var existingTechnique = await _techniqueRepository.GetByIdAsync(id);
             if (existingTechnique == null)
-                throw new ApiException.NotFoundException($"Technique with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Kĩ thuật của  ID {id} Không tìm thấy.");
 
             if (request == null)
-                throw new ApiException.BadRequestException("Request data cannot be null.");
+                throw new ApiException.BadRequestException("Kĩ thuật mới không được để trống.");
 
             var validationResult = await _techniqueRequestValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -90,7 +90,7 @@ namespace OneUron.BLL.Services
         {
             var existingTechnique = await _techniqueRepository.GetByIdAsync(id);
             if (existingTechnique == null)
-                throw new ApiException.NotFoundException($"Technique with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Kĩ thuật của  ID {id} Không tìm thấy.");
 
             await _techniqueRepository.DeleteAsync(existingTechnique);
             return MapToDTO(existingTechnique);

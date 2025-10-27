@@ -9,6 +9,7 @@ using OneUron.BLL.DTOs.TechniqueDTOs;
 using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
+using OneUron.DAL.Repository;
 using OneUron.DAL.Repository.MethodRepo;
 using System;
 using System.Collections.Generic;
@@ -64,7 +65,23 @@ namespace OneUron.BLL.Services
             return methods.Select(MapToDTO).ToList();
         }
 
-    
+        public async Task<PagedResult<MethodPagingResponse>> GetMethodPagingAsync(int pageNumber, int pageSize, string? name)
+        {
+            var existMethod = await _methodRepository.GetMethodPagingAsync(pageNumber, pageSize, name);
+
+            if (!existMethod.Items.Any())
+                throw new ApiException.NotFoundException("Không tìm thấy phương pháp học nào");
+        
+            var result = existMethod.Items.Select(MapToPaging).ToList();
+
+            return new PagedResult<MethodPagingResponse>
+            {
+                CurrentPage = pageNumber,
+                PageSize = pageSize,
+                TotalCount = result.Count,
+                Items = result
+            };
+        }
         public async Task<MethodResponseDto> GetByIdAsync(Guid id)
         {
             var method = await _methodRepository.GetByIdAsync(id);
@@ -260,7 +277,19 @@ namespace OneUron.BLL.Services
             return top3Result;
         }
 
-       
+        public MethodPagingResponse MapToPaging(Method method)
+        {
+            return new MethodPagingResponse
+            {
+                Id = method.Id,
+                Name = method.Name,
+                Description = method.Description,
+                Difficulty = method.Difficulty,
+                TimeInfo = method.TimeInfo,
+            };
+        }
+
+
         protected Method MapToEntity(MethodRequestDto request)
         {
             return new Method

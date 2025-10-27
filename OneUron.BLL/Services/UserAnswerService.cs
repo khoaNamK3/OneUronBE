@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using OneUron.BLL.DTOs.AnswerDTOs;
 using OneUron.BLL.DTOs.EvaluationDTOs;
 using OneUron.BLL.DTOs.TechniqueDTOs;
 using OneUron.BLL.DTOs.UserAnswerDTOs;
@@ -34,7 +35,7 @@ namespace OneUron.BLL.Services
             var userAnswers = await _userAnswerRepository.GetAllAsync();
 
             if (userAnswers == null || !userAnswers.Any())
-                throw new ApiException.NotFoundException("No user answers found.");
+                throw new ApiException.NotFoundException("Không tìm thấy câu trả lời của người dùng .");
 
             return userAnswers.Select(MapToDTO).ToList();
         }
@@ -45,16 +46,15 @@ namespace OneUron.BLL.Services
             var userAnswers = await _userAnswerRepository.GetByListUserAnswerAsync(userId, evaluationQuestionId);
 
             if (userAnswers == null || !userAnswers.Any())
-                throw new ApiException.NotFoundException("No user answers found for given user and question.");
+                throw new ApiException.NotFoundException("Không tìm thấy Câu trả lời của người dùng.");
 
             return userAnswers.Select(MapToDTO).ToList();
         }
 
- 
         public async Task<UserAnswerResponseDto> CreateAsync(UserAnswerRequestDto request)
         {
             if (request == null)
-                throw new ApiException.BadRequestException("UserAnswer request cannot be null.");
+                throw new ApiException.BadRequestException("Câu trả lời mới  không được để trống.");
 
             var validationResult = await _userAnswerValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -71,10 +71,10 @@ namespace OneUron.BLL.Services
         {
             var existing = await _userAnswerRepository.GetByIdAsync(id);
             if (existing == null)
-                throw new ApiException.NotFoundException($"UserAnswer with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Câu trả lời của  ID {id} Không tìm thấy .");
 
             if (request == null)
-                throw new ApiException.BadRequestException("Request data cannot be null.");
+                throw new ApiException.BadRequestException("Câu trả lời mới  không được để trống.");
 
             existing.ChoiceId = request.ChoiceId;
 
@@ -88,7 +88,7 @@ namespace OneUron.BLL.Services
         {
             var existing = await _userAnswerRepository.GetByIdAsync(id);
             if (existing == null)
-                throw new ApiException.NotFoundException($"UserAnswer with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Câu trả lời của  ID {id} Không tìm thấy .");
 
             await _userAnswerRepository.DeleteAsync(existing);
 
@@ -99,7 +99,7 @@ namespace OneUron.BLL.Services
         public async Task<List<UserAnswerResponseDto>> SubmitAnswersAsync(List<EvaluationSubmitRequest> evaluations)
         {
             if (evaluations == null || !evaluations.Any())
-                throw new ApiException.BadRequestException("Evaluations cannot be empty.");
+                throw new ApiException.BadRequestException("Đánh giá không tìm thấy.");
 
             var results = new List<UserAnswerResponseDto>();
 
@@ -139,7 +139,7 @@ namespace OneUron.BLL.Services
             var userAnswers = await _userAnswerRepository.GetAllUserAnswerByUserIdAsync(userId);
 
             if (userAnswers == null || !userAnswers.Any())
-                throw new ApiException.NotFoundException($"No user answers found for UserId {userId}.");
+                throw new ApiException.NotFoundException($"Người dùng này chưa trả lời câu hỏi đánh giá {userId}.");
 
             return userAnswers.Select(MapToDTO).ToList();
         }

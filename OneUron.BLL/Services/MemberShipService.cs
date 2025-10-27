@@ -29,7 +29,7 @@ namespace OneUron.BLL.Services
           var memberShips = await _memberShipRepository.GetAllAsync();
 
             if (!memberShips.Any())
-                throw new ApiException.NotFoundException("No memberShips Found");
+                throw new ApiException.NotFoundException("Không tìm thấy thành viên");
 
             var result = memberShips.Select(MapToDTO).ToList();
 
@@ -41,7 +41,7 @@ namespace OneUron.BLL.Services
            var existMemberShip = await _memberShipRepository.GetByIdAsync(id);
 
             if (existMemberShip == null)
-                throw new ApiException.NotFoundException("No memberShip Found ");
+                throw new ApiException.NotFoundException("Không tìm thấy thành viên");
 
             var result = MapToDTO(existMemberShip);
 
@@ -69,7 +69,7 @@ namespace OneUron.BLL.Services
             var existMemberShip = await _memberShipRepository.GetByIdAsync(id);
 
             if (existMemberShip == null)
-                throw new ApiException.NotFoundException("No memberShip Found ");
+                throw new ApiException.NotFoundException("Không tìm thấy thành viên");
 
             var validationResult = await _memberShipValidator.ValidateAsync(requestDto);
             if (!validationResult.IsValid)
@@ -93,7 +93,7 @@ namespace OneUron.BLL.Services
             var existMemberShip = await _memberShipRepository.GetByIdAsync(id);
 
             if (existMemberShip == null)
-                throw new ApiException.NotFoundException("No memberShip Found ");
+                throw new ApiException.NotFoundException("Không tìm thấy thành viên");
 
             var result = MapToDTO(existMemberShip);
 

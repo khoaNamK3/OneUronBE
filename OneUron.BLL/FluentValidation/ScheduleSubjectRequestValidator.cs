@@ -13,20 +13,20 @@ namespace OneUron.BLL.FluentValidation
         public ScheduleSubjectRequestValidator()
         {
             RuleFor(x => x.Title)
-              .NotEmpty().WithMessage("Title is required.")
-              .MaximumLength(200).WithMessage("Title must not exceed 200 characters.");
+              .NotEmpty().WithMessage("Tiêu đề là bắt buộc.")
+              .MaximumLength(200).WithMessage("Tiêu đề không được vượt quá 200 kí tự.");
 
             RuleFor(x => x.StartDate)
-                .NotEmpty().WithMessage("StartDate is required.")
+                .NotEmpty().WithMessage("Ngày bắt đầu là bắt buộc.")
                 .LessThanOrEqualTo(x => x.EndDate.Date)
                 .When(x => x.EndDate != default)
-                .WithMessage("StartDate must be before or equal to EndDate.");
+                .WithMessage("Ngày bắt đầu phải bé hơn hoặc bằng ngày kết thúc.");
 
             RuleFor(x => x.EndDate)
-                .NotEmpty().WithMessage("EndDate is required.")
+                .NotEmpty().WithMessage("Ngày kết thúc là bắt buộc.")
                 .GreaterThanOrEqualTo(x => x.StartDate.Date)
                 .When(x => x.StartDate != default)
-                .WithMessage("EndDate must be after or equal to StartDate.");
+                .WithMessage("Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.");
 
             //RuleFor(x => x.TotalTime)
             //    .NotEmpty().WithMessage("TotalTime is required.")

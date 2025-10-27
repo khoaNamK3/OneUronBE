@@ -13,11 +13,11 @@ namespace OneUron.BLL.FluentValidation
         public SubjectListRequestValidator()
         { 
             RuleFor(x => x.Name)
-                .NotEmpty().WithMessage("Subject name is required.")
-                .MaximumLength(200).WithMessage("Subject name must not exceed 200 characters.");
+                .NotEmpty().WithMessage("Tên Môn học là bắt buộc.")
+                .MaximumLength(200).WithMessage("Tên môn học không quá 200 kí tự");
 
             RuleFor(x => x.Priority)
-                .IsInEnum().WithMessage("Invalid subject priority.");
+                .IsInEnum().WithMessage("mức độ ưu tiên của của subject phải đúng kiểu dữ liệu.");
         }
     }
 }

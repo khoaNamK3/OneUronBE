@@ -13,10 +13,10 @@ namespace OneUron.BLL.FluentValidation
         public MethodRuleRequestValidator()
         {
             RuleFor(x => x.MethodId)
-                .NotEmpty().WithMessage("MethodId là bắt buộc.");
+                .NotEmpty().WithMessage("Phương pháp học là bắt buộc.");
 
             RuleFor(x => x.MethodRuleConditionId)
-                .NotEmpty().WithMessage("MethodRuleConditionId là bắt buộc.");
+                .NotEmpty().WithMessage("Quy tắc phương pháp học là bắt buộc.");
         }
     }
 }

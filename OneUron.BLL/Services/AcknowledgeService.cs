@@ -32,7 +32,7 @@ namespace OneUron.BLL.Services
             var acknowLedges = await _acknowledgeRepository.GetAllAcknowledgeAsync();
 
             if (acknowLedges == null || !acknowLedges.Any())
-                throw new ApiException.NotFoundException("No Acknowledge records found.");
+                throw new ApiException.NotFoundException("Không tìm thấy  kiến thức lưu trữ.");
 
             return acknowLedges.Select(MapToDTO).ToList();
         }
@@ -42,7 +42,7 @@ namespace OneUron.BLL.Services
         {
             var existAcknowledge = await _acknowledgeRepository.GetAcknowledgeByIdAsync(id);
             if (existAcknowledge == null)
-                throw new ApiException.NotFoundException($"Acknowledge with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Kiến thức của ID {id} Không tìm thấy.");
 
             return MapToDTO(existAcknowledge);
         }
@@ -51,7 +51,7 @@ namespace OneUron.BLL.Services
         public async Task<AcknowledgeResponseDto> CreateNewAcknowledgeAsync(AcknowledgeRequestDto request)
         {
             if (request == null)
-                throw new ApiException.BadRequestException("Acknowledge request cannot be null.");
+                throw new ApiException.BadRequestException("Kiến thức mới không được để trống.");
 
             var validationResult = await _acknowledgeRequestValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -68,10 +68,10 @@ namespace OneUron.BLL.Services
         {
             var existAcknowledge = await _acknowledgeRepository.GetAcknowledgeByIdAsync(id);
             if (existAcknowledge == null)
-                throw new ApiException.NotFoundException($"Acknowledge with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Kiến thức của  ID {id} không tìm thấy.");
 
             if (newAcknowLedge == null)
-                throw new ApiException.BadRequestException("Acknowledge data cannot be null.");
+                throw new ApiException.BadRequestException("Dữ liệu của kiến thức mới không được để trống.");
 
             var validationResult = await _acknowledgeRequestValidator.ValidateAsync(newAcknowLedge);
             if (!validationResult.IsValid)
@@ -90,7 +90,7 @@ namespace OneUron.BLL.Services
         {
             var existAcknowledge = await _acknowledgeRepository.GetAcknowledgeByIdAsync(id);
             if (existAcknowledge == null)
-                throw new ApiException.NotFoundException($"Acknowledge with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Kiến thức của  ID {id} không tìm thấy.");
 
             await _acknowledgeRepository.DeleteAsync(existAcknowledge);
             return MapToDTO(existAcknowledge);

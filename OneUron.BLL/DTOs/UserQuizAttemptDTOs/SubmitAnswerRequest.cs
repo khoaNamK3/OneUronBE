@@ -12,9 +12,9 @@ namespace OneUron.BLL.DTOs.UserQuizAttemptDTOs
     {
         public Guid QuizId { get; set; }
 
-        public DateTime? StartTime { get; set; }
+        public DateTimeOffset? StartTime { get; set; }
 
-        public DateTime? FinishTime { get; set; }
+        public DateTimeOffset? FinishTime { get; set; }
 
         public double? Point { get; set; }
 

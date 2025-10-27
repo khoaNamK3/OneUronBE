@@ -13,5 +13,6 @@ namespace OneUron.DAL.Repository.EvaluationRepo
 
         public  Task<Evaluation> GetbyIdAsync(Guid id);
 
+        public  Task<PagedResult<Evaluation>> GetPagingEvalutionAsync(int pageNumber, int pageSize, string? name);
     }
 }

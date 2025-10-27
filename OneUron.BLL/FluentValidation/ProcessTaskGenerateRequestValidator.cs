@@ -13,17 +13,17 @@ namespace OneUron.BLL.FluentValidation
         public ProcessTaskGenerateRequestValidator()
         {
             RuleFor(x => x.Title)
-          .NotEmpty().WithMessage("Tiêu đề task không được để trống.")
-          .MaximumLength(200).WithMessage("Tiêu đề task không được vượt quá 200 ký tự.");
+          .NotEmpty().WithMessage("Tiêu đề  không được để trống.")
+          .MaximumLength(200).WithMessage("Tiêu đề không được vượt quá 200 ký tự.");
 
             RuleFor(x => x.Description)
-                .MaximumLength(1000).WithMessage("Mô tả task không được vượt quá 1000 ký tự.");
+                .MaximumLength(1000).WithMessage("Mô tả  không được vượt quá 1000 ký tự.");
 
             RuleFor(x => x.Amount)
-                .GreaterThan(0).WithMessage("Giá trị Amount phải lớn hơn 0.");
+                .GreaterThan(0).WithMessage("Giá trị phải lớn hơn 0.");
 
             RuleFor(x => x.StartTime)
-                  .NotEmpty().WithMessage("Time Start không được để trống.");
+                  .NotEmpty().WithMessage("Thời gian bắt đầu  không được để trống.");
         }
     }
 }

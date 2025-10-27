@@ -12,10 +12,10 @@ namespace OneUron.BLL.DTOs.MethodRuleConditionDTOs
 
         public double Effectiveness { get; set; }
 
-        public Guid? EvaluationId { get; set; }
+        //public Guid? EvaluationId { get; set; }
 
-        public Guid? EvaluationQuestionId { get; set; }
+        //public Guid? EvaluationQuestionId { get; set; }
 
-        public Guid? ChoiceId { get; set; }
+        public Guid ChoiceId { get; set; }
     }
 }

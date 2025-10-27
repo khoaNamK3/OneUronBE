@@ -13,11 +13,11 @@ namespace OneUron.BLL.FluentValidation
         public MethodConRequestValidator()
         {
             RuleFor(x => x.Con)
-                .NotEmpty().WithMessage("Nội dung điều kiện (Con) không được để trống.")
-                .MaximumLength(500).WithMessage("Nội dung điều kiện không được vượt quá 500 ký tự.");
+                .NotEmpty().WithMessage("Nội dung tác hại  (Con) không được để trống.")
+                .MaximumLength(500).WithMessage("Nội dung tác hại không được vượt quá 500 ký tự.");
 
             RuleFor(x => x.MethodId)
-                .NotEmpty().WithMessage("MethodId là bắt buộc.");
+                .NotEmpty().WithMessage("phương pháp học là bắt buộc.");
         }
     }
 }

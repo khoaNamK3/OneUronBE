@@ -14,9 +14,9 @@ namespace OneUron.BLL.FluentValidation
         {
             RuleFor(x => x.Name)
                 .NotEmpty()
-                .WithMessage("Tên Evaluation không được để trống.")
+                .WithMessage("Tên đánh giá  không được để trống.")
                 .MaximumLength(200)
-                .WithMessage("Tên Evaluation không được vượt quá 200 ký tự.");
+                .WithMessage("Tên đánh giá  không được vượt quá 200 ký tự.");
 
             RuleFor(x => x.Description)
                 .NotEmpty()
@@ -26,7 +26,7 @@ namespace OneUron.BLL.FluentValidation
 
             RuleFor(x => x.IsDeleted)
                 .NotNull()
-                .WithMessage("Giá trị IsDeleted không được null.");
+                .WithMessage("Giá trị đã xóa không được null.");
         }
     }
 }

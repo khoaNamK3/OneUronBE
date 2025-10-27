@@ -10,6 +10,8 @@ namespace OneUron.BLL.DTOs.UserQuizAttemptDTOs
     {
         public int TotalCompleteQuiz {  get; set; }
 
+        public int NumberQuizWaitting { get; set; }
+
         public int TotalQuizPassed { get; set; }
 
         public double TotalTime { get; set; }

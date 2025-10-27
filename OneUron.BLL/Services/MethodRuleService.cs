@@ -32,7 +32,7 @@ namespace OneUron.BLL.Services
             var methodRules = await _methodRuleRepository.GetAllAsync();
 
             if (methodRules == null || !methodRules.Any())
-                throw new ApiException.NotFoundException("No MethodRule records found.");
+                throw new ApiException.NotFoundException("Không Quy tắc phương pháp tìm thấy.");
 
             return methodRules.Select(MapToDTO).ToList();
         }
@@ -42,7 +42,7 @@ namespace OneUron.BLL.Services
         {
             var existMethodRule = await _methodRuleRepository.GetByIdAsync(id);
             if (existMethodRule == null)
-                throw new ApiException.NotFoundException($"MethodRule with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Không tìm thấy Quy tắc phương pháp ID {id} tìm thấy .");
 
             return MapToDTO(existMethodRule);
         }

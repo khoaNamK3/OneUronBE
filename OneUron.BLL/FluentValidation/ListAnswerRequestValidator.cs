@@ -14,11 +14,11 @@ namespace OneUron.BLL.FluentValidation
         {
             RuleFor(x => x.QuestionId)
                 .NotEmpty()
-                .WithMessage("QuestionId is required.");
+                .WithMessage("Câu Hỏi không được để trống.");
 
             RuleFor(x => x.QuestionChoiceId)
                 .NotEmpty()
-                .WithMessage("QuestionChoiceId is required.");
+                .WithMessage("Lựa chọn câu hỏi là bắt buộc.");
         }
     }
 }

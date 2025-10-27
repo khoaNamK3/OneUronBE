@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Net.payOS;
 using Net.payOS.Types;
 using OneUron.BLL.DTOs.PaymentDTOs;
@@ -83,55 +84,52 @@ namespace OneUron.BLL.Services
             if (orderCode == null)
                 throw new ApiException.BadRequestException("Order code missing in webhook.");
 
-            var payment = await _paymentRepository.GetByOrderCodeAsync(orderCode);
-            if (payment == null)
-                throw new ApiException.NotFoundException("Payment not found.");
+            //var payment = await _paymentRepository.GetByOrderCodeAsync(orderCode);
+            //if (payment == null)
+            //    throw new ApiException.NotFoundException("Payment not found.");
 
-            if (verifiedData.code == "00")
+           if(verifiedData.desc == "Thành công")
             {
-                payment.Status = PaymentStatus.Paid;
-                await _paymentRepository.UpdateAsync(payment);
-
-                var plan = await _memberShipPlanRepository.GetByIdAsync(payment.MemberShipPlanId);
-                if (plan == null)
-                    throw new ApiException.NotFoundException("Membership plan not found.");
-
-                var existingMemberShip = await _memberShipRepository.GetByUserIdAsync(payment.UserId);
-
-                if (existingMemberShip != null)
-                {
-                    existingMemberShip.StartDate = DateTime.UtcNow;
-                    existingMemberShip.ExpiredDate = DateTime.UtcNow.AddMonths(1);
-                    existingMemberShip.Status = MemberShipStatus.Active;
-                    existingMemberShip.MemberShipPlanId = plan.Id;
-
-                    await _memberShipRepository.UpdateAsync(existingMemberShip);
-                }
-                else
-                {
-                    var newMemberShip = new MemberShip
-                    {
-                        Id = Guid.NewGuid(),
-                        UserId = payment.UserId,
-                        MemberShipPlanId = plan.Id,
-                        StartDate = DateTime.UtcNow,
-                        ExpiredDate = DateTime.UtcNow.AddMonths(1),
-                        Status = MemberShipStatus.Active
-                    };
-
-                    await _memberShipRepository.AddAsync(newMemberShip);
-                }
+                var exsiPayment = await _paymentRepository.GetByOrderCodeAsync(orderCode);
+                exsiPayment.Status= PaymentStatus.Paid;
+                await _paymentRepository.UpdateAsync(exsiPayment);
             }
             else
             {
-                payment.Status = PaymentStatus.Failed;
-                await _paymentRepository.UpdateAsync(payment);
+                var exsiPayment = await _paymentRepository.GetByOrderCodeAsync(orderCode);
+                exsiPayment.Status = PaymentStatus.Failed;
+                await _paymentRepository.UpdateAsync(exsiPayment);
             }
         }
 
 
+        public async Task<List<MonthlyPaymentSummary>> CalculateTotalPaymentEachMonthOfYearAsync(int year)
+        {
+            var monthResponse = await _paymentRepository.CalculateTotalPaymentEachMonthOfYearAsync(year);
+
+            if (monthResponse == null || !monthResponse.Any())
+                throw new ApiException.NotFoundException("Không tìm thấy hóa đơn vào khoảng thời gian này");
 
 
+            var result = monthResponse.Select(MapperMonthPaymentSummary).ToList();
+            var allMonths = Enumerable.Range(1, 12)
+            .Select(m => new MonthlyPaymentSummary
+                 {
+             Month = m,
+             TotalAmount = result.FirstOrDefault(r => r.Month == m)?.TotalAmount ?? 0
+                 }).ToList();
+
+            return allMonths;
+        }
+
+        public MonthlyPaymentSummary MapperMonthPaymentSummary(Payment payment)
+        {
+            return new MonthlyPaymentSummary
+            {
+                Month = payment.CreateAt.Month,
+                TotalAmount = payment.Amount,
+            };
+        }
 
         public async Task<List<PaymentResponseDto>> GetAllPaymentAsync()
         {

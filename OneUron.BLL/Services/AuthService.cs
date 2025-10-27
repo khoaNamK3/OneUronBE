@@ -34,7 +34,7 @@ namespace OneUron.BLL.Services
                 return new LoginResponseDto
                 {
                     Success = false,
-                    Message = "Invalid username or password"
+                    Message = "Sai tài khoản hoặc mật khẩu"
                 };
             }
 
@@ -45,7 +45,16 @@ namespace OneUron.BLL.Services
                 return new LoginResponseDto
                 {
                     Success = false,
-                    Message = "Invalid username or password"
+                    Message = "Sai tài khoản hoặc mật khẩu"
+                };
+            }
+
+           if(user.IsDeleted == true)
+            {
+                return new LoginResponseDto
+                {
+                    Success = false,
+                    Message = "tài khoản của bản đã bị xóa , hãy đăng kí lại nhé"
                 };
             }
 
@@ -55,7 +64,7 @@ namespace OneUron.BLL.Services
             return new LoginResponseDto
             {
                 Success = true,
-                Message = "Login successful",
+                Message = "Đăng nhập thành công",
                 UserId = user.Id,
                 Token = accessToken,
                 RefreshToken = refreshToken,
@@ -77,7 +86,7 @@ namespace OneUron.BLL.Services
                         return new RegisterResponseDto
                         {
                             Success = false,
-                            Message = "Username already exists"
+                            Message = "Tên người dùng đã tồn tại."
                         };
                     }
 
@@ -125,7 +134,7 @@ namespace OneUron.BLL.Services
                         return new RegisterResponseDto
                         {
                             Success = false,
-                            Message = $"Role '{roleName}' does not exist"
+                            Message = $"Quyền hạn '{roleName}' không tồn tại"
                         };
                     }
 
@@ -138,7 +147,7 @@ namespace OneUron.BLL.Services
                     return new RegisterResponseDto
                     {
                         Success = true,
-                        Message = "Register successful",
+                        Message = "Đăng kí thành công",
                         UserId = user.Id
                     };
                 }
@@ -149,7 +158,7 @@ namespace OneUron.BLL.Services
                     return new RegisterResponseDto
                     {
                         Success = false,
-                        Message = $"Registration failed: {ex.Message}"
+                        Message = $"Đăng kí thất bại: {ex.Message}"
                     };
                 }
             }
@@ -162,7 +171,7 @@ namespace OneUron.BLL.Services
             return new LogoutResponseDto
             {
                 Success = true,
-                Message = "Logged out successfully"
+                Message = "Đăng xuất thành công"
             };
         }
 

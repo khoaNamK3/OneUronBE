@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using OneUron.BLL.DTOs.EvaluationDTOs;
 using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
+using OneUron.DAL.Repository;
 
 namespace OneUron.API.Controllers
 {
@@ -22,6 +24,14 @@ namespace OneUron.API.Controllers
         {
             var result = await _evaluationService.GetAllAsync();
             return Ok(ApiResponse<List<EvaluationResponseDto>>.SuccessResponse(result, "Get all evaluations successfully"));
+        }
+
+        [HttpGet("get-paging")]
+        [ProducesResponseType(typeof(ApiResponse<PagedResult<EvaluationPagingResponse>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetEvaluationpagingAsync([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string? name = null)
+        {
+            var result = await _evaluationService.GetAllPaging(pageNumber, pageSize, name);
+            return Ok(ApiResponse<PagedResult<EvaluationPagingResponse>>.SuccessResponse(result, "Get paging Evaluation Paging successfully"));
         }
 
         [HttpGet("get-by/{id}")]
@@ -55,5 +65,6 @@ namespace OneUron.API.Controllers
             var result = await _evaluationService.DeleteEvaluationByIdAsync(id);
             return Ok(ApiResponse<EvaluationResponseDto>.SuccessResponse(result, "Delete evaluation successfully"));
         }
+
     }
 }

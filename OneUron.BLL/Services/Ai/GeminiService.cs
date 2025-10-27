@@ -117,11 +117,11 @@ namespace OneUron.BLL.Services.Ai
         public async Task<QuizResponseDto> GenerateQuestionsByQuizAsync(QuizRequestDto request)
         {
             if (request == null)
-                throw new ApiException.BadRequestException("Quiz request cannot be null.");
+                throw new ApiException.BadRequestException("Bài kiểm tra không được để trống .");
 
             var createdQuiz = await _quizService.CreateNewQuizAsync(request);
             if (createdQuiz == null)
-                throw new ApiException.BadRequestException("Quiz creation failed.");
+                throw new ApiException.BadRequestException("tạo bài kiểm tra lỗi.");
 
             var quiz = createdQuiz;
 
@@ -308,7 +308,7 @@ namespace OneUron.BLL.Services.Ai
         public async Task<ScheduleResponeDto> CreateScheduleWithListSubjectAsync(ScheduleSubjectRequestDto scheduleSubject, Guid userId)
         {
             if (scheduleSubject == null)
-                throw new ApiException.BadRequestException("New Data of scheduleSubject Request cannot be null");
+                throw new ApiException.BadRequestException("Thông tin lịch học và môn học không được để trống ");
 
             var validationResult = await _schedulerSubjectRequestValidator.ValidateAsync(scheduleSubject);
             if (!validationResult.IsValid)
@@ -335,7 +335,7 @@ namespace OneUron.BLL.Services.Ai
             };
 
             var schedule = await _scheduleService.CreateScheduleAsync(scheduleRequest)
-                           ?? throw new ApiException.BadRequestException("Failed to create schedule");
+                           ?? throw new ApiException.BadRequestException("Lỗi khi tạo lịch học ");
 
 
             foreach (var subjectRequest in scheduleSubject.subjectListRequest)
@@ -352,10 +352,10 @@ namespace OneUron.BLL.Services.Ai
 
 
             var existStudyMethod = await _studyMethodService.GetStudyMethodByUserIdAsync(userId)
-                                   ?? throw new ApiException.NotFoundException("StudyMethod does not exist");
+                                   ?? throw new ApiException.NotFoundException("phương pháp học được chọn không tồn tại .");
 
             var method = await _methodSerivce.GetByIdAsync(existStudyMethod.MethodId)
-                         ?? throw new ApiException.NotFoundException("Method does not exist");
+                         ?? throw new ApiException.NotFoundException("Phương pháp học không tồn tại.");
 
 
             string prompt = $@"
@@ -527,22 +527,22 @@ namespace OneUron.BLL.Services.Ai
         {
             // ====== LẤY DỮ LIỆU ======
             var existProcess = await _processService.GetByIdAsync(processId)
-                ?? throw new ApiException.NotFoundException("No Process Found");
+                ?? throw new ApiException.NotFoundException("Không tìm thấy quá trình ");
 
             var existSchedule = await _scheduleService.GetByIdAsync(existProcess.ScheduleId)
-                ?? throw new ApiException.NotFoundException("No Schedule Found");
+                ?? throw new ApiException.NotFoundException("Không tìm thấy lịch học ");
 
             var existUser = await _userRepository.GetUserByUserIdAsync(existSchedule.UserId)
-                ?? throw new ApiException.NotFoundException("No User Found");
+                ?? throw new ApiException.NotFoundException("Không tìm thấy người dùng");
 
             var existSubjects = await _subjectService.GetSubjectByProcessIdAsync(processId)
                 ?? throw new ApiException.NotFoundException($"{processId} not found");
 
             var existStudyMethod = await _studyMethodService.GetByIdAsync(existUser.StudyMethod.Id)
-                ?? throw new ApiException.NotFoundException("No studyMethod Found");
+                ?? throw new ApiException.NotFoundException("Không tìm thấy phương pháp học bạn đã chọn");
 
             var existMethod = await _methodSerivce.GetByIdAsync(existStudyMethod.MethodId)
-                ?? throw new ApiException.NotFoundException("No Method Found");
+                ?? throw new ApiException.NotFoundException("Không tìm thấy phương pháp học");
 
             string listStringSubject = string.Join(", ", existSubjects.Select(s => s.Name));
 
@@ -663,7 +663,7 @@ namespace OneUron.BLL.Services.Ai
         private async Task FixProcessTaskTimeIfMissingAsync(Guid processId, TimeOnly? startTime)
         {
             var process = await _processService.GetByIdAsync(processId)
-                ?? throw new ApiException.NotFoundException("No Process Found");
+                ?? throw new ApiException.NotFoundException("Không tìm thấy quá trình học");
 
             var processTasks = (await _processTaskService.GetAllProcessTaskByProcessIdAsync(processId)).ToList();
             if (!processTasks.Any()) return;
@@ -688,23 +688,23 @@ namespace OneUron.BLL.Services.Ai
         public async Task AdjustProcessTaskTimeByMethodAsync(Guid processId, TimeOnly startTime)
         {
             var process = await _processService.GetByIdAsync(processId)
-                ?? throw new ApiException.NotFoundException("No Process Found");
+                ?? throw new ApiException.NotFoundException("Không tìm thấy quá trình học");
 
             var schedule = await _scheduleService.GetByIdAsync(process.ScheduleId)
-                ?? throw new ApiException.NotFoundException("No Schedule Found");
+                ?? throw new ApiException.NotFoundException("Không tìm thấy lịch học ");
 
             var user = await _userRepository.GetUserByUserIdAsync(schedule.UserId)
-                ?? throw new ApiException.NotFoundException("No User Found");
+                ?? throw new ApiException.NotFoundException("Không tìm thấy người dùng");
 
             var studyMethod = await _studyMethodService.GetByIdAsync(user.StudyMethod.Id)
-                ?? throw new ApiException.NotFoundException("No StudyMethod Found");
+                ?? throw new ApiException.NotFoundException("Không tìm thấy phương pháp học mà bạn đã chọn");
 
             var method = await _methodSerivce.GetByIdAsync(studyMethod.MethodId)
-                ?? throw new ApiException.NotFoundException("No Method Found");
+                ?? throw new ApiException.NotFoundException("Không tìm thấy phương pháp học");
 
             var processTasks = (await _processTaskService.GetAllProcessTaskByProcessIdAsync(processId)).ToList();
             if (!processTasks.Any())
-                throw new ApiException.NotFoundException("No Process Tasks Found");
+                throw new ApiException.NotFoundException("Không tìm thấy Nhiệm vụ của quá trình học");
 
             int studyMinutes, breakMinutes;
 

@@ -5,6 +5,8 @@ using OneUron.BLL.DTOs.MethodRuleDTOs;
 using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
+using OneUron.DAL.Repository.EvaluationQuestionRepo;
+using OneUron.DAL.Repository.EvaluationRepo;
 using OneUron.DAL.Repository.MethodRuleConditionRepo;
 using System;
 using System.Collections.Generic;
@@ -18,16 +20,23 @@ namespace OneUron.BLL.Services
     {
         private readonly IMethodRuleConditionRepository _methodRuleConditionRepository;
         private readonly IMethodRuleService _methodRuleService;
+        private readonly IEvaluationQuestionRepository _evaluationQuestionRepository;
+        private readonly IEvaluationRepository _evaluationRepository;
         private readonly IValidator<MethodRuleConditionRequestDto> _methodRuleConditionValidator;
 
         public MethodRuleConditionService(
             IMethodRuleConditionRepository methodRuleConditionRepository,
             IMethodRuleService methodRuleService,
-            IValidator<MethodRuleConditionRequestDto> methodRuleConditionValidator)
+            IValidator<MethodRuleConditionRequestDto> methodRuleConditionValidator,
+            IEvaluationQuestionRepository evaluationQuestionRepository,
+            IEvaluationRepository evaluationRepository
+            )
         {
             _methodRuleConditionRepository = methodRuleConditionRepository;
             _methodRuleService = methodRuleService;
             _methodRuleConditionValidator = methodRuleConditionValidator;
+            _evaluationQuestionRepository = evaluationQuestionRepository;
+            _evaluationRepository = evaluationRepository;
         }
 
         
@@ -36,7 +45,7 @@ namespace OneUron.BLL.Services
             var methodRuleConditions = await _methodRuleConditionRepository.GetAllAsync();
 
             if (methodRuleConditions == null || !methodRuleConditions.Any())
-                throw new ApiException.NotFoundException("No MethodRuleCondition records found.");
+                throw new ApiException.NotFoundException("Điều kiện phương pháp học không tìm thấy.");
 
             return methodRuleConditions.Select(MapToDTO).ToList();
         }
@@ -45,7 +54,7 @@ namespace OneUron.BLL.Services
         {
             var existMethodRuleCondition = await _methodRuleConditionRepository.GetByIdAsync(id);
             if (existMethodRuleCondition == null)
-                throw new ApiException.NotFoundException($"MethodRuleCondition with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Điều kiện phương pháp học của ID {id} không tìm thấy.");
 
             return MapToDTO(existMethodRuleCondition);
         }
@@ -54,13 +63,21 @@ namespace OneUron.BLL.Services
         public async Task<MethodRuleConditionResponseDto> CreateNewMethodRuleConditionAsync(MethodRuleConditionRequestDto request)
         {
             if (request == null)
-                throw new ApiException.BadRequestException("MethodRuleCondition request cannot be null.");
+                throw new ApiException.BadRequestException("Điều kiện phương pháp học mới không được để trống.");
+
+            var existEvalutionQuestion = await _evaluationQuestionRepository.GetEvaluationQuestionByIdAsync(request.ChoiceId);
+            if (existEvalutionQuestion == null)
+                throw new ApiException.NotFoundException("Not found EvalutionQuestion");
+
+            var existEvaltion = await _evaluationRepository.GetByIdAsync(existEvalutionQuestion.EvaluationId);
+            if (existEvaltion == null)
+                throw new ApiException.NotFoundException("Not Found Evalution");
 
             var validationResult = await _methodRuleConditionValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
                 throw new ApiException.ValidationException(validationResult.Errors);
 
-            var newMethodRuleCondition = MapToEntity(request);
+            var newMethodRuleCondition = MapToEntity(request, existEvaltion, existEvalutionQuestion);
 
             await _methodRuleConditionRepository.AddAsync(newMethodRuleCondition);
 
@@ -72,10 +89,10 @@ namespace OneUron.BLL.Services
         {
             var existMethodRuleCondition = await _methodRuleConditionRepository.GetByIdAsync(id);
             if (existMethodRuleCondition == null)
-                throw new ApiException.NotFoundException($"MethodRuleCondition with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Điều kiện phương pháp học của ID {id} không tìm thấy.");
 
             if (newMethodRuleCondition == null)
-                throw new ApiException.BadRequestException("New MethodRuleCondition data cannot be null.");
+                throw new ApiException.BadRequestException("Điều kiện phương Pháp học mới không được để trống ");
 
             var validationResult = await _methodRuleConditionValidator.ValidateAsync(newMethodRuleCondition);
             if (!validationResult.IsValid)
@@ -84,8 +101,8 @@ namespace OneUron.BLL.Services
             existMethodRuleCondition.Weight = newMethodRuleCondition.Weight;
             existMethodRuleCondition.Effectiveness = newMethodRuleCondition.Effectiveness;
             existMethodRuleCondition.ChoiceId = newMethodRuleCondition.ChoiceId;
-            existMethodRuleCondition.EvaluationId = newMethodRuleCondition.EvaluationId;
-            existMethodRuleCondition.EvaluationQuestionId = newMethodRuleCondition.EvaluationQuestionId;
+            //existMethodRuleCondition.EvaluationId = newMethodRuleCondition.EvaluationId;
+            //existMethodRuleCondition.EvaluationQuestionId = newMethodRuleCondition.EvaluationQuestionId;
 
             await _methodRuleConditionRepository.UpdateAsync(existMethodRuleCondition);
 
@@ -115,16 +132,18 @@ namespace OneUron.BLL.Services
             return result;
         }
 
+
+
         
-        protected MethodRuleCondition MapToEntity(MethodRuleConditionRequestDto request)
+        protected MethodRuleCondition MapToEntity(MethodRuleConditionRequestDto request,Evaluation evaluation, EvaluationQuestion evaluationQuestion)
         {
             return new MethodRuleCondition
             {
                 Effectiveness = request.Effectiveness,
                 Weight = request.Weight,
                 ChoiceId = request.ChoiceId,
-                EvaluationId = request.EvaluationId,
-                EvaluationQuestionId = request.EvaluationQuestionId
+                EvaluationQuestionId = evaluationQuestion.Id,
+                EvaluationId = evaluation.Id
             };
         }
 

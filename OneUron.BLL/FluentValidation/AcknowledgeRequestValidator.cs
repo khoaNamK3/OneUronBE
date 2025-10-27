@@ -13,11 +13,11 @@ namespace OneUron.BLL.FluentValidation
         public AcknowledgeRequestValidator()
         {
             RuleFor(x => x.Text)
-           .NotEmpty().WithMessage("Text must not be empty.");
+           .NotEmpty().WithMessage("Ô này không được để trống.");
 
             RuleFor(x => x.CourseId)
-                .NotEmpty().WithMessage("CourseId is required.")
-                .NotEqual(Guid.Empty).WithMessage("CourseId is invalid.");
+                .NotEmpty().WithMessage("Id của khóa học không hợp lệ.")
+                .NotEqual(Guid.Empty).WithMessage("Id của khóa học không hợp lệ.");
         }
     }
 }

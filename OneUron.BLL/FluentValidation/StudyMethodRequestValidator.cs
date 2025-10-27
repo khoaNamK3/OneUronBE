@@ -16,10 +16,10 @@ namespace OneUron.BLL.FluentValidation
             //    .NotNull().WithMessage("Trạng thái xóa (IsDeleted) là bắt buộc.");
 
             RuleFor(x => x.MethodId)
-                .NotEmpty().WithMessage("MethodId là bắt buộc.");
+                .NotEmpty().WithMessage("Phương pháp học là bắt buộc.");
 
             RuleFor(x => x.UserId)
-                .NotEmpty().WithMessage("UserId là bắt buộc.");
+                .NotEmpty().WithMessage("Người dùng là bắt buộc.");
         }
     }
 }

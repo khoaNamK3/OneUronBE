@@ -19,5 +19,7 @@ namespace OneUron.BLL.Interface
 
         public AnswerResponseDto MapToDTO(Answer answer);
 
+        public Task CreateAnswerListAsync(List<AnswerRequestDto> dtoList);
+
     }
 }

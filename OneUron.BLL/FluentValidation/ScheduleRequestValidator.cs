@@ -41,7 +41,7 @@ namespace OneUron.BLL.FluentValidation
                 .WithMessage("Ngày tạo phải là hiện tại hoặc trong tương lai (không sớm hơn 10 phút so với hiện tại).");
 
             RuleFor(x => x.UserId)
-                .NotEmpty().WithMessage("UserId là bắt buộc.");
+                .NotEmpty().WithMessage("Người dùng là bắt buộc.");
         }
     }
 }

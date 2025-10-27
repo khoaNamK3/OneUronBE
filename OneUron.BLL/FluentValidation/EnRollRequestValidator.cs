@@ -14,15 +14,15 @@ namespace OneUron.BLL.FluentValidation
         {
             RuleFor(x => x.UserId)
                 .NotEmpty()
-                .WithMessage("UserId không được để trống.");
+                .WithMessage("Người dùng không được để trống.");
 
             RuleFor(x => x.ResourceId)
                 .NotEmpty()
-                .WithMessage("ResourceId không được để trống.");
+                .WithMessage("Khóa học không được để trống.");
 
             RuleFor(x => x.EnrollDate)
                 .NotEmpty()
-                .WithMessage("EnrollDate không được để trống.");
+                .WithMessage("Ngày tham gia không được để trống.");
                 //.LessThanOrEqualTo(DateTime.UtcNow)
                 //.WithMessage("EnrollDate không thể là ngày trong tương lai.");
         }

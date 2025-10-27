@@ -52,7 +52,7 @@ namespace OneUron.BLL.Services
             var attempts = await _userQuizAttemptRepository.GetAllUserQuizAttemptAsync();
 
             if (attempts == null || !attempts.Any())
-                throw new ApiException.NotFoundException("No quiz attempts found.");
+                throw new ApiException.NotFoundException("Không tìm thấy bài kiểm tra thử.");
 
             var result = await Task.WhenAll(attempts.Select(a => MapToDTO(a)));
             return result.ToList();
@@ -63,7 +63,7 @@ namespace OneUron.BLL.Services
         {
             var attempt = await _userQuizAttemptRepository.GetUserQuizAttemptsByIdAsync(id);
             if (attempt == null)
-                throw new ApiException.NotFoundException($"Quiz attempt with ID {id} not found.");
+                throw new ApiException.NotFoundException($"bài kiểm tra thử của  ID {id} Không tìm thấy.");
 
             return await MapToDTO(attempt);
         }
@@ -73,7 +73,7 @@ namespace OneUron.BLL.Services
             var quizAttempts = await _userQuizAttemptRepository.GetAllUserQuizAttemptByQuizIdAsync(quizId);
 
             if (!quizAttempts.Any())
-                throw new ApiException.NotFoundException("No quiz attempts found.");
+                throw new ApiException.NotFoundException("Không tìm thấy bài kiểm trả thử.");
 
 
             var result = await Task.WhenAll(quizAttempts.Select(a => MapToDTO(a)));
@@ -86,7 +86,7 @@ namespace OneUron.BLL.Services
 
             if (quizAttempts == null || !quizAttempts.Any())
             {
-                Console.WriteLine($"[INFO] Quiz {quizId} has 0 attempts, returning empty list.");
+                Console.WriteLine($" bài kiểm tra  {quizId} không có câu trả lời.");
                 return new List<UserQuizAttemptResponseDto>();
             }
 
@@ -118,7 +118,7 @@ namespace OneUron.BLL.Services
             if (!existQuiz.Any())
             {
                 Console.WriteLine($"[WARN] User {userId} has not done any quiz yet");
-                throw new ApiException.NotFoundException("User has not done any quiz yet.");
+                throw new ApiException.NotFoundException("Người dùng chưa làm bài kiểm tra nào");
             }
 
             var allAttempts = new List<UserQuizAttemptResponseDto>();
@@ -141,7 +141,7 @@ namespace OneUron.BLL.Services
             if (!allAttempts.Any())
             {
                 Console.WriteLine($"[WARN] No attempts found for user {userId}");
-                throw new ApiException.NotFoundException("No attempts found for this user.");
+                throw new ApiException.NotFoundException("Không có bài kiểm tra của người dùng này.");
             }
 
             int totalCount = allAttempts.Count;
@@ -164,24 +164,21 @@ namespace OneUron.BLL.Services
             };
         }
 
-
-
         public async Task<UserQuizAttemptResponseDto> SubmitAnswerAsync(SubmitAnswerRequest newSubmit)
         {
-
             var validatorResult = await _submitAnswerRequestValidator.ValidateAsync(newSubmit);
             if (!validatorResult.IsValid)
                 throw new ApiException.ValidationException(validatorResult.Errors);
 
             if (newSubmit.AnswerList == null || !newSubmit.AnswerList.Any())
-                throw new ApiException.BadRequestException("No answers provided.");
+                throw new ApiException.BadRequestException("Không có câu trả lời được nộp");
 
-
+          
             var newAttempt = new UserQuizAttemptRequestDto
             {
                 QuizId = newSubmit.QuizId,
-                StartAt = newSubmit.StartTime ?? DateTime.UtcNow,
-                FinishAt = newSubmit.FinishTime ?? DateTime.UtcNow,
+                StartAt = newSubmit.StartTime?.UtcDateTime ?? DateTime.UtcNow,
+                FinishAt = newSubmit.FinishTime?.UtcDateTime ?? DateTime.UtcNow,
                 Point = 0,
                 Accuracy = 0
             };
@@ -189,21 +186,17 @@ namespace OneUron.BLL.Services
             var userAttempt = await CreateAsync(newAttempt);
 
 
-            foreach (var answer in newSubmit.AnswerList)
+            var answerDtos = newSubmit.AnswerList.Select(answer => new AnswerRequestDto
             {
-                var newAnswer = new AnswerRequestDto
-                {
-                    QuestionChoiceId = answer.QuestionChoiceId,
-                    QuestionId = answer.QuestionId,
-                    UserQuizAttemptId = userAttempt.Id
-                };
+                QuestionChoiceId = answer.QuestionChoiceId,
+                QuestionId = answer.QuestionId,
+                UserQuizAttemptId = userAttempt.Id
+            }).ToList();
 
-                await _answerService.CreateNewAnswerAsync(newAnswer);
-            }
+            await _answerService.CreateAnswerListAsync(answerDtos);
 
-
+           
             var newUserAttempt = await GetByIdAsync(userAttempt.Id);
-
 
             var quiz = await _quizRepository.GetQuizByIdAsync(newSubmit.QuizId);
             var questions = quiz.Questions.ToList();
@@ -212,27 +205,22 @@ namespace OneUron.BLL.Services
             double earnedPoints = 0;
             int correctCount = 0;
 
-
             foreach (var ans in newUserAttempt.Answers)
             {
                 var choice = await _questionChoiceService.GetQuestionChoiceByIdAsync(ans.QuestionChoiceId);
-
                 if (choice != null && choice.IsCorrect)
                 {
                     correctCount++;
-
                     var question = questions.FirstOrDefault(q => q.Id == ans.QuestionId);
                     if (question != null)
                         earnedPoints += question.Point;
                 }
             }
 
-
             int totalQuestion = questions.Count;
             double accuracy = totalQuestion > 0 ? Math.Round((double)correctCount / totalQuestion * 100, 2) : 0;
             if (earnedPoints > totalPoints)
                 earnedPoints = totalPoints;
-
 
             var updateRequest = new UserQuizAttemptRequestDto
             {
@@ -251,7 +239,7 @@ namespace OneUron.BLL.Services
         public async Task<UserQuizAttemptResponseDto> CreateAsync(UserQuizAttemptRequestDto request)
         {
             if (request == null)
-                throw new ApiException.BadRequestException("Quiz attempt request cannot be null.");
+                throw new ApiException.BadRequestException("Bài kiểm tra mới không được để trống.");
 
             var validationResult = await _userQuizAttemptValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -268,10 +256,10 @@ namespace OneUron.BLL.Services
         {
             var existing = await _userQuizAttemptRepository.GetUserQuizAttemptsByIdAsync(id);
             if (existing == null)
-                throw new ApiException.NotFoundException($"Quiz attempt with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Trả lời của người dùng với  ID {id} Không tồn tại.");
 
             if (request == null)
-                throw new ApiException.BadRequestException("Request data cannot be null.");
+                throw new ApiException.BadRequestException("Trả lời của người dùng không được để trống.");
 
             var validationResult = await _userQuizAttemptValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -293,7 +281,7 @@ namespace OneUron.BLL.Services
         {
             var existing = await _userQuizAttemptRepository.GetUserQuizAttemptsByIdAsync(id);
             if (existing == null)
-                throw new ApiException.NotFoundException($"Quiz attempt with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Trả lời của người dùng với ID {id} không tìm thấy.");
 
             await _userQuizAttemptRepository.DeleteAsync(existing);
 

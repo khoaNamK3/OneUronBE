@@ -31,5 +31,40 @@ namespace OneUron.DAL.Repository.EvaluationRepo
                     .FirstOrDefaultAsync(e => e.Id == id && !e.IsDeleted);
         }
 
+        public async Task<PagedResult<Evaluation>> GetPagingEvalutionAsync(int pageNumber, int pageSize, string? name)
+        {
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            var query = _dbSet.AsNoTracking().AsQueryable();
+
+
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                query = query.Where(q => q.Name.Contains(name));
+            }
+
+            int totalCount = await query.CountAsync();
+
+
+            if ((pageNumber - 1) * pageSize >= totalCount && totalCount > 0)
+            {
+                pageNumber = (int)Math.Ceiling((double)totalCount / pageSize);
+            }
+
+            var evaluations = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<Evaluation>
+            {
+                CurrentPage = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                Items = evaluations
+            };
+        }
+
     }
 }

@@ -50,7 +50,7 @@ namespace OneUron.BLL.Services
             var resources = await _resourcesRepository.GetAllResourceAsync();
 
             if (resources == null || !resources.Any())
-                throw new ApiException.NotFoundException("No resources found.");
+                throw new ApiException.NotFoundException("Không tìm thấy kháo học nào.");
 
             return resources.Select(MapToDto).ToList();
         }
@@ -60,7 +60,7 @@ namespace OneUron.BLL.Services
         {
             var resource = await _resourcesRepository.GetResourceByIdAsync(id);
             if (resource == null)
-                throw new ApiException.NotFoundException($"Resource with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Khóa học của ID {id} Không tìm thấy");
 
             return MapToDto(resource);
         }
@@ -69,7 +69,7 @@ namespace OneUron.BLL.Services
         public async Task<ResourceResponseDto> CreateNewResourceAsync(ResourceRequestDto request)
         {
             if (request == null)
-                throw new ApiException.BadRequestException("Resource request cannot be null.");
+                throw new ApiException.BadRequestException("Khóa học mới không được để trống");
 
             var validationResult = await _resourceRequestValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -86,10 +86,10 @@ namespace OneUron.BLL.Services
         {
             var existingResource = await _resourcesRepository.GetByIdAsync(id);
             if (existingResource == null)
-                throw new ApiException.NotFoundException($"Resource with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Khóa học của ID {id} Không tìm thấy.");
 
             if (request == null)
-                throw new ApiException.BadRequestException("Request data cannot be null.");
+                throw new ApiException.BadRequestException("Khóa học mới không được để trống");
 
             var validationResult = await _resourceRequestValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -114,7 +114,7 @@ namespace OneUron.BLL.Services
         {
             var resource = await _resourcesRepository.GetByIdAsync(id);
             if (resource == null)
-                throw new ApiException.NotFoundException($"Resource with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Khóa học của ID {id} Không tìm thấy.");
 
             await _resourcesRepository.DeleteAsync(resource);
             return MapToDto(resource);

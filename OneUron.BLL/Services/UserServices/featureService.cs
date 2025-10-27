@@ -27,7 +27,7 @@ namespace OneUron.BLL.Services.UserServices
           var features = await _featureRepository.GetAllAsync();
 
             if (!features.Any())
-                throw  new ApiException.NotFoundException("No Feature found");
+                throw  new ApiException.NotFoundException("Không tìm thấy tính năng");
 
             var result = features.Select(MapToDTO).ToList();
             
@@ -39,7 +39,7 @@ namespace OneUron.BLL.Services.UserServices
             var feature = await _featureRepository.GetByIdAsync(id);
 
             if (feature == null)
-                throw new ApiException.NotFoundException($"Feature {id} Not Found");
+                throw new ApiException.NotFoundException($"Tính năng {id} không tìm thấy  ");
 
             var result = MapToDTO(feature);
 
@@ -68,7 +68,7 @@ namespace OneUron.BLL.Services.UserServices
             var feature = await _featureRepository.GetByIdAsync(id);
 
             if (feature == null)
-                throw new ApiException.NotFoundException($"Feature {id} Not Found");
+                throw new ApiException.NotFoundException($"Tính năng  {id} Không tìm thấy ");
 
             var validationResult = await _featureValidation.ValidateAsync(requestDto);
 
@@ -88,7 +88,7 @@ namespace OneUron.BLL.Services.UserServices
             var feature = await _featureRepository.GetByIdAsync(id);
 
             if (feature == null)
-                throw new ApiException.NotFoundException($"Feature {id} Not Found");
+                throw new ApiException.NotFoundException($"Tính Năng  {id} Không tìm thấy ");
 
             var result = MapToDTO(feature);
 

@@ -48,7 +48,7 @@ namespace OneUron.BLL.Services
             var evaluationQuestions = await _evaluationQuestionRepository.GetAllAsync();
 
             if (evaluationQuestions == null || !evaluationQuestions.Any())
-                throw new ApiException.NotFoundException("No EvaluationQuestions found.");
+                throw new ApiException.NotFoundException(" Không tìm thấy câu hỏi đánh giá nào.");
 
             return evaluationQuestions.Select(MapToDTO).ToList();
         }
@@ -59,7 +59,7 @@ namespace OneUron.BLL.Services
             var existEvaluationQuestion = await _evaluationQuestionRepository.GetEvaluationQuestionByIdAsync(id);
 
             if (existEvaluationQuestion == null)
-                throw new ApiException.NotFoundException($"EvaluationQuestion with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Câu hỏi đánh giá của  ID {id} Không tìm thấy.");
 
             return MapToDTO(existEvaluationQuestion);
         }
@@ -68,7 +68,7 @@ namespace OneUron.BLL.Services
         public async Task<EvaluationQuestionResponseDto> CreateNewEvaluationQuestionAsync(EvaluationQuestionRequestDto request)
         {
             if (request == null)
-                throw new ApiException.BadRequestException("EvaluationQuestion request cannot be null.");
+                throw new ApiException.BadRequestException("Câu hỏi đánh giá mới không được để trống.");
 
             var validationResult = await _evaluationQuestionValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -85,10 +85,10 @@ namespace OneUron.BLL.Services
         {
             var existEvaluationQuestion = await _evaluationQuestionRepository.GetEvaluationQuestionByIdAsync(id);
             if (existEvaluationQuestion == null)
-                throw new ApiException.NotFoundException($"EvaluationQuestion with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Câu hỏi đánh giá của ID {id} không tìm thấy ");
 
             if (newEvaluation == null)
-                throw new ApiException.BadRequestException("New EvaluationQuestion data cannot be null.");
+                throw new ApiException.BadRequestException("Câu hỏi đánh giá mới không được để trống.");
 
             var validationResult = await _evaluationQuestionValidator.ValidateAsync(newEvaluation);
             if (!validationResult.IsValid)
@@ -109,7 +109,7 @@ namespace OneUron.BLL.Services
         {
             var existEvaluationQuestion = await _evaluationQuestionRepository.GetEvaluationQuestionByIdAsync(id);
             if (existEvaluationQuestion == null)
-                throw new ApiException.NotFoundException($"EvaluationQuestion with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Câu hỏi đánh giá của ID {id} không tìm thấy ");
 
             await _evaluationQuestionRepository.DeleteAsync(existEvaluationQuestion);
 

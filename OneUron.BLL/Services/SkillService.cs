@@ -31,7 +31,7 @@ namespace OneUron.BLL.Services
             var skills = await _skillRepository.GetAllAsync();
 
             if (skills == null || !skills.Any())
-                throw new ApiException.NotFoundException("No skills found.");
+                throw new ApiException.NotFoundException("Không tìm thấy kĩ năng nào.");
 
             return skills.Select(MapToDTO).ToList();
         }
@@ -41,7 +41,7 @@ namespace OneUron.BLL.Services
         {
             var skill = await _skillRepository.GetByIdAsync(id);
             if (skill == null)
-                throw new ApiException.NotFoundException($"Skill with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Kĩ năng của ID {id} không tìm thấy.");
 
             return MapToDTO(skill);
         }
@@ -50,7 +50,7 @@ namespace OneUron.BLL.Services
         public async Task<SkillResponseDto> CreateNewSkillAsync(SkillRequestDto request)
         {
             if (request == null)
-                throw new ApiException.BadRequestException("Skill request cannot be null.");
+                throw new ApiException.BadRequestException("Kĩ năng mới không được để trống");
 
             var validationResult = await _skillRequestValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -67,10 +67,10 @@ namespace OneUron.BLL.Services
         {
             var existingSkill = await _skillRepository.GetByIdAsync(id);
             if (existingSkill == null)
-                throw new ApiException.NotFoundException($"Skill with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Kĩ năng của ID {id} Không tìm thấy.");
 
             if (request == null)
-                throw new ApiException.BadRequestException("Request data cannot be null.");
+                throw new ApiException.BadRequestException("Kĩ năng mới không được để trống.");
 
             var validationResult = await _skillRequestValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -89,7 +89,7 @@ namespace OneUron.BLL.Services
         {
             var skill = await _skillRepository.GetByIdAsync(id);
             if (skill == null)
-                throw new ApiException.NotFoundException($"Skill with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Kĩ năng của  ID {id} Không tìm thấy.");
 
             await _skillRepository.DeleteAsync(skill);
             return MapToDTO(skill);

@@ -4,6 +4,7 @@ using OneUron.BLL.DTOs.MethodDTOs;
 using OneUron.BLL.ExceptionHandle;
 using OneUron.BLL.Interface;
 using OneUron.BLL.Services;
+using OneUron.DAL.Repository;
 
 namespace OneUron.API.Controllers
 {
@@ -24,6 +25,14 @@ namespace OneUron.API.Controllers
         {
             var result = await _methodService.GetAllAsync();
             return Ok(ApiResponse<List<MethodResponseDto>>.SuccessResponse(result, "Get all methods successfully"));
+        }
+
+        [HttpGet("get-paging")]
+        [ProducesResponseType(typeof(ApiResponse<PagedResult<MethodPagingResponse>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetPagingMethodAsync([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string? name = null)
+        {
+            var response = await _methodService.GetMethodPagingAsync(pageNumber, pageSize, name);
+            return Ok(ApiResponse<PagedResult<MethodPagingResponse>>.SuccessResponse(response, "Get method paging Sucessfully"));
         }
 
         [HttpGet("get-by/{id}")]

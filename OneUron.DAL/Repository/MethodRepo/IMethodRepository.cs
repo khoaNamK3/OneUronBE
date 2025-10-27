@@ -12,5 +12,7 @@ namespace OneUron.DAL.Repository.MethodRepo
         public  Task<List<Method>> GetAllAsync();
 
         public Task<Method> GetByIdAsync(Guid id);
+
+        public Task<PagedResult<Method>> GetMethodPagingAsync(int pageNumber, int pageSize, string? name);
     }
 }

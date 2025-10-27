@@ -147,16 +147,24 @@ namespace OneUron.DAL.Data.Entity
                 .HasForeignKey(p => p.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // One to One Payment and MembershipPlan
-            modelBuilder.Entity<MemberShipPlan>()
-             .HasOne(mp => mp.Payment)
-             .WithOne(p => p.MemberShipPlan)
-             .HasForeignKey<Payment>(p => p.MemberShipPlanId)
-             .OnDelete(DeleteBehavior.Restrict);
+            // One to many Payment and MembershipPlan
 
-              modelBuilder.Entity<Payment>()
-              .HasIndex(p => p.MemberShipPlanId)
-              .IsUnique();
+            //modelBuilder.Entity<MemberShipPlan>()
+            // .HasOne(mp => mp.Payment)
+            // .WithOne(p => p.MemberShipPlan)
+            // .HasForeignKey<Payment>(p => p.MemberShipPlanId)
+            // .OnDelete(DeleteBehavior.Restrict);
+
+            //  modelBuilder.Entity<Payment>()
+            //  .HasIndex(p => p.MemberShipPlanId)
+            //  .IsUnique();
+
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.MemberShipPlan)
+                .WithMany(mp => mp.Payments)
+                .HasForeignKey(p => p.MemberShipPlanId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // one to many Quiz UserQuizAttemps
             modelBuilder.Entity<UserQuizAttempt>()
                 .HasOne(uqa => uqa.Quiz)

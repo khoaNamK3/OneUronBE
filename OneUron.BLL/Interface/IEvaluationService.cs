@@ -1,6 +1,7 @@
 ﻿using OneUron.BLL.DTOs.EvaluationDTOs;
 using OneUron.BLL.ExceptionHandle;
 using OneUron.DAL.Data.Entity;
+using OneUron.DAL.Repository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,5 +20,6 @@ namespace OneUron.BLL.Interface
 
         public EvaluationResponseDto MapToDTO(Evaluation evaluation);
 
+        public  Task<PagedResult<EvaluationPagingResponse>> GetAllPaging(int pageNumber, int pageSize, string? name);
     }
 }

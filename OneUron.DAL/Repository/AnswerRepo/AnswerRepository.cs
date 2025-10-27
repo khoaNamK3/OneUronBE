@@ -23,6 +23,11 @@ namespace OneUron.DAL.Repository.AnswerRepo
         {
             return await _dbSet.FirstOrDefaultAsync(a => a.Id == id);
         }
-    
+
+        public async Task CreateListUserAnswerAsync(IEnumerable<Answer> entities)
+        {
+            await _dbSet.AddRangeAsync(entities);
+            await _context.SaveChangesAsync();
+        }
     }
 }

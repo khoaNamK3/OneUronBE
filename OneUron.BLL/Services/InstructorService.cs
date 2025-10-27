@@ -31,7 +31,7 @@ namespace OneUron.BLL.Services
             var instructors = await _instructorRepository.GetAllAsync();
 
             if (instructors == null || !instructors.Any())
-                throw new ApiException.NotFoundException("No instructors found.");
+                throw new ApiException.NotFoundException("Không tìm thấy giảng viên.");
 
             return instructors.Select(MapToDTO).ToList();
         }
@@ -41,7 +41,7 @@ namespace OneUron.BLL.Services
         {
             var existInstructor = await _instructorRepository.GetInstructorByIdAsync(id);
             if (existInstructor == null)
-                throw new ApiException.NotFoundException($"Instructor with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Giảng viên của  ID {id} Không tìm thấy.");
 
             return MapToDTO(existInstructor);
         }
@@ -50,7 +50,7 @@ namespace OneUron.BLL.Services
         public async Task<InstructorResponseDto> CreateNewInstructorAsync(InstructorRequestDto request)
         {
             if (request == null)
-                throw new ApiException.BadRequestException("Instructor request cannot be null.");
+                throw new ApiException.BadRequestException("Giảng viên mới không được để trống");
 
             var validationResult = await _instructorValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -67,10 +67,10 @@ namespace OneUron.BLL.Services
         {
             var existInstructor = await _instructorRepository.GetInstructorByIdAsync(id);
             if (existInstructor == null)
-                throw new ApiException.NotFoundException($"Instructor with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Giảng viên của  ID {id} Không tìm thấy.");
 
             if (newInstructor == null)
-                throw new ApiException.BadRequestException("New instructor data cannot be null.");
+                throw new ApiException.BadRequestException("Giảng viên mới không được để trống");
 
             var validationResult = await _instructorValidator.ValidateAsync(newInstructor);
             if (!validationResult.IsValid)
@@ -91,7 +91,7 @@ namespace OneUron.BLL.Services
         {
             var existInstructor = await _instructorRepository.GetInstructorByIdAsync(id);
             if (existInstructor == null)
-                throw new ApiException.NotFoundException($"Instructor with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Giảng viên của  ID {id} Không tìm thấy.");
 
             await _instructorRepository.DeleteAsync(existInstructor);
 

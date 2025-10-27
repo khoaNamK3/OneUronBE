@@ -45,7 +45,7 @@ namespace OneUron.BLL.Services
             var processes = await _processRepository.GetAllAsync();
 
             if (processes == null || !processes.Any())
-                throw new ApiException.NotFoundException("No processes found.");
+                throw new ApiException.NotFoundException("Không tìm thấy Quá trính.");
 
             return processes.Select(MapToDTO).ToList();
         }
@@ -54,7 +54,7 @@ namespace OneUron.BLL.Services
         {
             var process = await _processRepository.GetByIdAsync(id);
             if (process == null)
-                throw new ApiException.NotFoundException($"Process with ID {id} not found.");
+                throw new ApiException.NotFoundException($" Quá trình với  ID {id} Không tìm thấy .");
 
             return MapToDTO(process);
         }
@@ -63,7 +63,7 @@ namespace OneUron.BLL.Services
         public async Task<ProcessResponseDto> CreateProcessAsync(ProcessRequestDto request)
         {
             if (request == null)
-                throw new ApiException.BadRequestException("Process request cannot be null.");
+                throw new ApiException.BadRequestException("Quá trình mới không được để trống.");
 
             var validationResult = await _processRequestValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -79,10 +79,10 @@ namespace OneUron.BLL.Services
         {
             var existProcess = await _processRepository.GetByIdAsync(id);
             if (existProcess == null)
-                throw new ApiException.NotFoundException($"Process with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Quá trình của ID {id} Không tìm thấy.");
 
             if (newProcess == null)
-                throw new ApiException.BadRequestException("New process data cannot be null.");
+                throw new ApiException.BadRequestException("Quá tình mới Không được để trống.");
 
             var validationResult = await _processRequestValidator.ValidateAsync(newProcess);
             if (!validationResult.IsValid)
@@ -115,7 +115,7 @@ namespace OneUron.BLL.Services
         {
             var existProcess = await _processRepository.GetByIdAsync(id);
             if (existProcess == null)
-                throw new ApiException.NotFoundException($"Process with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Quá trình của ID {id} Không tìm thấy.");
 
             await _processRepository.DeleteAsync(existProcess);
 
@@ -127,7 +127,7 @@ namespace OneUron.BLL.Services
             var processes = await _processRepository.GetProcessesByScheduleId(scheduleId);
 
             if (!processes.Any())
-                throw new ApiException.NotFoundException("Schedule have empty process");
+                throw new ApiException.NotFoundException("Không tìm thấy quá trình gì trong lịch học này ");
 
             var results = processes.Select(MapToDTO).ToList();
 

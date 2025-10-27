@@ -39,7 +39,7 @@ namespace OneUron.BLL.Services
             var memberShipPlan = await _memberShipPlanRepository.GetAllMembertShipPlanAsync();
 
             if (!memberShipPlan.Any())
-                throw new ApiException.NotFoundException("No memberShipPlan Found");
+                throw new ApiException.NotFoundException("Không tìm thấy kế hoạch thành viên");
 
             var result = memberShipPlan.Select(MapToDTO).ToList();
 
@@ -51,7 +51,7 @@ namespace OneUron.BLL.Services
             var existShipPlan = await _memberShipPlanRepository.GetMemberShipPlanByIdAsync(id);
 
             if (existShipPlan == null)
-                throw new ApiException.NotFoundException("No MemberShipPlan Found");
+                throw new ApiException.NotFoundException("Không tìm thấy kế hoạch thành viên");
 
             var result = MapToDTO(existShipPlan);
 
@@ -61,7 +61,6 @@ namespace OneUron.BLL.Services
         public async Task<MemberShipPlanResponseDto> CreateMemberShipPlanAsync(MemberShipPlanRequestDto requestDto)
         {
             var validationResult = await _memberShipPlanValidator.ValidateAsync(requestDto);
-
             if (!validationResult.IsValid)
                 throw new ApiException.ValidationException(validationResult.Errors);
 
@@ -78,7 +77,7 @@ namespace OneUron.BLL.Services
             var existShipPlan = await _memberShipPlanRepository.GetMemberShipPlanByIdAsync(id);
 
             if (existShipPlan == null)
-                throw new ApiException.NotFoundException("No MemberShipPlan Found");
+                throw new ApiException.NotFoundException("Không tìm thấy kế hoạch thành viên");
 
             var validationResult = await _memberShipPlanValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -116,7 +115,7 @@ namespace OneUron.BLL.Services
             var existShipPlan = await _memberShipPlanRepository.GetMemberShipPlanByIdAsync(id);
 
             if (existShipPlan == null)
-                throw new ApiException.NotFoundException("No MemberShipPlan Found");
+                throw new ApiException.NotFoundException("Không tìm thấy kế hoạch thành viên");
 
             var result = MapToDTO(existShipPlan);
 

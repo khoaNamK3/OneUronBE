@@ -30,7 +30,7 @@ namespace OneUron.BLL.Services
             var enRolls = await _enRollRepository.GetAllEnRollAsync();
 
             if (enRolls == null || !enRolls.Any())
-                throw new ApiException.NotFoundException("No EnRoll records found.");
+                throw new ApiException.NotFoundException("Không tìm thấy Tham gia nào.");
 
             return enRolls.Select(MapToDto).ToList();
         }
@@ -40,7 +40,7 @@ namespace OneUron.BLL.Services
         {
             var existEnRoll = await _enRollRepository.GetEnRollByIdAsync(id);
             if (existEnRoll == null)
-                throw new ApiException.NotFoundException($"EnRoll with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Tham gia của  ID {id} không tìm thấy.");
 
             return MapToDto(existEnRoll);
         }
@@ -49,7 +49,7 @@ namespace OneUron.BLL.Services
         public async Task<EnRollResponseDto> CreateNewEnRollAsync(EnRollRequestDto request)
         {
             if (request == null)
-                throw new ApiException.BadRequestException("EnRoll request cannot be null.");
+                throw new ApiException.BadRequestException("Thông tin tham gia mới không được để trống.");
 
             var validationResult = await _enRollRequestValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -67,10 +67,10 @@ namespace OneUron.BLL.Services
         {
             var existEnRoll = await _enRollRepository.GetEnRollByIdAsync(id);
             if (existEnRoll == null)
-                throw new ApiException.NotFoundException($"EnRoll with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Tham gia của  ID {id} Không tìm thấy ");
 
             if (enRollRequestDto == null)
-                throw new ApiException.BadRequestException("EnRoll update data cannot be null.");
+                throw new ApiException.BadRequestException("Thông tin tham gia mới không để trống");
 
             var validationResult = await _enRollRequestValidator.ValidateAsync(enRollRequestDto);
             if (!validationResult.IsValid)
@@ -90,7 +90,7 @@ namespace OneUron.BLL.Services
         {
             var existEnRoll = await _enRollRepository.GetEnRollByIdAsync(id);
             if (existEnRoll == null)
-                throw new ApiException.NotFoundException($"EnRoll with ID {id} not found.");
+                throw new ApiException.NotFoundException($"Tham gia của  ID {id} Không tìm thấy");
 
             await _enRollRepository.DeleteAsync(existEnRoll);
 
