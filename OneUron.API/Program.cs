@@ -316,6 +316,7 @@ builder.Services.AddScoped<IValidator<MemberShipPlanRequestDto>, MemberShipPlanR
 builder.Services.AddScoped<IValidator<MemberShipRequestDto>, MemberShipRequestValidator>();
 builder.Services.AddScoped<IValidator<FeatureRequestDto>, FeatureRequestValidator>();
 builder.Services.AddScoped<IValidator<ContactRequestDto>, ContactRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdatePaymentRequestDto>, UpdatePaymentRequestValidator>();
 
 // Add database initialization service
 builder.Services.AddSingleton<DbInitializer>();

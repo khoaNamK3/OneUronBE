@@ -14,6 +14,7 @@ namespace OneUron.DAL.Repository.ScheduleRepo
         public  Task<Schedule> GetByIdAsync(Guid id);
 
         public  Task<List<Schedule>> GetAllScheduleByUserIdAsync(Guid userId);
+        public Task<Schedule> GetScheduleForWeekInfor(Guid id);
 
     }
 }

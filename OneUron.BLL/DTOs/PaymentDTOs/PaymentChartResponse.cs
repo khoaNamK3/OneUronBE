@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace OneUron.BLL.DTOs.PaymentDTOs
 {
-    public class MonthlyPaymentSummary
+    public class PaymentChartResponse
     {
-        public int Month { get; set; }
-        public double TotalAmount { get; set; }
-        List<int> AllYear { get; set; }
+        public List<MonthlyPaymentSummary> ChartData { get; set; }
+        public List<int> Year { get; set; }
     }
 }

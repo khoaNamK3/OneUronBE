@@ -69,7 +69,7 @@ namespace OneUron.BLL.Services
             {
                 CurrentPage = pageNumber,
                 PageSize = pageSize,
-                TotalCount = result.Count,
+                TotalCount = userPaging.TotalCount,
                 Items = result
             };
         }
@@ -78,6 +78,7 @@ namespace OneUron.BLL.Services
         {
             return new UserPagingResponseDto
             {
+                UserId = user.Id,
                 UserName = user.UserName,
                 CreatedDate = user.CreatedDate,
                 UpdateDate = user.UpdateDate,

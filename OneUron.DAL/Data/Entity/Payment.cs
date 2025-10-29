@@ -32,9 +32,7 @@ namespace OneUron.DAL.Data.Entity
         Pending = 0,       
         Paid = 1,         
         Failed = 2,        
-        Cancelled = 3,    
-        Refunded = 4,      
-        Expired = 5,       
-        Processing = 6    
+        Cancelled = 3, 
     }
+
 }

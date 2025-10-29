@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Net.payOS;
 using Net.payOS.Types;
+using OneUron.BLL.DTOs.MemberShipDTOs;
 using OneUron.BLL.DTOs.PaymentDTOs;
 using OneUron.BLL.ExceptionHandle;
+using OneUron.BLL.FluentValidation;
 using OneUron.BLL.Interface;
 using OneUron.DAL.Data.Entity;
 using OneUron.DAL.Repository.MemberShipPlanRepo;
@@ -23,18 +25,21 @@ namespace OneUron.BLL.Services
         private readonly IMemberShipPlanRepository _memberShipPlanRepository;
         private readonly IValidator<PaymentRequestDto> _paymentValidator;
         private readonly IMemberShipRepository _memberShipRepository;
+        private readonly IValidator<UpdatePaymentRequestDto> _updatePaymentValidator;
         private readonly PayOS _payOS;
         public PaymentService(
         IPaymentRepository paymentRepository,
         IMemberShipPlanRepository memberShipPlanRepository,
         IValidator<PaymentRequestDto> paymentValidator,
         IMemberShipRepository memberShipRepository,
+        IValidator<UpdatePaymentRequestDto> updatePaymentValidator,
         PayOS payOS)
         {
             _paymentRepository = paymentRepository;
             _memberShipPlanRepository = memberShipPlanRepository;
             _paymentValidator = paymentValidator;
             _memberShipRepository = memberShipRepository;
+            _updatePaymentValidator = updatePaymentValidator;
             _payOS = payOS;
         }
 
@@ -54,8 +59,8 @@ namespace OneUron.BLL.Services
                 amount: (int)plan.Fee,
                 description: $"Thanh toán: {plan.Name}",
                 items: new List<ItemData> { new ItemData(plan.Name, 1, (int)plan.Fee) },
-                cancelUrl: "https://yourfrontend.com/payment/cancel",
-                returnUrl: "https://yourfrontend.com/payment/success"
+                cancelUrl: "https://studypath.vercel.app/payment/status?Success=cancel",
+                returnUrl: "https://studypath.vercel.app/payment/status"
             );
 
             var paymentLink = await _payOS.createPaymentLink(paymentData);
@@ -76,34 +81,65 @@ namespace OneUron.BLL.Services
             return paymentLink.checkoutUrl;
         }
 
-        public async Task HandleWebhookAsync(WebhookType webhookData)
+
+        public async Task<PaymentResponseDto> UpdatePaymentStatusAsync(UpdatePaymentRequestDto requestDto)
         {
-            var verifiedData = _payOS.verifyPaymentWebhookData(webhookData);
-            var orderCode = verifiedData.orderCode;
+            if (requestDto == null)
+                throw new ApiException.BadRequestException("Thông tin cập nhật hóa đơn không được để trống");
 
-            if (orderCode == null)
-                throw new ApiException.BadRequestException("Order code missing in webhook.");
+            var validationResult =await _updatePaymentValidator.ValidateAsync(requestDto);
 
-            //var payment = await _paymentRepository.GetByOrderCodeAsync(orderCode);
-            //if (payment == null)
-            //    throw new ApiException.NotFoundException("Payment not found.");
+            if (!validationResult.IsValid)
+                throw new ApiException.ValidationException(validationResult.Errors);
 
-           if(verifiedData.desc == "Thành công")
+            var existPayment = await _paymentRepository.GetByOrderCodeAsync(requestDto.OrderCode);
+
+            if (existPayment == null)
+                throw new ApiException.NotFoundException("Không tìm thấy Payment ");
+
+            existPayment.Status = requestDto.Status;
+         
+            await _paymentRepository.UpdateAsync(existPayment);
+
+            var result = MapToDTO(existPayment);
+
+            // create memberShip 
+            if(result.Status == PaymentStatus.Paid)
             {
-                var exsiPayment = await _paymentRepository.GetByOrderCodeAsync(orderCode);
-                exsiPayment.Status= PaymentStatus.Paid;
-                await _paymentRepository.UpdateAsync(exsiPayment);
+                var existPlan = await _memberShipPlanRepository.GetByIdAsync(result.MemberShipPlanId);
+              
+                if (existPlan == null)
+                    throw new ApiException.NotFoundException($"Không tìm thấy gói hội viên với ID: {result.MemberShipPlanId}");
+                
+                DateTime expiredDate;
+
+                if (existPlan.memberShipPlanType == MemberShipPlanType.MONTH)
+                {
+                    expiredDate = DateTime.UtcNow.AddMonths(1);
+                }
+                else if (existPlan.memberShipPlanType == MemberShipPlanType.YEAR)
+                {
+                    expiredDate = DateTime.UtcNow.AddYears(1);
+                }
+                else
+                {
+                    throw new ApiException.BadRequestException("Loại gói hội viên không hợp lệ.");
+                }
+
+                var newMemberShip = new MemberShipRequestDto
+                {
+                        UserId = result.UserId,
+                        MemberShipPlanId = result.MemberShipPlanId,
+                        Status = MemberShipStatus.Active,
+                        StartDate = DateTime.UtcNow,
+                        ExpiredDate = expiredDate,
+                };
             }
-            else
-            {
-                var exsiPayment = await _paymentRepository.GetByOrderCodeAsync(orderCode);
-                exsiPayment.Status = PaymentStatus.Failed;
-                await _paymentRepository.UpdateAsync(exsiPayment);
-            }
+
+            return result;
         }
 
-
-        public async Task<List<MonthlyPaymentSummary>> CalculateTotalPaymentEachMonthOfYearAsync(int year)
+        public async Task<PaymentChartResponse> CalculateTotalPaymentEachMonthOfYearAsync(int year)
         {
             var monthResponse = await _paymentRepository.CalculateTotalPaymentEachMonthOfYearAsync(year);
 
@@ -114,12 +150,30 @@ namespace OneUron.BLL.Services
             var result = monthResponse.Select(MapperMonthPaymentSummary).ToList();
             var allMonths = Enumerable.Range(1, 12)
             .Select(m => new MonthlyPaymentSummary
-                 {
-             Month = m,
-             TotalAmount = result.FirstOrDefault(r => r.Month == m)?.TotalAmount ?? 0
-                 }).ToList();
+            {
+                Month = m,
+                TotalAmount = result.FirstOrDefault(r => r.Month == m)?.TotalAmount ?? 0
+            }).ToList();
 
-            return allMonths;
+            var allYears = await _paymentRepository.GetAllYearAsync();
+
+            return new PaymentChartResponse
+            {
+                ChartData = allMonths,
+                Year = allYears
+            };
+        }
+
+        public async Task<List<PaymentResponseDto>> RecentPaymentAsync()
+        {
+            var recentPayments = await _paymentRepository.RecentPaymentAsync();
+
+            if (!recentPayments.Any())
+                throw new ApiException.NotFoundException("No Recent Bill Found");
+
+            var result = recentPayments.Select(MapToDTO).ToList();
+
+            return result;
         }
 
         public MonthlyPaymentSummary MapperMonthPaymentSummary(Payment payment)

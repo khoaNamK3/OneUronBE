@@ -16,12 +16,12 @@ namespace OneUron.DAL.Repository.MemberShipPlanRepo
 
         public async Task<List<MemberShipPlan>> GetAllMembertShipPlanAsync()
         {
-            return await _dbSet.Include(p => p.MemberShips).ToListAsync();
+            return await _dbSet.ToListAsync();
         }
 
         public async Task<MemberShipPlan> GetMemberShipPlanByIdAsync(Guid id)
         {
-            return await _dbSet.Include(p => p.MemberShips).FirstOrDefaultAsync(p => p.Id == id);
+            return await _dbSet.FirstOrDefaultAsync(p => p.Id == id);
         }
     }
 }

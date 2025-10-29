@@ -86,21 +86,29 @@ namespace OneUron.API.Controllers
             });
         }
 
-        [HttpPost("webhook")]
-        [AllowAnonymous]
-        public async Task<IActionResult> HandleWebhook([FromBody] WebhookType webhookData)
+        [HttpPut("update-status")]
+        [ProducesResponseType(typeof(ApiResponse<PaymentResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> UpdatePaymentStatusAsync([FromBody] UpdatePaymentRequestDto requestDto)
         {
-            await _paymentService.HandleWebhookAsync(webhookData);
+            var response = await _paymentService.UpdatePaymentStatusAsync(requestDto);
 
-            return Ok(new { message = "Webhook processed successfully." });
+            return Ok(ApiResponse<PaymentResponseDto>.SuccessResponse(response, "update Payment status Successfully"));
         }
 
         [HttpGet("get-payment-of-year")]
-        [ProducesResponseType(typeof(ApiResponse<List<MonthlyPaymentSummary>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<PaymentChartResponse>), StatusCodes.Status200OK)]
         public async Task<IActionResult> CalculatePaymentEachMonthOfYearAsync([FromQuery] int year)
         {
             var response = await _paymentService.CalculateTotalPaymentEachMonthOfYearAsync(year);
-            return Ok(ApiResponse<List<MonthlyPaymentSummary>>.SuccessResponse(response, "Calculate Payment of Year Successfully"));
+            return Ok(ApiResponse<PaymentChartResponse>.SuccessResponse(response, "Calculate Payment of Year Successfully"));
+        }
+
+        [HttpGet("get-recent-payment")]
+        [ProducesResponseType(typeof(ApiResponse<List<PaymentResponseDto>>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetRecentPaymentAsync()
+        {
+            var response = await _paymentService.RecentPaymentAsync();
+            return Ok(ApiResponse<List<PaymentResponseDto>>.SuccessResponse(response, "Get Recent Payment Successfully"));
         }
     }
 }

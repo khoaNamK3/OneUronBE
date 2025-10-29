@@ -27,10 +27,10 @@ namespace OneUron.BLL.Interface
 
         public  Task<string> CreatePaymentLinkAsync(Guid memberShipPlanId, Guid userId);
 
-        public Task HandleWebhookAsync(WebhookType webhookData);
+        public  Task<PaymentResponseDto> UpdatePaymentStatusAsync(UpdatePaymentRequestDto requestDto);
 
-        public  Task<List<MonthlyPaymentSummary>> CalculateTotalPaymentEachMonthOfYearAsync(int years);
+        public Task<PaymentChartResponse> CalculateTotalPaymentEachMonthOfYearAsync(int years);
 
-
+        public  Task<List<PaymentResponseDto>> RecentPaymentAsync();
     }
 }

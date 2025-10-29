@@ -86,6 +86,7 @@ namespace OneUron.BLL.Services
             existShipPlan.Name = request.Name;
             existShipPlan.Fee = request.Fee;
             existShipPlan.Duration = request.Duration;
+            existShipPlan.memberShipPlanType = request.memberShipPlanType;
 
             if (request.FeatureIds != null)
             {
@@ -132,6 +133,7 @@ namespace OneUron.BLL.Services
                 Name = dto.Name,
                 Fee = dto.Fee,
                 Duration = dto.Duration,
+                memberShipPlanType = dto.memberShipPlanType,
                 Features = new List<Features>()
             };
 
@@ -160,6 +162,7 @@ namespace OneUron.BLL.Services
                 Name = memberShipPlan.Name,
                 Fee = memberShipPlan.Fee,
                 Duration = memberShipPlan.Duration,
+                memberShipPlanType = memberShipPlan.memberShipPlanType,
 
                 // list membership
                 MemberShips = memberShipPlan.MemberShips?

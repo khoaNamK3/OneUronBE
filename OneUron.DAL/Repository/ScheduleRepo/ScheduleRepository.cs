@@ -20,6 +20,11 @@ namespace OneUron.DAL.Repository.ScheduleRepo
             return await _dbSet.Where(c => c.IsDeleted == false).Include(c => c.Processes).ThenInclude(p => p.Subjects).Include(c => c.Subjects).ToListAsync();
         }
 
+        public async Task<Schedule> GetScheduleForWeekInfor(Guid id)
+        {
+            return await _dbSet.Where(c => c.IsDeleted == false).Include(c => c.Processes).ThenInclude(p => p.ProcessTasks).FirstOrDefaultAsync(c => c.Id == id);
+        }
+
         public async Task<Schedule> GetByIdAsync(Guid id)
         {
             return await _dbSet.Where(c => c.IsDeleted == false).Include(c => c.Processes).ThenInclude(p => p.Subjects).Include(c => c.Subjects).FirstOrDefaultAsync(c => c.Id == id);

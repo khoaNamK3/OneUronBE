@@ -121,7 +121,7 @@ namespace OneUron.BLL.Services
 
         public async Task<ScheduleWeekRespone> GetScheduleWeekInFormationAsync(Guid id)
         {
-            var existSchedule = await _scheduleRepository.GetByIdAsync(id);
+            var existSchedule = await _scheduleRepository.GetScheduleForWeekInfor(id);
 
             if (existSchedule == null)
                 throw new ApiException.NotFoundException($"Lịch học của  ID {id} Không tìm thấy.");
@@ -130,10 +130,10 @@ namespace OneUron.BLL.Services
             if (!processes.Any())
                 throw new ApiException.NotFoundException("Lịch học này không có bất kì quá trình nào.");
 
-          
+
             DateTime today = DateTime.UtcNow.Date;
 
-           
+
             DateTime startOfWeek = today.AddDays(-(int)today.DayOfWeek + (int)DayOfWeek.Monday);
             DateTime endOfWeek = startOfWeek.AddDays(7);
 

@@ -22,5 +22,9 @@ namespace OneUron.DAL.Repository.PaymentRepo
         public  Task<List<Payment>> GetAllPaymentFaidAsync();
 
         public  Task<List<Payment>> CalculateTotalPaymentEachMonthOfYearAsync(int year);
+
+        public  Task<List<int>> GetAllYearAsync();
+
+        public  Task<List<Payment>> RecentPaymentAsync();
     }
 }

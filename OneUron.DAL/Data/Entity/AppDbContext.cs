@@ -109,7 +109,8 @@ namespace OneUron.DAL.Data.Entity
             modelBuilder.Entity<Subject>().Property(s => s.Priority)
                 .HasConversion(new EnumToStringConverter<SubjectType>());
 
-
+            modelBuilder.Entity<MemberShipPlan>().Property(s => s.memberShipPlanType)
+               .HasConversion(new EnumToStringConverter<MemberShipPlanType>());
 
             // one to one User and Token
             modelBuilder.Entity<User>()

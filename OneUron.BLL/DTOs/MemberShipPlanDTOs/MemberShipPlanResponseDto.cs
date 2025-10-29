@@ -1,5 +1,6 @@
 ﻿using OneUron.BLL.DTOs.FeatureDTOs;
 using OneUron.BLL.DTOs.MemberShipDTOs;
+using OneUron.DAL.Data.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,8 @@ namespace OneUron.BLL.DTOs.MemberShipPlanDTOs
 
         public string Duration { get; set; }
 
-     
+        public MemberShipPlanType memberShipPlanType { get; set; }
+
         public List<MemberShipResponseDto> MemberShips { get; set; } = new List<MemberShipResponseDto>();
 
       

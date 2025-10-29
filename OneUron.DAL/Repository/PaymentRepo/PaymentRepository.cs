@@ -61,5 +61,19 @@ namespace OneUron.DAL.Repository.PaymentRepo
             return result;
         }
 
+        public async Task<List<int>> GetAllYearAsync()
+        {
+            return await _dbSet.Select(p => p.CreateAt.Year).Distinct().OrderByDescending(y => y).ToListAsync();
+        }
+
+        public async Task<List<Payment>> RecentPaymentAsync()
+        {
+            var fromDate = DateTime.UtcNow.AddDays(-7);
+
+            var recentPayments = await _dbSet.Where(p => p.CreateAt >= fromDate && p.CreateAt <= DateTime.UtcNow
+                    && p.Status == PaymentStatus.Paid).OrderByDescending(p => p.CreateAt).ToListAsync();
+
+            return recentPayments;
+        }
     }
 }

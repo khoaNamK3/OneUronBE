@@ -8,6 +8,8 @@ namespace OneUron.BLL.DTOs.AdminDTOs
 {
     public class UserPagingResponseDto
     {
+        public Guid UserId { get; set; }
+
         public string UserName { get; set; }
 
         public DateTime CreatedDate { get; set; }
